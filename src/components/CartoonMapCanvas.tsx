@@ -573,6 +573,11 @@ export const CartoonMapCanvas: React.FC<Props> = ({
               )}
 
               <button
+                aria-label={
+                  unlocked
+                    ? `Play ${level.pubName || level.name}`
+                    : `Locked level ${level.levelNumber}: ${level.pubName || level.name}`
+                }
                 onClick={() => {
                   audioSynth.playCoinFx();
                   if (unlocked) {
@@ -599,7 +604,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
               >
                 <span className="game-node-icon">
                   {!unlocked ? (
-                    <Lock className="w-7 h-7" />
+                    <span className="game-locked-dot" aria-hidden="true" />
                   ) : completed ? (
                     <CheckCircle2 className="w-7 h-7" />
                   ) : (
