@@ -517,7 +517,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         id="cartoon-map-canvas-board"
         className="game-map-board"
         style={{
-          backgroundImage: `linear-gradient(rgba(4, 25, 45, 0.08), rgba(4, 25, 45, 0.18)), url("${import.meta.env.BASE_URL}thames-game-map.png")`,
+          backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.01), rgba(6, 182, 212, 0.06)), url("${import.meta.env.BASE_URL}thames-game-map.png")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
