@@ -120,25 +120,25 @@ export const TavernShopModal: React.FC<Props> = ({
   return (
     <div
       id="tavern-shop-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-amber-950/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 bg-amber-950/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         id="tavern-shop-modal-container"
-        className="w-full max-w-lg bg-[#fffdf8] rounded-3xl border-4 border-amber-800 shadow-[0_12px_0_#451a03] overflow-hidden text-stone-900 flex flex-col max-h-[90vh] font-comic"
+        className="w-full max-w-lg bg-[#fffdf8] rounded-2xl sm:rounded-3xl border-[3px] sm:border-4 border-amber-800 shadow-[0_8px_0_#451a03] sm:shadow-[0_12px_0_#451a03] overflow-hidden text-stone-900 flex flex-col max-h-[96dvh] sm:max-h-[90vh] font-comic"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Cartoon Signboard */}
-        <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-4 border-b-4 border-amber-950 text-slate-950 flex items-center justify-between shadow-inner">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-amber-950 text-amber-300 flex items-center justify-center text-2xl shadow-md border-2 border-amber-800 animate-boing">
+        <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 p-3 sm:p-4 border-b-4 border-amber-950 text-slate-950 flex items-center justify-between gap-2 shadow-inner">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-950 text-amber-300 flex items-center justify-center text-xl sm:text-2xl shadow-md border-2 border-amber-800 animate-boing shrink-0">
               🏪
             </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-cartoon tracking-wide leading-none text-slate-950 drop-shadow-sm">
+            <div className="min-w-0">
+              <h2 className="text-base min-[380px]:text-lg sm:text-2xl font-cartoon tracking-wide leading-tight text-slate-950 drop-shadow-sm break-words">
                 TAVERN GENERAL STORE
               </h2>
-              <p className="text-[11px] font-black text-amber-950 opacity-90">
+              <p className="text-[10px] sm:text-[11px] leading-tight font-black text-amber-950 opacity-90 break-words">
                 Fake Money Mint & Heart Emporium 🪙
               </p>
             </div>
@@ -146,26 +146,26 @@ export const TavernShopModal: React.FC<Props> = ({
 
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-2xl bg-amber-950/20 hover:bg-amber-950 text-slate-950 hover:text-white flex items-center justify-center font-black transition cursor-pointer border-2 border-amber-950/40"
+            className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl sm:rounded-2xl bg-amber-950/20 hover:bg-amber-950 text-slate-950 hover:text-white flex items-center justify-center font-black transition cursor-pointer border-2 border-amber-950/40"
           >
             <X className="w-5 h-5 stroke-[2.5]" />
           </button>
         </div>
 
         {/* Currency & Vitality Status Bar */}
-        <div className="bg-amber-100/90 px-4 py-2.5 border-b-2 border-amber-800/30 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-3">
+        <div className="bg-amber-100/90 px-2.5 sm:px-4 py-2.5 border-b-2 border-amber-800/30 flex items-center justify-between text-xs">
+          <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2 sm:gap-3">
             {/* Pub Bucks */}
-            <div className="flex items-center gap-1.5 bg-amber-200/90 border-2 border-amber-800/60 px-3 py-1 rounded-2xl shadow-sm">
+            <div className="flex min-w-0 items-center gap-1.5 bg-amber-200/90 border-2 border-amber-800/60 px-2 sm:px-3 py-1 rounded-2xl shadow-sm">
               <Coins className="w-4 h-4 text-amber-700 fill-amber-500" />
               <span className="font-cartoon text-amber-950 text-sm font-black">
                 {progression.coins.toLocaleString()}
               </span>
-              <span className="text-[10px] text-amber-900 font-cartoon uppercase font-bold">BUCKS</span>
+              <span className="text-[9px] sm:text-[10px] text-amber-900 font-cartoon uppercase font-bold">BUCKS</span>
             </div>
 
             {/* Lives / Hearts */}
-            <div className="flex items-center gap-1.5 bg-rose-100 border-2 border-rose-400 px-3 py-1 rounded-2xl shadow-sm">
+            <div className="flex items-center gap-1.5 bg-rose-100 border-2 border-rose-400 px-2 sm:px-3 py-1 rounded-2xl shadow-sm">
               <div className="flex items-center gap-1">
                 {Array.from({ length: progression.maxLives }).map((_, i) => (
                   <Heart
@@ -191,10 +191,10 @@ export const TavernShopModal: React.FC<Props> = ({
 
         {/* Success / Alert Banner */}
         {successNotice && (
-          <div className="bg-emerald-100 border-b-2 border-emerald-400 px-4 py-2 flex items-center justify-between text-xs text-emerald-950 animate-in fade-in">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span className="font-bold">{successNotice}</span>
+          <div className="bg-emerald-100 border-b-2 border-emerald-400 px-3 sm:px-4 py-2 flex items-start justify-between gap-2 text-xs text-emerald-950 animate-in fade-in">
+            <div className="flex min-w-0 items-start gap-2">
+              <Sparkles className="w-4 h-4 mt-0.5 text-emerald-600 shrink-0" />
+              <span className="font-bold leading-snug break-words">{successNotice}</span>
             </div>
             <button
               onClick={() => setSuccessNotice(null)}
@@ -206,46 +206,46 @@ export const TavernShopModal: React.FC<Props> = ({
         )}
 
         {/* Tab Navigation */}
-        <div className="flex p-2.5 bg-amber-50 gap-2 border-b border-amber-800/30">
+        <div className="grid grid-cols-3 p-2 sm:p-2.5 bg-amber-50 gap-1.5 sm:gap-2 border-b border-amber-800/30">
           <button
             onClick={() => setActiveTab('bundles')}
-            className={`flex-1 py-2.5 rounded-2xl text-xs font-cartoon tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`min-w-0 px-1 py-2.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-cartoon tracking-wide sm:tracking-wider transition cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 leading-tight text-center ${
               activeTab === 'bundles'
                 ? 'cartoon-btn-amber text-slate-950 shadow-md'
                 : 'bg-[#fffdf8] text-stone-700 hover:text-stone-950 border-2 border-amber-800/40'
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>BUCKS PACKS</span>
+            <span className="whitespace-normal">BUCKS PACKS</span>
           </button>
 
           <button
             onClick={() => setActiveTab('lives')}
-            className={`flex-1 py-2.5 rounded-2xl text-xs font-cartoon tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`min-w-0 px-1 py-2.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-cartoon tracking-wide sm:tracking-wider transition cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 leading-tight text-center ${
               activeTab === 'lives'
                 ? 'cartoon-btn-pink text-white shadow-md'
                 : 'bg-[#fffdf8] text-stone-700 hover:text-stone-950 border-2 border-amber-800/40'
             }`}
           >
             <Heart className="w-4 h-4 fill-current" />
-            <span>BUY HEARTS</span>
+            <span className="whitespace-normal">BUY HEARTS</span>
           </button>
 
           <button
             onClick={() => setActiveTab('free')}
-            className={`flex-1 py-2.5 rounded-2xl text-xs font-cartoon tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`min-w-0 px-1 py-2.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-cartoon tracking-wide sm:tracking-wider transition cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 leading-tight text-center ${
               activeTab === 'free'
                 ? 'cartoon-btn-emerald text-white shadow-md'
                 : 'bg-[#fffdf8] text-stone-700 hover:text-stone-950 border-2 border-amber-800/40'
             }`}
           >
             <Gift className="w-4 h-4" />
-            <span>FREE SPINS</span>
+            <span className="whitespace-normal">FREE SPINS</span>
           </button>
         </div>
 
         {/* Scrollable Shop Content */}
-        <div className="p-4 overflow-y-auto space-y-3 flex-1 bg-amber-50/40">
+        <div className="p-2.5 sm:p-4 overflow-y-auto overscroll-contain space-y-3 flex-1 bg-amber-50/40">
           {/* TAB 1: FAKE MONEY BUNDLES */}
           {activeTab === 'bundles' && (
             <div className="space-y-2.5">
@@ -262,33 +262,33 @@ export const TavernShopModal: React.FC<Props> = ({
                 return (
                   <div
                     key={bundle.id}
-                    className="p-3.5 bg-[#fffdf8] border-2 border-amber-800/30 hover:border-amber-800 rounded-2xl transition flex items-center justify-between gap-3 relative overflow-hidden group shadow-sm"
+                    className="p-3 sm:p-3.5 bg-[#fffdf8] border-2 border-amber-800/30 hover:border-amber-800 rounded-2xl transition flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 relative group shadow-sm"
                   >
                     {bundle.badge && (
-                      <span className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 shadow-sm">
+                      <span className="self-start sm:absolute sm:top-2 sm:right-2 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 shadow-sm">
                         {bundle.badge}
                       </span>
                     )}
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div className="w-12 h-12 rounded-2xl bg-amber-100 border-2 border-amber-800/30 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
                         {bundle.icon}
                       </div>
 
                       <div className="min-w-0">
-                        <div className="text-sm font-black text-amber-950 flex items-center gap-1.5 truncate">
-                          <span>{bundle.title}</span>
+                        <div className={`text-sm font-black text-amber-950 flex items-center gap-1.5 leading-snug break-words ${bundle.badge ? 'sm:pr-20' : ''}`}>
+                          <span className="min-w-0">{bundle.title}</span>
                         </div>
-                        <div className="text-xs font-black text-amber-700 flex items-center gap-1">
-                          <Coins className="w-3 h-3 text-amber-600" />
-                          <span>+{bundle.rewardCoins.toLocaleString()} Pub Bucks</span>
+                        <div className="text-xs font-black text-amber-700 flex flex-wrap items-center gap-x-1 gap-y-0.5 leading-snug">
+                          <Coins className="w-3 h-3 text-amber-600 shrink-0" />
+                          <span className="break-words">+{bundle.rewardCoins.toLocaleString()} Pub Bucks</span>
                           {bundle.rewardLives > 0 && (
                             <span className="text-rose-600 ml-1">
                               (+{bundle.rewardLives} ❤️)
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-stone-600 font-bold truncate">
+                        <div className="text-[10px] text-stone-600 font-bold leading-snug break-words">
                           {bundle.subtitle}
                         </div>
                       </div>
@@ -298,7 +298,7 @@ export const TavernShopModal: React.FC<Props> = ({
                       id={`buy-bundle-${bundle.id}`}
                       disabled={isBuying}
                       onClick={() => handleBuyBundle(bundle)}
-                      className={`shrink-0 px-3.5 py-2.5 rounded-xl font-black text-xs transition cursor-pointer border shadow-sm flex items-center gap-1.5 min-h-[42px] ${
+                      className={`w-full sm:w-auto shrink-0 px-3.5 py-2.5 rounded-xl font-black text-xs transition cursor-pointer border shadow-sm flex items-center justify-center gap-1.5 min-h-[42px] whitespace-normal text-center ${
                         bundle.badge === 'DAILY GIFT'
                           ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 border-emerald-700 shadow-[0_3px_0_#065f46]'
                           : 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:brightness-110 text-slate-950 border-amber-900 shadow-[0_3px_0_#92400e]'
@@ -355,18 +355,18 @@ export const TavernShopModal: React.FC<Props> = ({
                 return (
                   <div
                     key={bundle.id}
-                    className="p-3.5 bg-[#fffdf8] border-2 border-rose-200 hover:border-rose-400 rounded-2xl flex items-center justify-between gap-3 shadow-sm"
+                    className="p-3 sm:p-3.5 bg-[#fffdf8] border-2 border-rose-200 hover:border-rose-400 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-sm"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div className="w-11 h-11 rounded-2xl bg-rose-100 border border-rose-400 flex items-center justify-center text-xl shrink-0">
                         {bundle.icon}
                       </div>
-                      <div>
-                        <div className="text-sm font-black text-stone-900">{bundle.title}</div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-black text-stone-900 leading-snug break-words">{bundle.title}</div>
                         <div className="text-xs font-black text-rose-700">
                           Restores +{bundle.rewardLives} Heart(s)
                         </div>
-                        <div className="text-[10px] text-stone-500 font-bold">{bundle.subtitle}</div>
+                        <div className="text-[10px] text-stone-500 font-bold leading-snug break-words">{bundle.subtitle}</div>
                       </div>
                     </div>
 
@@ -374,7 +374,7 @@ export const TavernShopModal: React.FC<Props> = ({
                       id={`buy-lives-${bundle.id}`}
                       disabled={isFull || !canAfford || isBuying}
                       onClick={() => handleBuyBundle(bundle)}
-                      className={`px-3.5 py-2.5 rounded-xl font-black text-xs transition cursor-pointer border shadow-sm flex items-center gap-1.5 min-h-[40px] ${
+                      className={`w-full sm:w-auto px-3.5 py-2.5 rounded-xl font-black text-xs transition cursor-pointer border shadow-sm flex items-center justify-center gap-1.5 min-h-[40px] whitespace-normal text-center ${
                         isFull
                           ? 'bg-stone-200 text-stone-500 border-stone-300 cursor-not-allowed'
                           : canAfford
@@ -396,14 +396,14 @@ export const TavernShopModal: React.FC<Props> = ({
             <div className="space-y-3">
               {/* Daily Gift */}
               <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-400 space-y-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-200 text-emerald-800 flex items-center justify-center text-xl border border-emerald-400">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-200 text-emerald-800 flex items-center justify-center text-xl border border-emerald-400 shrink-0">
                       🎁
                     </div>
-                    <div>
-                      <div className="text-sm font-black text-stone-900">Daily Tavern Rations</div>
-                      <div className="text-xs font-bold text-emerald-800">
+                    <div className="min-w-0">
+                      <div className="text-sm font-black text-stone-900 leading-snug break-words">Daily Tavern Rations</div>
+                      <div className="text-xs font-bold text-emerald-800 leading-snug break-words">
                         +250 Pub Bucks & Full 3 Hearts
                       </div>
                     </div>
@@ -414,7 +414,7 @@ export const TavernShopModal: React.FC<Props> = ({
                       const daily = SHOP_BUNDLES.find((b) => b.id === 'free_daily_keg');
                       if (daily) handleBuyBundle(daily);
                     }}
-                    className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md border border-emerald-800 transition cursor-pointer"
+                    className="w-full sm:w-auto px-3 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md border border-emerald-800 transition cursor-pointer whitespace-normal text-center"
                   >
                     Claim Free Gift
                   </button>
@@ -455,13 +455,13 @@ export const TavernShopModal: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-amber-100/90 p-3 border-t-2 border-amber-800/30 flex items-center justify-between">
-          <span className="text-[11px] text-stone-600 font-bold">
+        <div className="bg-amber-100/90 p-2.5 sm:p-3 border-t-2 border-amber-800/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+          <span className="text-[10px] sm:text-[11px] leading-snug text-stone-600 font-bold text-center sm:text-left break-words">
             Enjoying the Quiz? All currency is 100% simulated cartoon fun.
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-950 font-black text-xs transition cursor-pointer border border-amber-800/40"
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-950 font-black text-xs transition cursor-pointer border border-amber-800/40"
           >
             Close Store
           </button>
