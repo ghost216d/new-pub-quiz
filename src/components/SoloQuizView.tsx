@@ -27,6 +27,7 @@ import {
   saveSoloProgression,
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
+import { chooseUnseenFallbackQuestions, getOnlineTriviaQuestions } from '../utils/onlineTrivia';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
 import { TavernShopModal } from './TavernShopModal';
@@ -204,34 +205,24 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     const count = level.questionCount || 5;
     const automaticDifficulty = getAutomaticLevelDifficulty(level.levelNumber);
 
-    // 1. Try AI Generation
+    // 1. Fetch fresh Internet questions. The online session token and local
+    // seen-question history prevent repeats across levels and later visits.
     if (navigator.onLine) {
       try {
-        const res = await fetch('/api/ai/generate-questions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            category: `${map.name}: ${level.category}`,
-            count: count,
-            difficulty: automaticDifficulty,
-            levelNumber: level.levelNumber,
-            fresh: true,
-          }),
+        const onlineQuestions = await getOnlineTriviaQuestions({
+          category: `${map.name}: ${level.category}`,
+          count,
+          difficulty: automaticDifficulty,
         });
-        const data = await res.json();
-        if (data.questions && data.questions.length > 0) {
-          if (data.fallback && data.message) {
-            setAiNotice(data.message);
-          }
-          setQuestions(data.questions);
-          initGame(data.questions);
-          setIsLoading(false);
-          await finishLaunchAnimation();
-          setViewMode('quiz');
-          return;
-        }
+        setQuestions(onlineQuestions);
+        initGame(onlineQuestions);
+        setIsLoading(false);
+        await finishLaunchAnimation();
+        setViewMode('quiz');
+        return;
       } catch (err) {
-        console.warn('AI generation unavailable, falling back to offline question vault.', err);
+        console.warn('Online questions unavailable, falling back to the offline question vault.', err);
+        setAiNotice('Online questions are temporarily unavailable. Using unseen offline questions.');
       }
     }
 
@@ -248,9 +239,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    const shuffled = [...qPool]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, count)
+    const shuffled = chooseUnseenFallbackQuestions(qPool, count)
       .map((q) => ({
         ...q,
         points: automaticDifficulty === 'hard' ? 20 : 15,
@@ -288,31 +277,21 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     };
     const targetPoints = pointsByDiff[automaticDifficulty] || 15;
 
-    if (useAI && navigator.onLine) {
+    if (navigator.onLine) {
       try {
-        const res = await fetch('/api/ai/generate-questions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            category: topic,
-            count: 10,
-            difficulty: automaticDifficulty,
-            fresh: true,
-          }),
+        const onlineQuestions = await getOnlineTriviaQuestions({
+          category: topic,
+          count: 10,
+          difficulty: automaticDifficulty,
         });
-        const data = await res.json();
-        if (data.questions && data.questions.length > 0) {
-          if (data.fallback && data.message) {
-            setAiNotice(data.message);
-          }
-          setQuestions(data.questions);
-          initGame(data.questions);
-          setIsLoading(false);
-          setViewMode('quiz');
-          return;
-        }
+        setQuestions(onlineQuestions);
+        initGame(onlineQuestions);
+        setIsLoading(false);
+        setViewMode('quiz');
+        return;
       } catch (err) {
-        console.warn('AI generation unavailable, falling back to offline question vault.', err);
+        console.warn('Online questions unavailable, falling back to the offline question vault.', err);
+        setAiNotice('Online questions are temporarily unavailable. Using unseen offline questions.');
       }
     }
 
@@ -329,9 +308,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    const shuffled = [...qPool]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 10)
+    const shuffled = chooseUnseenFallbackQuestions(qPool, 10)
       .map((q) => ({
         ...q,
         points: targetPoints,
