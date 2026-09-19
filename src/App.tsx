@@ -334,7 +334,7 @@ export default function App() {
   return (
     <div className="min-h-screen min-h-[100dvh] bg-pub-wood text-stone-900 flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950 pb-safe">
       {/* Top App Header (hidden on full TV mode for cinema display) */}
-      {role !== 'tv' && (
+      {role !== 'tv' && role !== 'solo' && (
         <Header
           role={role}
           roomCode={roomCode}
@@ -346,7 +346,7 @@ export default function App() {
       )}
 
       {/* Main App Content Router */}
-      <main className="flex-1 w-full px-2.5 py-3 sm:px-4 md:px-6 md:py-6 flex flex-col justify-start">
+      <main className={role === 'solo' ? 'flex-1 w-full min-h-[100dvh]' : 'flex-1 w-full px-2.5 py-3 sm:px-4 md:px-6 md:py-6 flex flex-col justify-start'}>
         {role === 'landing' && (
           <LandingView
             onHostGame={handleHostGame}

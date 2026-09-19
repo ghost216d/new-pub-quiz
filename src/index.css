@@ -348,6 +348,10 @@ button, a, input, select {
   font-family: 'Fredoka', sans-serif;
 }
 
+.game-side-panel {
+  display: contents;
+}
+
 .game-top-bar {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) 48px;
@@ -937,6 +941,18 @@ button, a, input, select {
   animation: cartoon-boing 1.5s ease-in-out infinite;
 }
 
+.game-level-node.is-arriving {
+  animation: map-stage-arrive 1.1s cubic-bezier(0.2, 0.9, 0.25, 1.25) 2;
+  box-shadow:
+    0 0 0 10px rgba(253, 224, 71, 0.32),
+    0 0 34px rgba(250, 204, 21, 0.95),
+    0 7px 0 #7c2d12;
+}
+
+.game-level-position:has(.game-level-node.is-arriving) .game-you-marker {
+  animation: map-player-arrive 1.25s ease-out both;
+}
+
 .game-level-node.is-selected {
   outline: 4px solid white;
   outline-offset: 3px;
@@ -1281,74 +1297,106 @@ button, a, input, select {
   .game-map-shell {
     width: 100%;
     max-width: none;
-    min-height: 100dvh;
-    display: grid;
-    grid-template-columns: minmax(290px, 350px) minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto auto 1fr;
-    column-gap: 16px;
-    padding: 12px 16px 88px;
+    height: 100dvh;
+    min-height: 680px;
+    position: relative;
+    display: block;
+    padding: 0;
     overflow: hidden;
   }
 
   .game-top-bar {
-    grid-column: 1 / -1;
-    grid-row: 1;
+    position: absolute;
+    z-index: 40;
+    top: 14px;
+    right: 16px;
+    left: 16px;
+    background: linear-gradient(180deg, rgba(127, 29, 29, 0.97), rgba(69, 10, 10, 0.97));
   }
 
-  .game-hud,
-  .game-regen,
-  .game-actions,
-  .game-realm-card,
-  .game-level-card {
-    grid-column: 1;
+  .game-side-panel {
+    position: absolute;
+    z-index: 32;
+    top: 91px;
+    bottom: 88px;
+    left: 16px;
+    width: 340px;
+    display: block;
+    padding: 0 3px 10px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #f59e0b rgba(69, 26, 3, 0.35);
   }
 
-  .game-hud {
-    grid-row: 2;
+  .game-side-panel .game-hud {
+    margin-top: 0;
   }
 
-  .game-actions {
+  .game-side-panel .game-actions {
     grid-template-columns: 1fr;
   }
 
-  .game-action-gold {
+  .game-side-panel .game-action-gold {
     grid-column: auto;
   }
 
-  .game-regen {
-    grid-row: 3;
-  }
-
-  .game-actions {
-    grid-row: 4;
-  }
-
-  .game-realm-card {
-    grid-row: 5;
-  }
-
   .game-level-card {
-    grid-row: 6;
-    align-self: start;
-    max-height: calc(100dvh - 420px);
+    position: absolute;
+    z-index: 34;
+    right: 18px;
+    bottom: 88px;
+    width: min(355px, calc(100vw - 400px));
+    max-height: calc(100dvh - 190px);
+    margin: 0;
     overflow-y: auto;
   }
 
   .game-map-board {
-    grid-column: 2;
-    grid-row: 2 / 7;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: calc(100dvh - 116px);
-    min-height: 620px;
-    margin-top: 10px;
-    border-radius: 26px;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: inset 0 0 75px rgba(0, 0, 0, 0.38);
   }
 
   .game-bottom-nav {
-    right: 16px;
+    right: 50%;
     left: auto;
-    width: min(680px, calc(100vw - 398px));
-    transform: none;
+    width: min(720px, calc(100vw - 32px));
+    transform: translateX(50%);
+  }
+}
+
+@keyframes map-stage-arrive {
+  0% {
+    transform: scale(0.65) rotate(-9deg);
+    filter: brightness(1.8);
+  }
+  55% {
+    transform: scale(1.22) rotate(5deg);
+  }
+  100% {
+    transform: scale(1.05) rotate(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes map-player-arrive {
+  0% {
+    opacity: 0;
+    transform: translate(-160px, 95px) rotate(-18deg) scale(0.7);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(12px, -8px) rotate(6deg) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(1);
   }
 }
 
