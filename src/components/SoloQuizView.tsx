@@ -93,6 +93,9 @@ const DIFFICULTY_OPTIONS: {
   },
 ];
 
+const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
+  levelNumber % 5 === 0 ? 'hard' : 'medium';
+
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
   // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = AI free topic
   const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup'>('map');
@@ -177,7 +180,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
     setActiveLevel(level);
     setActiveMap(map);
     setSelectedCategory(level.category);
-    setDifficulty(level.difficulty);
+    setDifficulty(getAutomaticLevelDifficulty(level.levelNumber));
     setCustomTopic('');
     setUseAI(true); // Attempt AI for map level, with instant curated fallback
     handleStartGameWithLevel(level, map);
@@ -187,6 +190,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
     setIsLoading(true);
     setAiNotice(null);
     const count = level.questionCount || 5;
+    const automaticDifficulty = getAutomaticLevelDifficulty(level.levelNumber);
 
     // 1. Try AI Generation
     if (navigator.onLine) {
@@ -197,7 +201,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
           body: JSON.stringify({
             category: `${map.name}: ${level.category}`,
             count: count,
-            difficulty: level.difficulty,
+            difficulty: automaticDifficulty,
+            levelNumber: level.levelNumber,
+            fresh: true,
           }),
         });
         const data = await res.json();
@@ -234,8 +240,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
       .slice(0, count)
       .map((q) => ({
         ...q,
-        points: level.difficulty === 'easy' ? 10 : level.difficulty === 'hard' ? 20 : level.difficulty === 'expert' ? 25 : 15,
-        difficulty: level.difficulty,
+        points: automaticDifficulty === 'hard' ? 20 : 15,
+        difficulty: automaticDifficulty,
       }));
 
     setQuestions(shuffled);
@@ -257,6 +263,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
     setActiveLevel(null);
     setActiveMap(null);
     const topic = customTopic.trim() || selectedCategory;
+    const automaticDifficulty: QuizDifficulty = 'medium';
+    setDifficulty(automaticDifficulty);
 
     const pointsByDiff: Record<QuizDifficulty, number> = {
       easy: 10,
@@ -264,7 +272,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
       hard: 20,
       expert: 25,
     };
-    const targetPoints = pointsByDiff[difficulty] || 15;
+    const targetPoints = pointsByDiff[automaticDifficulty] || 15;
 
     if (useAI && navigator.onLine) {
       try {
@@ -274,7 +282,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
           body: JSON.stringify({
             category: topic,
             count: 10,
-            difficulty: difficulty,
+            difficulty: automaticDifficulty,
+            fresh: true,
           }),
         });
         const data = await res.json();
@@ -312,7 +321,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
       .map((q) => ({
         ...q,
         points: targetPoints,
-        difficulty: difficulty,
+        difficulty: automaticDifficulty,
       }));
 
     setQuestions(shuffled);
@@ -519,8 +528,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
   // VIEW 2: CUSTOM AI & SOLO SETUP SCREEN
   // ==========================================
   if (viewMode === 'custom_setup') {
-    const activeDiffObj = DIFFICULTY_OPTIONS.find((d) => d.id === difficulty) || DIFFICULTY_OPTIONS[1];
-
     return (
       <div className="max-w-xl mx-auto bg-[#fffdf8] rounded-3xl p-5 sm:p-7 border-4 border-amber-800 shadow-[0_8px_0_#451a03] text-stone-900 space-y-5">
         <div className="flex items-center justify-between border-b-2 border-amber-800/30 pb-3">
@@ -557,42 +564,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
           </p>
         </div>
 
-        {/* DIFFICULTY SELECTOR */}
-        <div className="space-y-2 p-3.5 bg-amber-50/90 rounded-2xl border-2 border-amber-800/40">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 text-amber-950">
-              <Flame className="w-4 h-4 text-orange-500" />
-              <span>Choose Question Difficulty</span>
-            </label>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-950 border border-amber-800/30">
-              {activeDiffObj.points} pts / Question
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {DIFFICULTY_OPTIONS.map((opt) => {
-              const isSelected = difficulty === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  onClick={() => setDifficulty(opt.id)}
-                  className={`p-2.5 rounded-xl border-2 font-bold text-left transition cursor-pointer flex flex-col justify-between min-h-[72px] ${
-                    isSelected
-                      ? opt.activeClass
-                      : `${opt.bgClass} ${opt.borderClass} ${opt.textClass} hover:border-amber-700`
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-base">{opt.icon}</span>
-                    <span className="text-[10px] font-mono font-bold opacity-80">{opt.points}pts</span>
-                  </div>
-                  <div>
-                    <div className="text-xs font-black leading-tight">{opt.label}</div>
-                    <div className="text-[9px] opacity-80 font-normal leading-tight truncate">{opt.sublabel}</div>
-                  </div>
-                </button>
-              );
-            })}
+        {/* Difficulty is automatic: every fifth level becomes a hard challenge. */}
+        <div className="flex items-center gap-3 p-3.5 bg-amber-50/90 rounded-2xl border-2 border-amber-800/40">
+          <Flame className="w-5 h-5 text-orange-500" />
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-amber-950">Automatic challenge</p>
+            <p className="text-[11px] font-bold text-stone-600">Standard questions, with a hard challenge every 5th level.</p>
           </div>
         </div>
 

@@ -9,7 +9,6 @@ import {
   Heart,
   Loader2,
   Lock,
-  MapPin,
   ShoppingBag,
   Sparkles,
   Star,
@@ -455,70 +454,10 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           })}
         </div>
 
-        <div className="game-route-summary">
-          <div className="game-route-label">
-            <span>🍺</span>
-
-            <div>
-              <small>South London Pub Crawl</small>
-              <strong>
-                {activeMap.crawlRouteName ||
-                  activeMap.name}
-              </strong>
-            </div>
-          </div>
-
-          {activeMap.totalDistance && (
-            <div className="game-distance">
-              <MapPin className="w-4 h-4" />
-              <span>{activeMap.totalDistance}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="game-route-points">
-          {activeMap.levels.map((level) => {
-            const unlocked = isLevelUnlocked(level);
-            const completed =
-              progression.completedLevels[level.id]?.passed;
-            const selected =
-              selectedLevel?.id === level.id;
-
-            return (
-              <button
-                key={level.id}
-                onClick={() => {
-                  setSelectedLevel(level);
-                  audioSynth.playCoinFx();
-                }}
-                className={[
-                  'game-route-point',
-                  selected ? 'is-selected' : '',
-                  completed ? 'is-completed' : '',
-                  !unlocked ? 'is-locked' : '',
-                ].join(' ')}
-              >
-                <span>
-                  {completed
-                    ? '✓'
-                    : unlocked
-                      ? level.icon
-                      : '🔒'}
-                </span>
-
-                <strong>
-                  {level.pubName?.replace('The ', '') ||
-                    level.name}
-                </strong>
-
-                <small>
-                  {level.postcode?.split(' ')[0] ||
-                    `Level ${level.levelNumber}`}
-                </small>
-              </button>
-            );
-          })}
-        </div>
+        <p className="game-auto-difficulty-note">
+          <Sparkles className="w-4 h-4" />
+          AI refreshes the questions automatically. Every 5th level is a hard challenge.
+        </p>
       </section>
 
       {/* Main illustrated map */}
@@ -678,7 +617,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             <div>
               <span>Difficulty</span>
               <strong>
-                {selectedLevel.difficulty}
+                {selectedLevel.levelNumber % 5 === 0
+                  ? 'Hard challenge'
+                  : 'Standard'}
               </strong>
             </div>
 
