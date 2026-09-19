@@ -567,3 +567,208 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
           const completed = Boolean(progress?.passed);
           const stars = progress?.stars || 0
+                  const selected =
+            selectedLevel?.id === level.id;
+          const current =
+            currentLevelNumber === level.levelNumber;
+
+          return (
+            <div
+              key={level.id}
+              className="game-level-position"
+              style={{
+                left: `${coordinates.x}%`,
+                top: `${coordinates.y}%`,
+              }}
+            >
+              {current && unlocked && !completed && (
+                <div className="game-you-marker">
+                  <span>{userProfile.avatar}</span>
+                  <strong>YOU</strong>
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  setSelectedLevel(level);
+                  audioSynth.playCoinFx();
+                }}
+                className={[
+                  'game-level-node',
+                  level.levelNumber === 5
+                    ? 'is-boss'
+                    : '',
+                  completed ? 'is-completed' : '',
+                  !unlocked ? 'is-locked' : '',
+                  selected ? 'is-selected' : '',
+                  current && unlocked && !completed
+                    ? 'is-current'
+                    : '',
+                ].join(' ')}
+              >
+                <span className="game-node-icon">
+                  {!unlocked ? (
+                    <Lock className="w-7 h-7" />
+                  ) : completed ? (
+                    <CheckCircle2 className="w-7 h-7" />
+                  ) : (
+                    level.icon
+                  )}
+                </span>
+
+                <strong>
+                  {level.pubName?.replace('The ', '') ||
+                    level.name}
+                </strong>
+              </button>
+
+              <div className="game-node-stars">
+                {[0, 1, 2].map((star) => (
+                  <Star
+                    key={star}
+                    className={
+                      star < stars
+                        ? 'is-earned'
+                        : ''
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="game-map-decoration game-pub-building">
+          🏠
+        </div>
+
+        <div className="game-map-decoration game-boat">
+          ⛵
+        </div>
+
+        <div className="game-map-decoration game-tree">
+          🌳
+        </div>
+      </section>
+
+      {/* Selected level information */}
+      {selectedLevel && (
+        <section className="game-level-card">
+          <button
+            onClick={() => setSelectedLevel(null)}
+            className="game-close-button"
+            aria-label="Close level information"
+          >
+            ×
+          </button>
+
+          <div className="game-level-card-heading">
+            <div className="game-level-card-icon">
+              {selectedLevel.icon}
+            </div>
+
+            <div>
+              <small>
+                Pub stop {selectedLevel.levelNumber} of{' '}
+                {activeMap.levels.length}
+              </small>
+
+              <h3>
+                {selectedLevel.pubName ||
+                  selectedLevel.name}
+              </h3>
+
+              <p>
+                {selectedLevel.address}
+                {selectedLevel.postcode
+                  ? `, ${selectedLevel.postcode}`
+                  : ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="game-level-details">
+            <div>
+              <span>Quiz</span>
+              <strong>{selectedLevel.category}</strong>
+            </div>
+
+            <div>
+              <span>Difficulty</span>
+              <strong>
+                {selectedLevel.difficulty}
+              </strong>
+            </div>
+
+            <div>
+              <span>Reward</span>
+              <strong>
+                {selectedLevel.coinReward} 🪙
+              </strong>
+            </div>
+          </div>
+
+          {selectedLevel.funFact && (
+            <p className="game-level-fact">
+              💡 {selectedLevel.funFact}
+            </p>
+          )}
+
+          {isLevelUnlocked(selectedLevel) ? (
+            <button
+              onClick={playSelectedLevel}
+              className="game-play-button"
+            >
+              <Beer className="w-5 h-5" />
+
+              <span>
+                {progression.lives <= 0
+                  ? 'Refill Hearts to Play'
+                  : 'Play This Level'}
+              </span>
+            </button>
+          ) : (
+            <div className="game-locked-message">
+              <Lock className="w-4 h-4" />
+              Complete the previous pub to unlock this
+              level.
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Bottom navigation */}
+      <nav className="game-bottom-nav">
+        <button onClick={onBackToHome}>
+          <span>🏠</span>
+          <strong>Home</strong>
+        </button>
+
+        <button onClick={() => onOpenShop('bundles')}>
+          <ShoppingBag className="w-6 h-6" />
+          <strong>Shop</strong>
+        </button>
+
+        <button
+          className="is-active"
+          onClick={() => setSelectedLevel(null)}
+        >
+          <span>🗺️</span>
+          <strong>World</strong>
+        </button>
+
+        <button onClick={onCustomSoloMode}>
+          <Zap className="w-6 h-6" />
+          <strong>Quiz</strong>
+        </button>
+
+        <button
+          onClick={() => setIsAuthModalOpen(true)}
+        >
+          <User className="w-6 h-6" />
+          <strong>Profile</strong>
+        </button>
+      </nav>
+    </main>
+  );
+};
