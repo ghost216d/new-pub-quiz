@@ -1434,6 +1434,137 @@ button, a, input, select {
   }
 }
 
+/* Full-screen mobile question round and wider Solo realm selector. */
+@media (max-width: 639px) {
+  .solo-quiz-screen {
+    height: 100dvh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: max(7px, env(safe-area-inset-top, 0px)) 7px max(8px, env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+
+  .solo-quiz-screen > * {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .solo-quiz-hud {
+    flex: 0 0 auto;
+    padding: 10px;
+  }
+
+  .solo-quiz-progress > span:first-child {
+    font-size: 12px;
+    padding: 6px 11px;
+  }
+
+  .solo-quiz-progress > span:last-child {
+    font-size: 13px;
+  }
+
+  .solo-quiz-stats {
+    min-height: 42px;
+  }
+
+  .solo-quiz-stats > div {
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  .solo-question-card {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding: 15px;
+    overflow-y: auto;
+  }
+
+  .solo-question-card > div:first-child {
+    flex: 0 0 auto;
+  }
+
+  .solo-question-card h3 {
+    flex: 0 0 auto;
+    margin: 0;
+    font-size: clamp(19px, 5.3vw, 24px);
+    line-height: 1.32;
+  }
+
+  .solo-question-card > .grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: repeat(4, minmax(62px, 1fr));
+    gap: 11px;
+    padding-top: 2px;
+  }
+
+  .solo-question-card > .grid > button {
+    height: 100%;
+    min-height: 62px;
+    padding: 13px 14px;
+    font-size: clamp(16px, 4.5vw, 20px);
+    line-height: 1.22;
+  }
+
+  .solo-question-card > .grid > button > div > span:first-child {
+    width: 38px;
+    height: 38px;
+    font-size: 17px;
+  }
+
+  .solo-question-card > .grid > button > div > span:last-child {
+    line-height: 1.25;
+  }
+
+  .game-realm-card {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    padding: 11px;
+  }
+
+  .game-realm-title h2 {
+    font-size: clamp(16px, 4.5vw, 20px);
+  }
+
+  .game-realm-title p {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .game-realm-title > span {
+    font-size: 26px;
+  }
+
+  .game-realm-tabs {
+    margin: 9px 0 2px;
+  }
+}
+
+@media (max-height: 700px) and (max-width: 639px) {
+  .solo-question-card h3 {
+    font-size: 17px;
+  }
+
+  .solo-question-card > .grid {
+    grid-template-rows: repeat(4, minmax(54px, 1fr));
+    gap: 8px;
+  }
+
+  .solo-question-card > .grid > button {
+    min-height: 54px;
+    font-size: 15px;
+  }
+}
+
 /* Absolute viewport containment for narrow phones and browser zoom. */
 .app-shell,
 .app-content,
@@ -2268,8 +2399,11 @@ button, a, input, select {
   }
 
   .game-realm-card {
-    width: calc(100vw - 100px);
+    right: 8px;
+    left: 8px;
+    width: auto;
     min-width: 0;
+    max-width: none;
   }
 
   .game-realm-tab {
@@ -2299,6 +2433,8 @@ button, a, input, select {
   }
 
   .game-realm-card {
-    width: calc(100vw - 94px);
+    right: 7px;
+    left: 7px;
+    width: auto;
   }
 }
