@@ -130,6 +130,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [gameOver, setGameOver] = useState(false);
   const [isOutOfLivesModalOpen, setIsOutOfLivesModalOpen] = useState(false);
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
+  const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
 
   // Helper to persist progression state updates
   const updateProgression = (updated: SoloProgression) => {
@@ -469,6 +470,30 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       });
 
       setCoinsEarnedInGame((prev) => prev + bonusReward);
+
+      const currentMapIndex = allKnownMaps.findIndex((map) => map.id === activeMap.id);
+      const nextLevel = activeMap.levels.find(
+        (level) => level.levelNumber === activeLevel.levelNumber + 1
+      );
+      const nextMap = allKnownMaps[currentMapIndex + 1];
+      const nextTarget = nextLevel
+        ? { mapId: activeMap.id, levelId: nextLevel.id }
+        : nextMap?.levels[0]
+          ? { mapId: nextMap.id, levelId: nextMap.levels[0].id }
+          : { mapId: activeMap.id, levelId: activeLevel.id };
+
+      setAutoAdvanceTarget(nextTarget);
+
+      // Show the victory moment, then travel to the next stage automatically.
+      window.setTimeout(() => {
+        setGameOver(false);
+        setSelectedAnswer(null);
+        setIsAnswerRevealed(false);
+        setActiveLevel(null);
+        setActiveMap(null);
+        setViewMode('map');
+        audioSynth.playChampionFanfare();
+      }, 2600);
     }
   };
 
@@ -512,6 +537,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           onCustomSoloMode={() => setViewMode('custom_setup')}
           onBackToHome={onBackToHome}
           onOpenQuizMaster={onOpenQuizMaster}
+          autoAdvanceTarget={autoAdvanceTarget}
         />
 
         {/* Tavern Shop Modal */}

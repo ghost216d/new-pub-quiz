@@ -38,6 +38,7 @@ interface Props {
   onCustomSoloMode: () => void;
   onBackToHome: () => void;
   onOpenQuizMaster: () => void;
+  autoAdvanceTarget?: { mapId: string; levelId: string } | null;
   initialEntranceAnim?: boolean;
 }
 
@@ -57,6 +58,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   onCustomSoloMode,
   onBackToHome,
   onOpenQuizMaster,
+  autoAdvanceTarget,
 }) => {
   const allMaps = getAllMaps(progression);
 
@@ -77,6 +79,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
   const [regenCountdown, setRegenCountdown] =
     useState('Full ❤️');
+  const [arrivalLevelId, setArrivalLevelId] = useState<string | null>(null);
 
   const activeMap =
     allMaps.find((map) => map.id === activeMapId) ||
@@ -183,6 +186,25 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     return () => window.clearInterval(timer);
   }, [progression, onUpdateProgression]);
+
+  useEffect(() => {
+    if (!autoAdvanceTarget) return;
+
+    const targetMap = allMaps.find((map) => map.id === autoAdvanceTarget.mapId);
+    const targetLevel = targetMap?.levels.find((level) => level.id === autoAdvanceTarget.levelId);
+    if (!targetMap || !targetLevel) return;
+
+    setActiveMapId(targetMap.id);
+    setSelectedLevel(targetLevel);
+    setArrivalLevelId(targetLevel.id);
+    audioSynth.playCoinFx();
+
+    const celebrationTimer = window.setTimeout(() => {
+      setArrivalLevelId(null);
+    }, 2400);
+
+    return () => window.clearTimeout(celebrationTimer);
+  }, [autoAdvanceTarget]);
 
   const changeMap = (direction: -1 | 1) => {
     const nextIndex = activeMapIndex + direction;
@@ -313,6 +335,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       </header>
 
       {/* Player currencies */}
+      <aside className="game-side-panel">
       <section className="game-hud">
         <button
           onClick={() => onOpenShop('lives')}
@@ -473,6 +496,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           AI refreshes the questions automatically. Every 5th level is a hard challenge.
         </p>
       </section>
+      </aside>
 
       {/* Main illustrated map */}
       <section
@@ -549,6 +573,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                   selected ? 'is-selected' : '',
                   current && unlocked && !completed
                     ? 'is-current'
+                    : '',
+                  arrivalLevelId === level.id
+                    ? 'is-arriving'
                     : '',
                 ].join(' ')}
               >
