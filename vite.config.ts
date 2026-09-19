@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   // IMPORTANT:
   // Change "pub-quiz" below if your GitHub repository has a different name.
-  base: '/pub-quiz/',
+  base: '/new-pub-quiz/',
 
   plugins: [
     react(),
@@ -19,7 +19,7 @@ export default defineConfig({
       includeAssets: ['icon.svg'],
 
       manifest: {
-        id: '/pub-quiz/',
+        id: '/new-pub-quiz/',
         name: 'The Cartoon Pub Quiz',
         short_name: 'PubQuiz',
         description:
@@ -30,8 +30,8 @@ export default defineConfig({
 
         display: 'standalone',
 
-        start_url: '/pub-quiz/',
-        scope: '/pub-quiz/',
+        start_url: '/new-pub-quiz/',
+        scope: '/new-pub-quiz/',
 
         icons: [
           {
