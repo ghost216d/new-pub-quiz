@@ -1573,6 +1573,19 @@ button, a, input, select {
   box-shadow: 0 3px 0 #0284c7;
 }
 
+.global-music-control {
+  position: fixed;
+  z-index: 70;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  right: 10px;
+}
+
+.global-music-control .bgm-trigger {
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 4px 0 #0284c7, 0 9px 20px rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(10px);
+}
+
 .bgm-control.is-open .bgm-trigger {
   min-width: 64px;
   min-height: 54px;
@@ -1622,6 +1635,10 @@ button, a, input, select {
 }
 
 @media (max-width: 639px) {
+  .app-main-header {
+    padding-right: 72px;
+  }
+
   .bgm-menu {
     position: fixed;
     top: max(72px, calc(env(safe-area-inset-top, 0px) + 64px));
@@ -1642,7 +1659,7 @@ button, a, input, select {
     border: 2px solid rgba(14, 116, 144, 0.6);
     border-radius: 23px;
     background: rgba(240, 249, 255, 0.9);
-    box-shadow: 0 8px 25px rgba(15, 23, 42, 0.28);
+    box-shadow: 0 7px 0 rgba(3, 105, 161, 0.8), 0 14px 30px rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(10px);
   }
 
@@ -2450,7 +2467,8 @@ button, a, input, select {
 @media (max-width: 639px) {
   .game-actions {
     top: 62px;
-    right: 7px;
+    right: auto;
+    left: 7px;
     width: 78px;
     gap: 7px;
   }

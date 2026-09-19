@@ -10,6 +10,7 @@ import { PlayerMobileView } from './components/PlayerMobileView';
 import { SoloQuizView } from './components/SoloQuizView';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal } from './components/AuthModal';
+import { BGMController } from './components/BGMController';
 import { getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
 import { SoloProgression } from './types';
 
@@ -389,6 +390,9 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* Music stays available on every screen, including Solo and quiz rounds. */}
+      <BGMController compact className="global-music-control" />
 
       {/* Offline Status Badge */}
       <OfflineIndicator />
