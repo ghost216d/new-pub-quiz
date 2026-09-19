@@ -334,4 +334,956 @@ button, a, input, select {
   animation: cartoon-spin-slow 14s linear infinite;
 }
 
+/* =========================================================
+   MOBILE GAME MAP REDESIGN
+========================================================= */
 
+.game-map-shell {
+  width: min(100%, 720px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 10px 10px 92px;
+  overflow-x: hidden;
+  color: #fff7ed;
+  font-family: 'Fredoka', sans-serif;
+}
+
+.game-top-bar {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 3px solid #f59e0b;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, #7f1d1d 0%, #450a0a 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.15),
+    0 5px 0 #2b0909;
+}
+
+.game-icon-button,
+.game-avatar-button {
+  width: 43px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fbbf24;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #92400e, #451a03);
+  color: #fff7ed;
+  box-shadow: 0 3px 0 #1c0a02;
+}
+
+.game-avatar-button {
+  font-size: 22px;
+}
+
+.game-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.game-title-icon {
+  flex: 0 0 auto;
+  font-size: 30px;
+  filter: drop-shadow(0 2px 0 #451a03);
+}
+
+.game-title h1 {
+  margin: 0;
+  overflow: hidden;
+  color: #fff7ed;
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: clamp(17px, 5vw, 23px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 #451a03;
+}
+
+.game-title p {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: #fbbf24;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.game-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) auto;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.game-resource {
+  min-width: 0;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border: 3px solid;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 4px 0 rgba(28, 25, 23, 0.75);
+}
+
+.game-resource-lives {
+  border-color: #fb7185;
+  background: linear-gradient(180deg, #ffe4e6, #fecdd3);
+  color: #881337;
+}
+
+.game-resource-coins {
+  border-color: #f59e0b;
+  background: linear-gradient(180deg, #fef3c7, #fcd34d);
+  color: #78350f;
+}
+
+.game-resource-stars {
+  border-color: #facc15;
+  background: linear-gradient(180deg, #fef9c3, #fde047);
+  color: #713f12;
+}
+
+.game-hearts {
+  display: flex;
+  align-items: center;
+}
+
+.game-hearts svg {
+  width: 17px;
+  height: 17px;
+  margin-right: -3px;
+}
+
+.game-heart-full {
+  color: #e11d48;
+  fill: #f43f5e;
+}
+
+.game-heart-empty {
+  color: #a8a29e;
+  fill: #d6d3d1;
+}
+
+.game-add-button {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e11d48;
+  color: white;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.game-regen {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 6px auto 0;
+  padding: 3px 9px;
+  border: 1px solid #fb7185;
+  border-radius: 999px;
+  background: rgba(255, 228, 230, 0.95);
+  color: #9f1239;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.game-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.game-action {
+  min-height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 8px 12px;
+  border: 3px solid;
+  border-radius: 18px;
+  color: white;
+  text-align: left;
+  box-shadow: 0 5px 0 rgba(28, 25, 23, 0.8);
+}
+
+.game-action span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-action strong {
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.game-action small {
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 700;
+  opacity: 0.85;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-action-purple {
+  border-color: #581c87;
+  background: linear-gradient(180deg, #a855f7, #6b21a8);
+}
+
+.game-action-green {
+  border-color: #064e3b;
+  background: linear-gradient(180deg, #34d399, #047857);
+}
+
+.game-realm-card {
+  margin-top: 12px;
+  padding: 11px;
+  border: 4px solid #78350f;
+  border-radius: 25px;
+  background: linear-gradient(180deg, #fffaf0, #ffedd5);
+  color: #292524;
+  box-shadow: 0 7px 0 #451a03;
+}
+
+.game-realm-heading {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 7px;
+}
+
+.game-map-arrow {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #92400e;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+  color: #451a03;
+  box-shadow: 0 3px 0 #78350f;
+}
+
+.game-map-arrow:disabled {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+
+.game-realm-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.game-realm-title > span {
+  flex: 0 0 auto;
+  font-size: 27px;
+}
+
+.game-realm-title div {
+  min-width: 0;
+}
+
+.game-realm-title h2 {
+  margin: 0;
+  overflow: hidden;
+  color: #78350f;
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: clamp(15px, 4.5vw, 21px);
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-realm-title p {
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: #57534e;
+  font-size: 9px;
+  font-weight: 800;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-realm-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin: 10px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.game-realm-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.game-realm-tab {
+  min-width: 48px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 3px solid #a8a29e;
+  border-radius: 14px;
+  background: #e7e5e4;
+  color: #57534e;
+  font-size: 19px;
+  box-shadow: 0 3px 0 #78716c;
+}
+
+.game-realm-tab.is-selected {
+  border-color: #92400e;
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+  color: #451a03;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #78350f;
+}
+
+.game-realm-tab.is-locked {
+  filter: grayscale(0.65);
+  opacity: 0.65;
+}
+
+.game-route-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px;
+  border: 2px solid #d97706;
+  border-radius: 16px;
+  background: #fef3c7;
+}
+
+.game-route-label {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.game-route-label > span {
+  font-size: 24px;
+}
+
+.game-route-label div {
+  min-width: 0;
+}
+
+.game-route-label small {
+  display: block;
+  color: #92400e;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.game-route-label strong {
+  display: block;
+  overflow: hidden;
+  color: #451a03;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-distance {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 7px;
+  border: 1px solid #d6d3d1;
+  border-radius: 11px;
+  background: white;
+  color: #44403c;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.game-route-points {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.game-route-point {
+  min-width: 0;
+  min-height: 65px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px 2px;
+  border: 2px solid #d6d3d1;
+  border-radius: 13px;
+  background: white;
+  color: #44403c;
+}
+
+.game-route-point > span {
+  font-size: 17px;
+}
+
+.game-route-point strong,
+.game-route-point small {
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-route-point strong {
+  font-size: 8px;
+}
+
+.game-route-point small {
+  color: #78716c;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.game-route-point.is-selected {
+  border-color: #f59e0b;
+  background: #fef3c7;
+  transform: translateY(-2px);
+}
+
+.game-route-point.is-completed {
+  border-color: #10b981;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.game-route-point.is-locked {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.game-map-board {
+  position: relative;
+  width: 100%;
+  height: clamp(520px, 112vw, 680px);
+  margin-top: 14px;
+  overflow: hidden;
+  border: 5px solid #f59e0b;
+  border-radius: 28px;
+  box-shadow:
+    inset 0 0 35px rgba(0, 0, 0, 0.25),
+    0 9px 0 #78350f;
+  isolation: isolate;
+}
+
+.game-map-sky {
+  position: absolute;
+  inset: 2% 4% auto;
+  display: flex;
+  justify-content: space-between;
+  font-size: 27px;
+  opacity: 0.75;
+}
+
+.game-river {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 3px solid rgba(186, 230, 253, 0.55);
+  background:
+    repeating-radial-gradient(
+      ellipse at bottom,
+      rgba(255,255,255,0.12) 0 4px,
+      transparent 5px 18px
+    ),
+    linear-gradient(
+      180deg,
+      rgba(14, 165, 233, 0.55),
+      rgba(3, 105, 161, 0.35)
+    );
+  color: rgba(224, 242, 254, 0.65);
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.game-map-path {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.game-path-shadow,
+.game-path-main {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.game-path-shadow {
+  stroke: rgba(69, 26, 3, 0.75);
+  stroke-width: 18;
+}
+
+.game-path-main {
+  stroke-width: 11;
+  stroke-dasharray: 12 5;
+}
+
+.game-level-position {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.game-level-node {
+  width: 72px;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px;
+  border: 4px solid #fcd34d;
+  border-radius: 23px;
+  background: linear-gradient(180deg, #fb923c, #c2410c);
+  color: white;
+  box-shadow: 0 6px 0 #7c2d12;
+  text-align: center;
+}
+
+.game-level-node.is-boss {
+  width: 82px;
+  min-height: 82px;
+  border-color: #fde047;
+  background: linear-gradient(180deg, #ef4444, #991b1b);
+}
+
+.game-level-node.is-current {
+  animation: cartoon-boing 1.5s ease-in-out infinite;
+}
+
+.game-level-node.is-selected {
+  outline: 4px solid white;
+  outline-offset: 3px;
+  transform: scale(1.08);
+}
+
+.game-level-node.is-completed {
+  border-color: #6ee7b7;
+  background: linear-gradient(180deg, #34d399, #047857);
+  box-shadow: 0 6px 0 #064e3b;
+}
+
+.game-level-node.is-locked {
+  border-color: #78716c;
+  background: linear-gradient(180deg, #57534e, #292524);
+  color: #d6d3d1;
+  filter: grayscale(0.75);
+}
+
+.game-node-icon {
+  min-height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 27px;
+}
+
+.game-level-node strong {
+  width: 100%;
+  overflow: hidden;
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: 8px;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.game-node-stars {
+  display: flex;
+  gap: 1px;
+  margin-top: 6px;
+  padding: 3px 5px;
+  border: 2px solid #57534e;
+  border-radius: 999px;
+  background: rgba(28, 25, 23, 0.88);
+}
+
+.game-node-stars svg {
+  width: 12px;
+  height: 12px;
+  color: #78716c;
+  fill: #44403c;
+}
+
+.game-node-stars svg.is-earned {
+  color: #fde047;
+  fill: #facc15;
+}
+
+.game-you-marker {
+  position: absolute;
+  right: 55%;
+  bottom: calc(100% + 5px);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  border: 2px solid #451a03;
+  border-radius: 999px;
+  background: #facc15;
+  color: #451a03;
+  font-size: 9px;
+  box-shadow: 0 3px 0 #78350f;
+  animation: cartoon-float 1.6s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+.game-you-marker span {
+  font-size: 15px;
+}
+
+.game-map-decoration {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 5px 2px rgba(0, 0, 0, 0.28));
+}
+
+.game-pub-building {
+  right: 5%;
+  bottom: 5%;
+  font-size: 70px;
+}
+
+.game-boat {
+  right: 11%;
+  top: 10%;
+  font-size: 37px;
+}
+
+.game-tree {
+  left: 4%;
+  top: 39%;
+  font-size: 48px;
+}
+
+.game-level-card {
+  position: relative;
+  margin-top: 14px;
+  padding: 15px;
+  border: 4px solid #78350f;
+  border-radius: 25px;
+  background: linear-gradient(180deg, #fffaf0, #ffedd5);
+  color: #292524;
+  box-shadow: 0 7px 0 #451a03;
+}
+
+.game-close-button {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #a8a29e;
+  border-radius: 999px;
+  background: white;
+  color: #57534e;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.game-level-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-right: 31px;
+}
+
+.game-level-card-icon {
+  width: 57px;
+  height: 57px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #92400e;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+  font-size: 29px;
+  box-shadow: 0 4px 0 #78350f;
+}
+
+.game-level-card-heading small {
+  color: #b45309;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.game-level-card-heading h3 {
+  margin: 1px 0;
+  color: #78350f;
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: 19px;
+  letter-spacing: 0.03em;
+}
+
+.game-level-card-heading p {
+  margin: 0;
+  color: #57534e;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.game-level-details {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 0.8fr;
+  gap: 6px;
+  margin-top: 13px;
+}
+
+.game-level-details div {
+  min-width: 0;
+  padding: 8px;
+  border: 2px solid #fed7aa;
+  border-radius: 13px;
+  background: white;
+}
+
+.game-level-details span,
+.game-level-details strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-level-details span {
+  color: #78716c;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.game-level-details strong {
+  margin-top: 2px;
+  color: #78350f;
+  font-size: 10px;
+  text-transform: capitalize;
+}
+
+.game-level-fact {
+  margin: 10px 0 0;
+  padding: 9px;
+  border: 1px solid #f59e0b;
+  border-radius: 13px;
+  background: #fef3c7;
+  color: #713f12;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.game-play-button {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+  border: 3px solid #064e3b;
+  border-radius: 17px;
+  background: linear-gradient(180deg, #34d399, #047857);
+  color: white;
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 5px 0 #064e3b;
+}
+
+.game-locked-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 2px solid #a8a29e;
+  border-radius: 14px;
+  background: #e7e5e4;
+  color: #57534e;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.game-bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 45;
+  height: calc(72px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 5px max(7px, env(safe-area-inset-right))
+    env(safe-area-inset-bottom, 0px)
+    max(7px, env(safe-area-inset-left));
+  border-top: 4px solid #fbbf24;
+  background: linear-gradient(180deg, #9f1239, #4c0519);
+  box-shadow: 0 -5px 18px rgba(0, 0, 0, 0.35);
+}
+
+.game-bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 13px;
+  color: #fecdd3;
+}
+
+.game-bottom-nav button > span {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.game-bottom-nav button strong {
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.game-bottom-nav button.is-active {
+  border: 2px solid #fde68a;
+  background: linear-gradient(180deg, #fbbf24, #d97706);
+  color: #451a03;
+  transform: translateY(-9px);
+  box-shadow: 0 4px 0 #78350f;
+}
+
+@media (min-width: 640px) {
+  .game-map-shell {
+    padding: 16px 16px 100px;
+  }
+
+  .game-map-board {
+    height: 650px;
+  }
+
+  .game-level-node {
+    width: 84px;
+    min-height: 84px;
+  }
+
+  .game-level-node.is-boss {
+    width: 94px;
+    min-height: 94px;
+  }
+
+  .game-level-node strong {
+    font-size: 10px;
+  }
+
+  .game-bottom-nav {
+    right: 50%;
+    left: auto;
+    width: min(720px, 100%);
+    transform: translateX(50%);
+    border-right: 3px solid #fbbf24;
+    border-left: 3px solid #fbbf24;
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .game-map-shell {
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+
+  .game-resource {
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 11px;
+  }
+
+  .game-resource-coins svg:last-child {
+    display: none;
+  }
+
+  .game-route-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .game-distance {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .game-level-node {
+    width: 64px;
+    min-height: 64px;
+  }
+
+  .game-level-node.is-boss {
+    width: 72px;
+    min-height: 72px;
+  }
+  }
