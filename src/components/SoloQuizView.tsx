@@ -836,7 +836,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           <span className="shrink-0 px-2.5 sm:px-3 py-1 rounded-full cartoon-btn-amber text-[10px] sm:text-xs font-cartoon shadow-sm">
             Q {currentIdx + 1} / {questions.length}
           </span>
-          <span className="min-w-0 text-[11px] sm:text-xs text-stone-900 font-cartoon truncate">
+          <span className="solo-quiz-pub-name min-w-0 text-[11px] sm:text-xs text-stone-900 font-cartoon truncate">
             {activeLevel ? activeLevel.name : currentQ?.category}
           </span>
         </div>
