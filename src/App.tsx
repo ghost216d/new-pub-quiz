@@ -332,7 +332,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-pub-wood text-stone-900 flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950 pb-safe">
+    <div className={`min-h-screen min-h-[100dvh] text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
       {/* Top App Header (hidden on full TV mode for cinema display) */}
       {role !== 'tv' && role !== 'solo' && (
         <Header
@@ -354,7 +354,7 @@ export default function App() {
             onConnectTV={handleConnectTV}
             onStartSolo={() => setRole('solo')}
             initialMode="host"
-            showSoloHero={false}
+            showSoloHero={true}
             isLoading={isLoading}
             error={errorMessage}
           />
@@ -384,7 +384,7 @@ export default function App() {
 
         {role === 'solo' && (
           <SoloQuizView
-            onBackToHome={handleHomeClick}
+            onBackToHome={() => setRole('landing')}
             onOpenQuizMaster={() => setRole('landing')}
           />
         )}
