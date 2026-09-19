@@ -2766,3 +2766,63 @@ button, a, input, select {
   .game-actions-toggle strong { font-size: 8px; }
   .game-actions.is-open { width: 104px; }
 }
+
+/* Locked Solo levels are quiet route dots until they become playable. */
+.game-level-node.is-locked,
+.game-level-node.is-locked.is-boss {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  gap: 0;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background: #64748b;
+  color: transparent;
+  box-shadow: 0 3px 0 #334155, 0 5px 12px rgba(15, 23, 42, 0.35);
+  filter: none;
+}
+
+.game-level-node.is-locked .game-node-icon {
+  width: 8px;
+  height: 8px;
+  min-height: 0;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.game-level-node.is-locked strong,
+.game-level-position:has(.game-level-node.is-locked) .game-node-stars {
+  display: none;
+}
+
+.game-level-node.is-locked:active {
+  transform: scale(0.9);
+}
+
+/* Give the Solo route room to breathe and allow vertical map exploration. */
+@media (max-width: 899px) {
+  .game-map-shell {
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .game-top-bar,
+  .game-side-panel {
+    position: fixed;
+  }
+
+  .game-map-board {
+    height: max(132dvh, 980px);
+    min-height: max(132dvh, 980px);
+    background-position: center top !important;
+  }
+
+  .game-bottom-nav {
+    position: fixed;
+  }
+}
