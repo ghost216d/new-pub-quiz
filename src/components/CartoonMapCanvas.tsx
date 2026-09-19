@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Clock,
   Coins,
+  Crown,
   Heart,
   Loader2,
   Lock,
@@ -36,6 +37,7 @@ interface Props {
   onOpenShop: (tab?: 'lives' | 'bundles' | 'free') => void;
   onCustomSoloMode: () => void;
   onBackToHome: () => void;
+  onOpenQuizMaster: () => void;
   initialEntranceAnim?: boolean;
 }
 
@@ -54,6 +56,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   onOpenShop,
   onCustomSoloMode,
   onBackToHome,
+  onOpenQuizMaster,
 }) => {
   const allMaps = getAllMaps(progression);
 
@@ -392,6 +395,17 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                 : 'New Realm'}
             </strong>
             <small>Made by AI</small>
+          </span>
+        </button>
+
+        <button
+          onClick={onOpenQuizMaster}
+          className="game-action game-action-gold"
+        >
+          <Crown className="w-5 h-5" />
+          <span>
+            <strong>Quiz Master</strong>
+            <small>Host a live quiz</small>
           </span>
         </button>
       </section>

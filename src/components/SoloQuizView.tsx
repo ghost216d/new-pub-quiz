@@ -34,6 +34,7 @@ import confetti from 'canvas-confetti';
 
 interface Props {
   onBackToHome: () => void;
+  onOpenQuizMaster: () => void;
 }
 
 const DIFFICULTY_OPTIONS: {
@@ -96,7 +97,7 @@ const DIFFICULTY_OPTIONS: {
 const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
   levelNumber % 5 === 0 ? 'hard' : 'medium';
 
-export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
+export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
   // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = AI free topic
   const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup'>('map');
 
@@ -510,6 +511,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome }) => {
           }}
           onCustomSoloMode={() => setViewMode('custom_setup')}
           onBackToHome={onBackToHome}
+          onOpenQuizMaster={onOpenQuizMaster}
         />
 
         {/* Tavern Shop Modal */}

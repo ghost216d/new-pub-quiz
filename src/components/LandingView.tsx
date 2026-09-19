@@ -21,6 +21,8 @@ interface Props {
   onJoinGame: (code: string, teamName: string, avatar: string, selectedTeamId?: string) => void;
   onConnectTV: (code: string) => void;
   onStartSolo: () => void;
+  initialMode?: 'join' | 'host' | 'tv';
+  showSoloHero?: boolean;
   isLoading?: boolean;
   error?: string | null;
 }
@@ -30,10 +32,12 @@ export const LandingView: React.FC<Props> = ({
   onJoinGame,
   onConnectTV,
   onStartSolo,
+  initialMode = 'join',
+  showSoloHero = true,
   isLoading = false,
   error = null,
 }) => {
-  const [mode, setMode] = useState<'join' | 'host' | 'tv'>('join');
+  const [mode, setMode] = useState<'join' | 'host' | 'tv'>(initialMode);
   const [roomCode, setRoomCode] = useState('');
   const [teamName, setTeamName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('🍺');
@@ -68,7 +72,7 @@ export const LandingView: React.FC<Props> = ({
   return (
     <div className="max-w-xl mx-auto space-y-2.5 sm:space-y-3.5 select-none animate-pop-in pb-4 px-1 sm:px-0">
       {/* 1. SOLO PLAYER OPTION - PROMINENTLY AT THE VERY TOP OF THE PAGE */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 rounded-3xl p-3 sm:p-3.5 border-4 border-amber-950 shadow-[0_6px_0_#451a03] transition hover:scale-[1.01] animate-rubberband">
+      {showSoloHero && <div className="relative overflow-hidden bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 rounded-3xl p-3 sm:p-3.5 border-4 border-amber-950 shadow-[0_6px_0_#451a03] transition hover:scale-[1.01] animate-rubberband">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 text-slate-950 flex items-center justify-center font-black text-2xl sm:text-3xl shadow-md border-3 border-amber-950 shrink-0 animate-boing">
@@ -96,7 +100,7 @@ export const LandingView: React.FC<Props> = ({
             <span className="text-sm sm:text-base animate-bounce">➔</span>
           </button>
         </div>
-      </div>
+      </div>}
 
       {error && (
         <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-rose-100 border-3 border-rose-600 text-rose-950 text-xs font-black shadow-[0_3px_0_#4c0519] animate-shake">

@@ -76,6 +76,11 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   const teamsList: Team[] = (Object.values(roomState.teams) as Team[]).sort((a, b) => b.score - a.score);
   const aliveTeams = teamsList.filter((t) => !t.isEliminated);
   const knockedOutTeams = teamsList.filter((t) => t.isEliminated);
+  const submittedCount = Object.keys(roomState.submissions).length;
+  const totalQuestions = currentRound?.questions.length || 0;
+  const questionProgress = totalQuestions
+    ? Math.round(((roomState.currentQuestionIndex + 1) / totalQuestions) * 100)
+    : 0;
 
   const maxTeamsAllowed = roomState.settings.maxTeams || 40;
 
@@ -263,6 +268,43 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
           </button>
         </div>
       </div>
+
+      {/* At-a-glance Quiz Master dashboard */}
+      <section className="grid grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Quiz status overview">
+        <div className="rounded-2xl border-3 border-emerald-700 bg-emerald-50 p-3.5 shadow-[0_4px_0_#065f46]">
+          <div className="flex items-center gap-2 text-emerald-800">
+            <Radio className="w-4 h-4" />
+            <span className="text-[10px] font-black uppercase tracking-wider">Game status</span>
+          </div>
+          <strong className="mt-1 block text-lg text-emerald-950 capitalize">{roomState.status.replace('_', ' ')}</strong>
+        </div>
+
+        <div className="rounded-2xl border-3 border-amber-700 bg-amber-50 p-3.5 shadow-[0_4px_0_#92400e]">
+          <div className="flex items-center gap-2 text-amber-800">
+            <Layers className="w-4 h-4" />
+            <span className="text-[10px] font-black uppercase tracking-wider">Current round</span>
+          </div>
+          <strong className="mt-1 block truncate text-lg text-amber-950">{currentRound?.title || 'Ready to begin'}</strong>
+        </div>
+
+        <div className="rounded-2xl border-3 border-sky-700 bg-sky-50 p-3.5 shadow-[0_4px_0_#075985]">
+          <div className="flex items-center justify-between gap-2 text-sky-800">
+            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider">
+              <ListOrdered className="w-4 h-4" /> Question
+            </span>
+            <span className="text-[10px] font-black">{questionProgress}%</span>
+          </div>
+          <strong className="mt-1 block text-lg text-sky-950">{Math.min(roomState.currentQuestionIndex + 1, totalQuestions)} / {totalQuestions}</strong>
+        </div>
+
+        <div className="rounded-2xl border-3 border-purple-700 bg-purple-50 p-3.5 shadow-[0_4px_0_#581c87]">
+          <div className="flex items-center gap-2 text-purple-800">
+            <CheckCircle className="w-4 h-4" />
+            <span className="text-[10px] font-black uppercase tracking-wider">Answers received</span>
+          </div>
+          <strong className="mt-1 block text-lg text-purple-950">{submittedCount} / {teamsList.length}</strong>
+        </div>
+      </section>
 
       {/* KNOCKOUT WINNER CELEBRATION BANNER ON HOST SCREEN */}
       {roomState.status === 'knockout_winner' && (
