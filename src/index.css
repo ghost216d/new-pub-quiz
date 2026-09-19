@@ -47,6 +47,64 @@ body,
   box-shadow: 0 4px 0 #0284c7, 0 10px 22px rgba(15, 23, 42, 0.18) !important;
 }
 
+/* Readable mobile typography across menus, forms, game controls and results. */
+.app-shell [class*="text-[7px]"],
+.app-shell [class*="text-[8px]"],
+.app-shell [class*="text-[9px]"] {
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+
+.app-shell [class*="text-[10px]"],
+.app-shell [class*="text-[11px]"] {
+  font-size: 0.8125rem !important;
+  line-height: 1.1rem !important;
+}
+
+.app-shell [class~="text-xs"] {
+  font-size: 0.9rem !important;
+  line-height: 1.25rem !important;
+}
+
+@media (max-width: 639px) {
+  .landing-mode-tabs button {
+    min-height: 56px;
+    font-size: 0.78rem !important;
+    line-height: 1.05rem;
+  }
+
+  .landing-mode-panel input,
+  .landing-mode-panel select,
+  .landing-mode-panel textarea,
+  .landing-mode-panel button {
+    font-size: 0.9rem !important;
+  }
+
+  .landing-mode-panel label,
+  .landing-solo-hero p,
+  .landing-pub-sign p {
+    line-height: 1.25;
+  }
+}
+
+/* Brighter, more colourful Solo world without sacrificing text contrast. */
+.role-solo {
+  background-color: #38bdf8 !important;
+  background-image:
+    radial-gradient(circle at 16% 8%, rgba(255, 255, 255, 0.96), transparent 26%),
+    radial-gradient(circle at 84% 18%, rgba(250, 204, 21, 0.42), transparent 30%),
+    linear-gradient(155deg, #38bdf8 0%, #67e8f9 42%, #bae6fd 72%, #fef08a 118%) !important;
+}
+
+.role-solo .game-map-shell {
+  background: linear-gradient(180deg, #38bdf8 0%, #67e8f9 54%, #fef08a 130%);
+}
+
+.role-solo .game-map-board {
+  background-color: #7dd3fc;
+  box-shadow: 0 8px 0 #0284c7, 0 18px 38px rgba(3, 105, 161, 0.3);
+}
+
 
 /* Larger, easier-to-read text throughout the Quiz Master console. */
 .role-host .host-console-shell {
