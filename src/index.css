@@ -2861,3 +2861,73 @@ button, a, input, select {
     line-height: 1.15;
   }
 }
+
+/* Carry the map's light river-blue palette through every app screen. */
+.app-shell,
+.tv-display-shell {
+  background-color: #e0f2fe !important;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.92), transparent 28%),
+    linear-gradient(180deg, #dff4ff 0%, #f0f9ff 48%, #e0f2fe 100%) !important;
+}
+
+.app-main-header {
+  border-color: #7dd3fc !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(224, 242, 254, 0.96)) !important;
+  box-shadow: 0 4px 0 rgba(2, 132, 199, 0.62), 0 9px 22px rgba(15, 23, 42, 0.14) !important;
+}
+
+.app-shell [class~="bg-[#fffdf8]"],
+.tv-display-shell [class~="bg-[#fffdf8]"],
+#tavern-shop-modal-container {
+  background-color: rgba(255, 255, 255, 0.97) !important;
+}
+
+.role-landing [class*="border-amber-800"],
+.role-host [class*="border-amber-800"],
+.role-player [class*="border-amber-800"],
+.role-solo :is(.solo-setup-screen, .solo-result-screen) [class*="border-amber-800"],
+.role-solo :is(.solo-setup-screen, .solo-result-screen),
+.tv-display-shell [class*="border-amber-800"],
+#tavern-shop-modal-container [class*="border-amber-800"],
+#tavern-shop-modal-container {
+  border-color: #38bdf8 !important;
+}
+
+.role-landing :is(.landing-pub-sign, .landing-mode-panel),
+.role-host .host-console-shell > div,
+.role-player .app-content > div,
+.role-solo :is(.solo-setup-screen, .solo-result-screen),
+.tv-display-shell > :is(header, main, footer),
+#tavern-shop-modal-container {
+  box-shadow: 0 6px 0 #0284c7, 0 14px 28px rgba(15, 23, 42, 0.16) !important;
+}
+
+.role-landing [class*="bg-amber-50"],
+.role-host [class*="bg-amber-50"],
+.role-player [class*="bg-amber-50"],
+.tv-display-shell [class*="bg-amber-50"],
+#tavern-shop-modal-container [class*="bg-amber-50"] {
+  background-color: #f0f9ff !important;
+}
+
+.role-landing [class*="bg-amber-100"],
+.role-host [class*="bg-amber-100"],
+.role-player [class*="bg-amber-100"],
+.tv-display-shell [class*="bg-amber-100"],
+#tavern-shop-modal-container [class*="bg-amber-100"] {
+  background-color: #e0f2fe !important;
+}
+
+/* Keep the global speaker clear of the Quiz Master exit control. */
+.role-host .global-music-control {
+  top: max(76px, calc(env(safe-area-inset-top, 0px) + 68px));
+  right: 12px;
+}
+
+@media (min-width: 640px) {
+  .role-host .global-music-control {
+    top: max(84px, calc(env(safe-area-inset-top, 0px) + 76px));
+    right: 18px;
+  }
+}

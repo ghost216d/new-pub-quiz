@@ -333,7 +333,7 @@ export default function App() {
   };
 
   return (
-    <div className={`app-shell min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
+    <div className={`app-shell role-${role} min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
       {/* Top App Header (hidden on full TV mode for cinema display) */}
       {role !== 'tv' && role !== 'solo' && (
         <Header
