@@ -1434,6 +1434,148 @@ button, a, input, select {
   }
 }
 
+/* Cleaner Solo HUD for phones and small tablets. */
+@media (max-width: 899px) {
+  .game-top-bar {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    min-height: 58px;
+    padding: 6px 62px 6px 7px;
+    border-width: 2px;
+    border-radius: 20px;
+    box-shadow: 0 5px 0 rgba(14, 116, 144, 0.72), 0 10px 24px rgba(15, 23, 42, 0.22);
+  }
+
+  .game-icon-button,
+  .game-avatar-button {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+
+  .game-title {
+    gap: 7px;
+  }
+
+  .game-title h1 {
+    font-size: clamp(17px, 4.6vw, 24px);
+  }
+
+  .game-title p {
+    margin-top: 2px;
+    font-size: clamp(8px, 2vw, 11px);
+  }
+
+  .game-avatar-button {
+    display: none;
+  }
+
+  .global-music-control {
+    top: max(15px, calc(env(safe-area-inset-top, 0px) + 7px));
+    right: 15px;
+  }
+
+  .global-music-control .bgm-trigger {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+    gap: 0;
+    padding: 0;
+    border-radius: 14px;
+    box-shadow: 0 3px 0 #0284c7, 0 8px 18px rgba(15, 23, 42, 0.24);
+  }
+
+  .global-music-control .bgm-trigger > svg:first-child {
+    width: 22px;
+    height: 22px;
+  }
+
+  .global-music-control .bgm-trigger-chevron {
+    display: none;
+  }
+
+  .global-music-control.is-open .bgm-trigger {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    min-height: 48px;
+  }
+
+  .game-side-panel {
+    inset: 78px 0 78px;
+  }
+
+  .game-hud {
+    left: 8px;
+    width: min(292px, calc(100vw - 16px));
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr) 58px;
+    gap: 5px;
+  }
+
+  .game-resource {
+    min-height: 40px;
+    padding: 4px 7px;
+    border-width: 2px;
+    border-radius: 14px;
+    font-size: 12px;
+    box-shadow: 0 3px 0 rgba(15, 23, 42, 0.35), 0 7px 15px rgba(15, 23, 42, 0.15);
+  }
+
+  .game-hearts svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .game-add-button {
+    width: 19px;
+    height: 19px;
+    font-size: 14px;
+  }
+
+  .game-regen {
+    top: 46px;
+    left: 9px;
+    padding: 3px 8px;
+    font-size: 9px;
+    background: rgba(255, 255, 255, 0.94);
+  }
+
+  .game-actions {
+    top: 76px;
+    right: auto;
+    left: 8px;
+    width: 64px;
+  }
+
+  .game-actions:not(.is-open) {
+    width: 64px;
+  }
+
+  .game-actions-toggle {
+    min-height: 58px;
+    padding: 6px 3px;
+    border-width: 2px;
+    border-radius: 18px;
+    box-shadow: 0 4px 0 #0369a1, 0 10px 22px rgba(15, 23, 42, 0.3);
+  }
+
+  .game-actions-toggle svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .game-actions-toggle strong {
+    font-size: 8px;
+  }
+
+  .game-actions.is-open {
+    width: 104px;
+    box-shadow: 0 6px 0 rgba(3, 105, 161, 0.78), 0 16px 30px rgba(15, 23, 42, 0.38);
+  }
+}
+
 /* Full-screen mobile question round and wider Solo realm selector. */
 @media (max-width: 639px) {
   .solo-quiz-screen {
@@ -2542,4 +2684,85 @@ button, a, input, select {
     left: 7px;
     width: auto;
   }
+}
+
+/* Final cascade: compact, uncluttered Solo header controls. */
+@media (max-width: 899px) {
+  .game-top-bar {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    min-height: 58px;
+    padding: 6px 62px 6px 7px;
+    border-width: 2px;
+    border-radius: 20px;
+    box-shadow: 0 5px 0 rgba(14, 116, 144, 0.72), 0 10px 24px rgba(15, 23, 42, 0.22);
+  }
+
+  .game-avatar-button { display: none; }
+  .game-icon-button { width: 42px; height: 42px; border-radius: 14px; }
+  .game-title { gap: 7px; }
+  .game-title h1 { font-size: clamp(17px, 4.6vw, 24px); }
+  .game-title p { margin-top: 2px; font-size: clamp(8px, 2vw, 11px); }
+
+  .global-music-control {
+    top: max(15px, calc(env(safe-area-inset-top, 0px) + 7px));
+    right: 15px;
+  }
+
+  .global-music-control .bgm-trigger,
+  .global-music-control.is-open .bgm-trigger {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+    gap: 0;
+    padding: 0;
+    border-radius: 14px;
+    box-shadow: 0 3px 0 #0284c7, 0 8px 18px rgba(15, 23, 42, 0.24);
+  }
+
+  .global-music-control .bgm-trigger > svg:first-child { width: 22px; height: 22px; }
+  .global-music-control .bgm-trigger-chevron { display: none; }
+
+  .game-side-panel { inset: 78px 0 78px; }
+  .game-hud {
+    left: 8px;
+    width: min(292px, calc(100vw - 16px));
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr) 58px;
+    gap: 5px;
+  }
+
+  .game-resource {
+    min-height: 40px;
+    padding: 4px 7px;
+    border-width: 2px;
+    border-radius: 14px;
+    font-size: 12px;
+    box-shadow: 0 3px 0 rgba(15, 23, 42, 0.35), 0 7px 15px rgba(15, 23, 42, 0.15);
+  }
+
+  .game-hearts svg { width: 15px; height: 15px; }
+  .game-add-button { width: 19px; height: 19px; font-size: 14px; }
+  .game-regen { top: 46px; left: 9px; padding: 3px 8px; font-size: 9px; background: rgba(255,255,255,.94); }
+
+  .game-actions,
+  .game-actions:not(.is-open) {
+    top: 76px;
+    right: auto;
+    left: 8px;
+    width: 64px;
+  }
+
+  .game-actions-toggle {
+    min-height: 58px;
+    padding: 6px 3px;
+    border-width: 2px;
+    border-radius: 18px;
+    box-shadow: 0 4px 0 #0369a1, 0 10px 22px rgba(15, 23, 42, 0.3);
+  }
+
+  .game-actions-toggle svg { width: 24px; height: 24px; }
+  .game-actions-toggle strong { font-size: 8px; }
+  .game-actions.is-open { width: 104px; }
 }
