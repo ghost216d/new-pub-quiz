@@ -131,6 +131,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [isOutOfLivesModalOpen, setIsOutOfLivesModalOpen] = useState(false);
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
+  const [launchingLevel, setLaunchingLevel] = useState<MapLevel | null>(null);
 
   // Helper to persist progression state updates
   const updateProgression = (updated: SoloProgression) => {
@@ -185,12 +186,21 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setDifficulty(getAutomaticLevelDifficulty(level.levelNumber));
     setCustomTopic('');
     setUseAI(true); // Attempt AI for map level, with instant curated fallback
+    setLaunchingLevel(level);
     handleStartGameWithLevel(level, map);
   };
 
   const handleStartGameWithLevel = async (level: MapLevel, map: CartoonMap) => {
     setIsLoading(true);
     setAiNotice(null);
+    const launchStartedAt = Date.now();
+    const finishLaunchAnimation = async () => {
+      const remaining = Math.max(0, 700 - (Date.now() - launchStartedAt));
+      if (remaining > 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, remaining));
+      }
+      setLaunchingLevel(null);
+    };
     const count = level.questionCount || 5;
     const automaticDifficulty = getAutomaticLevelDifficulty(level.levelNumber);
 
@@ -216,6 +226,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           setQuestions(data.questions);
           initGame(data.questions);
           setIsLoading(false);
+          await finishLaunchAnimation();
           setViewMode('quiz');
           return;
         }
@@ -249,6 +260,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setQuestions(shuffled);
     initGame(shuffled);
     setIsLoading(false);
+    await finishLaunchAnimation();
     setViewMode('quiz');
   };
 
@@ -540,6 +552,17 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           autoAdvanceTarget={autoAdvanceTarget}
         />
 
+        {launchingLevel && (
+          <div className="solo-pub-launch" role="status" aria-live="polite">
+            <div className="solo-pub-launch-card">
+              <span className="solo-pub-launch-icon">{launchingLevel.icon || '🍺'}</span>
+              <strong>Entering {launchingLevel.pubName || launchingLevel.name}</strong>
+              <small>Brewing your questions…</small>
+              <span className="solo-pub-launch-dots" aria-hidden="true"><i /><i /><i /></span>
+            </div>
+          </div>
+        )}
+
         {/* Tavern Shop Modal */}
         <TavernShopModal
           isOpen={isShopOpen}
@@ -557,8 +580,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   // ==========================================
   if (viewMode === 'custom_setup') {
     return (
-      <div className="max-w-xl mx-auto bg-[#fffdf8] rounded-3xl p-5 sm:p-7 border-4 border-amber-800 shadow-[0_8px_0_#451a03] text-stone-900 space-y-5">
-        <div className="flex items-center justify-between border-b-2 border-amber-800/30 pb-3">
+      <div className="solo-screen solo-setup-screen max-w-xl mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-7 border-4 border-amber-800 shadow-[0_8px_0_#451a03] text-stone-900 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-amber-800/30 pb-3">
           <button
             onClick={() => setViewMode('map')}
             className="px-3 py-1.5 rounded-xl bg-amber-100/90 hover:bg-white text-stone-800 border border-amber-800/40 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
@@ -568,7 +591,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           </button>
 
           {/* Quick HUD */}
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-1 text-xs font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-300">
               <Heart className="w-4 h-4 fill-rose-500" />
               <span>{progression.lives}/{progression.maxLives}</span>
@@ -672,10 +695,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pt-1">
+        <div className="flex flex-col min-[380px]:flex-row items-stretch gap-3 pt-1">
           <button
             onClick={() => setViewMode('map')}
-            className="w-1/3 py-3 rounded-xl bg-amber-100 text-stone-800 font-bold text-xs hover:bg-white border border-amber-800/40 transition cursor-pointer min-h-[44px]"
+            className="w-full min-[380px]:w-1/3 py-3 rounded-xl bg-amber-100 text-stone-800 font-bold text-xs hover:bg-white border border-amber-800/40 transition cursor-pointer min-h-[44px]"
           >
             ← Back to Map
           </button>
@@ -683,7 +706,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             id="solo-start-game-btn"
             disabled={isLoading}
             onClick={handleStartCustomGame}
-            className="w-2/3 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-black text-sm shadow-[0_4px_0_#92400e] hover:brightness-105 active:translate-y-1 active:shadow-none disabled:opacity-60 transition cursor-pointer border-2 border-amber-900 flex items-center justify-center gap-2 min-h-[44px]"
+            className="w-full min-[380px]:w-2/3 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-black text-sm shadow-[0_4px_0_#92400e] hover:brightness-105 active:translate-y-1 active:shadow-none disabled:opacity-60 transition cursor-pointer border-2 border-amber-900 flex items-center justify-center gap-2 min-h-[44px] text-center"
           >
             <Zap className="w-4 h-4 text-slate-950 fill-current" />
             <span>{isLoading ? 'Generating Questions...' : 'Start 10-Question Quiz'}</span>
@@ -715,7 +738,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     else if (accuracy >= 40) starsEarned = 1;
 
     return (
-      <div className="max-w-md mx-auto bg-[#fffdf8] rounded-3xl p-6 sm:p-8 border-4 border-amber-800 shadow-[0_8px_0_#451a03] text-center text-stone-900 space-y-5 animate-in zoom-in-95 font-comic">
+      <div className="solo-screen solo-result-screen max-w-md mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-8 border-4 border-amber-800 shadow-[0_8px_0_#451a03] text-center text-stone-900 space-y-5 animate-in zoom-in-95 font-comic">
         <CartoonBunting className="w-full h-8 -mt-2 opacity-95" />
 
         <div className="flex justify-center">
@@ -756,7 +779,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         <div className="p-4 rounded-2xl bg-amber-50/90 border-3 border-amber-800/40 space-y-3 shadow-inner">
           <div className="text-4xl sm:text-5xl font-cartoon text-amber-950 drop-shadow-sm">{score} POINTS</div>
 
-          <div className="flex items-center justify-center gap-4 text-xs font-cartoon">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs font-cartoon">
             <div className="text-emerald-900 bg-emerald-100 px-3 py-1 rounded-xl border border-emerald-400 font-black">
               ACCURACY: {Math.min(100, Math.max(0, accuracy))}%
             </div>
@@ -786,7 +809,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             </button>
           )}
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col min-[380px]:flex-row items-stretch gap-3">
             <button
               onClick={() => {
                 if (activeLevel && activeMap) {
@@ -819,7 +842,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const diffObj = DIFFICULTY_OPTIONS.find((d) => d.id === (currentQ?.difficulty || difficulty)) || DIFFICULTY_OPTIONS[1];
 
   return (
-    <div className="max-w-xl mx-auto space-y-3.5 sm:space-y-4 font-comic">
+    <div className="solo-screen solo-quiz-screen w-full mx-auto space-y-3 sm:space-y-4 font-comic">
       {/* Notice banner if fallback was served */}
       {aiNotice && (
         <div className="p-3 bg-amber-500/10 border border-amber-500/40 rounded-2xl text-amber-300 text-xs flex items-center gap-2">
@@ -830,21 +853,21 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       )}
 
       {/* Top Solo Header (Vibrant Cartoon Game HUD) */}
-      <div className="flex items-center justify-between bg-[#fffdf8] p-3 sm:p-4 rounded-3xl border-4 border-amber-800 shadow-[0_6px_0_#451a03] gap-2">
+      <div className="solo-quiz-hud bg-[#fffdf8] p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-[3px] sm:border-4 border-amber-800 shadow-[0_5px_0_#451a03] gap-2">
         {/* Left: Level / Question index */}
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full cartoon-btn-amber text-xs font-cartoon shadow-sm">
+        <div className="solo-quiz-progress flex min-w-0 items-center gap-2">
+          <span className="shrink-0 px-2.5 sm:px-3 py-1 rounded-full cartoon-btn-amber text-[10px] sm:text-xs font-cartoon shadow-sm">
             Q {currentIdx + 1} / {questions.length}
           </span>
-          <span className="text-xs text-stone-900 font-cartoon truncate max-w-[130px] sm:max-w-none">
+          <span className="min-w-0 text-[11px] sm:text-xs text-stone-900 font-cartoon truncate">
             {activeLevel ? activeLevel.name : currentQ?.category}
           </span>
         </div>
 
         {/* Right: Hearts (Lives), Coins, Streak, Timer */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="solo-quiz-stats flex min-w-0 items-center justify-end gap-1.5 sm:gap-3">
           {/* Hearts / Lives */}
-          <div className="flex items-center gap-1 bg-rose-100 border-2 border-rose-400 px-2.5 py-1 rounded-2xl shadow-sm">
+          <div className="solo-quiz-hearts flex shrink-0 items-center gap-0.5 sm:gap-1 bg-rose-100 border-2 border-rose-400 px-1.5 sm:px-2.5 py-1 rounded-2xl shadow-sm">
             {Array.from({ length: progression.maxLives }).map((_, i) => (
               <Heart
                 key={i}
@@ -858,7 +881,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           </div>
 
           {/* Pub Bucks Balance */}
-          <div className="relative flex items-center gap-1.5 bg-amber-100 border-2 border-amber-400 px-2.5 py-1 rounded-2xl text-xs font-cartoon text-amber-950 shadow-sm">
+          <div className="relative flex min-w-0 items-center gap-1 bg-amber-100 border-2 border-amber-400 px-2 py-1 rounded-2xl text-[10px] sm:text-xs font-cartoon text-amber-950 shadow-sm">
             <Coins className="w-4 h-4 text-amber-600 fill-amber-500 animate-beer-slosh" />
             <span>{progression.coins.toLocaleString()}</span>
             {floatingCoinText && (
@@ -874,7 +897,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             </span>
           )}
 
-          <div className={`flex items-center gap-1 text-xs font-cartoon text-amber-950 bg-amber-100 px-2.5 py-1 rounded-2xl border-2 border-amber-400 shadow-inner ${
+          <div className={`flex shrink-0 items-center gap-1 text-[10px] sm:text-xs font-cartoon text-amber-950 bg-amber-100 px-2 sm:px-2.5 py-1 rounded-2xl border-2 border-amber-400 shadow-inner ${
             timerSec <= 5 ? 'animate-wiggle-fast text-rose-700 bg-rose-100 border-rose-400' : ''
           }`}>
             <Clock className={`w-3.5 h-3.5 ${timerSec <= 5 ? 'text-rose-600 animate-spin' : 'text-amber-700 animate-pulse'}`} />
@@ -884,15 +907,15 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       </div>
 
       {/* Solo Question Card (Vibrant Cartoon Styling) */}
-      <div className="bg-[#fffdf8] rounded-3xl p-4 sm:p-7 border-4 border-amber-800 shadow-[0_8px_0_#451a03] space-y-4">
+      <div className="solo-question-card bg-[#fffdf8] rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 border-[3px] sm:border-4 border-amber-800 shadow-[0_6px_0_#451a03] space-y-4">
         {/* Difficulty Pill */}
-        <div className="flex items-center justify-between">
-          <span className={`text-[11px] sm:text-xs font-cartoon px-3 py-1 rounded-full border-2 ${diffObj.bgClass} ${diffObj.borderClass} ${diffObj.textClass} shadow-sm`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className={`max-w-full text-[10px] sm:text-xs font-cartoon px-2.5 sm:px-3 py-1 rounded-full border-2 ${diffObj.bgClass} ${diffObj.borderClass} ${diffObj.textClass} shadow-sm whitespace-normal`}>
             {diffObj.icon} {diffObj.label.toUpperCase()} MODE • {currentQ?.points || 15} PTS
           </span>
           <button
             onClick={() => setViewMode('map')}
-            className="text-xs font-cartoon text-amber-800 hover:text-amber-950 transition cursor-pointer"
+            className="shrink-0 text-[10px] sm:text-xs font-cartoon text-amber-800 hover:text-amber-950 transition cursor-pointer"
           >
             QUIT TO MAP ➔
           </button>
@@ -948,9 +971,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
                 key={idx}
                 disabled={isAnswerRevealed}
                 onClick={() => handleSelectAnswer(option)}
-                className={`min-h-[52px] sm:min-h-[56px] p-3 sm:p-3.5 rounded-2xl border-3 font-extrabold text-left text-sm sm:text-base flex items-center justify-between transition cursor-pointer active:scale-98 ${cardStyle}`}
+                className={`w-full min-w-0 min-h-[52px] sm:min-h-[56px] p-3 sm:p-3.5 rounded-2xl border-3 font-extrabold text-left text-sm sm:text-base flex items-center justify-between gap-2 transition cursor-pointer active:scale-98 ${cardStyle}`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <span className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-cartoon text-sm sm:text-base shrink-0 border-2 border-white/30 shadow-inner ${theme.badge}`}>
                     {letter}
                   </span>

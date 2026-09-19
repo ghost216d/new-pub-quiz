@@ -560,8 +560,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
               <button
                 onClick={() => {
-                  setSelectedLevel(level);
                   audioSynth.playCoinFx();
+                  if (unlocked) {
+                    onSelectLevel(level, activeMap);
+                  } else {
+                    setSelectedLevel(level);
+                  }
                 }}
                 className={[
                   'game-level-node',
