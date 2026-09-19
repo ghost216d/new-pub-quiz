@@ -1,0 +1,337 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #b3733b;
+    color: #1c1917;
+    font-family: 'Fredoka', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    /* Authentic English Pub Vertical Wood Planks Wall with warm tavern ambient light */
+    background-image: 
+      /* Warm tavern lantern radial highlights */
+      radial-gradient(circle at 50% 15%, rgba(254, 243, 199, 0.45) 0%, rgba(217, 119, 6, 0.2) 50%, rgba(69, 26, 3, 0.35) 100%),
+      /* Vertical wood plank seams, grain variation & bevel shadows (64px plank repeat) */
+      repeating-linear-gradient(
+        90deg,
+        #9a5a23 0px,
+        #af6d2f 6px,
+        #be7c3c 18px,
+        #cb8949 32px,
+        #ba7837 46px,
+        #a46326 58px,
+        #451a03 60px,
+        #3b1402 62px,
+        #a05e22 64px,
+        #b47232 72px,
+        #c48242 86px,
+        #d18f4d 100px,
+        #be7c3c 114px,
+        #a76628 124px,
+        #451a03 126px,
+        #3b1402 128px
+      ),
+      /* Subtle horizontal wood ring grain striations */
+      repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.05) 0px,
+        rgba(0, 0, 0, 0.04) 2px,
+        transparent 3px,
+        transparent 10px
+      );
+    background-attachment: fixed;
+  }
+
+  /* Safe area padding utilities for modern smartphones with notches/home indicator */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+/* Pub Wood Walls Utility Class */
+.bg-pub-wood {
+  background-color: #b3733b;
+  background-image: 
+    radial-gradient(circle at 50% 15%, rgba(254, 243, 199, 0.45) 0%, rgba(217, 119, 6, 0.2) 50%, rgba(69, 26, 3, 0.35) 100%),
+    repeating-linear-gradient(
+      90deg,
+      #9a5a23 0px,
+      #af6d2f 6px,
+      #be7c3c 18px,
+      #cb8949 32px,
+      #ba7837 46px,
+      #a46326 58px,
+      #451a03 60px,
+      #3b1402 62px,
+      #a05e22 64px,
+      #b47232 72px,
+      #c48242 86px,
+      #d18f4d 100px,
+      #be7c3c 114px,
+      #a76628 124px,
+      #451a03 126px,
+      #3b1402 128px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05) 0px,
+      rgba(0, 0, 0, 0.04) 2px,
+      transparent 3px,
+      transparent 10px
+    );
+  background-attachment: fixed;
+}
+
+/* Light warm pub parchment card styling */
+.pub-card {
+  background-color: #fffdf9;
+  border: 4px solid #78350f;
+  box-shadow: 0 8px 0 #451a03;
+  color: #1c1917;
+}
+
+.pub-card-parchment {
+  background: linear-gradient(180deg, #fffefb 0%, #fef8ee 100%);
+  border: 3px solid #92400e;
+  box-shadow: 0 6px 0 #78350f;
+  color: #1c1917;
+}
+
+/* Polished tavern oak panel */
+.pub-wood-bar {
+  background: linear-gradient(180deg, #854d0e 0%, #713f12 50%, #58310e 100%);
+  border: 3px solid #451a03;
+  box-shadow: inset 0 2px 0 rgba(254, 240, 138, 0.3), 0 5px 0 #2a1205;
+  color: #fef3c7;
+}
+
+/* Cartoon and Comic Display Typography */
+.font-cartoon {
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  letter-spacing: 0.05em;
+}
+
+.font-comic {
+  font-family: 'Fredoka', sans-serif;
+}
+
+/* Hard 3D Cartoon Drop-Shadows with Press-Down Depth */
+.cartoon-btn-amber {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  border: 3px solid #78350f;
+  box-shadow: 0 5px 0 #78350f;
+  color: #0f172a;
+}
+.cartoon-btn-amber:hover {
+  filter: brightness(1.05);
+}
+.cartoon-btn-amber:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #78350f;
+}
+
+.cartoon-btn-cyan {
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+  border: 3px solid #082f49;
+  box-shadow: 0 5px 0 #082f49;
+  color: #ffffff;
+}
+.cartoon-btn-cyan:hover {
+  filter: brightness(1.05);
+}
+.cartoon-btn-cyan:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #082f49;
+}
+
+.cartoon-btn-pink {
+  background: linear-gradient(180deg, #f43f5e 0%, #e11d48 100%);
+  border: 3px solid #4c0519;
+  box-shadow: 0 5px 0 #4c0519;
+  color: #ffffff;
+}
+.cartoon-btn-pink:hover {
+  filter: brightness(1.05);
+}
+.cartoon-btn-pink:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #4c0519;
+}
+
+.cartoon-btn-emerald {
+  background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+  border: 3px solid #064e3b;
+  box-shadow: 0 5px 0 #064e3b;
+  color: #ffffff;
+}
+.cartoon-btn-emerald:hover {
+  filter: brightness(1.05);
+}
+.cartoon-btn-emerald:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #064e3b;
+}
+
+.cartoon-btn-purple {
+  background: linear-gradient(180deg, #a855f7 0%, #7e22ce 100%);
+  border: 3px solid #3b0764;
+  box-shadow: 0 5px 0 #3b0764;
+  color: #ffffff;
+}
+.cartoon-btn-purple:hover {
+  filter: brightness(1.05);
+}
+.cartoon-btn-purple:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #3b0764;
+}
+
+/* Touch active scale & tap optimization */
+button, a, input, select {
+  touch-action: manipulation;
+}
+
+/* Scrollbar polish for mobile touch scroll */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+@keyframes cartoon-wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes cartoon-boing {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08) translateY(-2px); }
+}
+
+@keyframes cartoon-swing {
+  0%, 100% { transform: rotate(-4deg); transform-origin: top center; }
+  50% { transform: rotate(4deg); transform-origin: top center; }
+}
+
+@keyframes cartoon-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes cartoon-pop-in {
+  0% { transform: scale(0.85); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes cartoon-rubberband {
+  0% { transform: scale(1); }
+  30% { transform: scaleX(1.18) scaleY(0.85); }
+  40% { transform: scaleX(0.85) scaleY(1.18); }
+  50% { transform: scaleX(1.1) scaleY(0.92); }
+  65% { transform: scaleX(0.95) scaleY(1.05); }
+  75% { transform: scaleX(1.03) scaleY(0.98); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cartoon-beer-slosh {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-5deg) translateY(-2px); }
+  75% { transform: rotate(5deg) translateY(-1px); }
+}
+
+@keyframes cartoon-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px) scale(1.05); }
+}
+
+@keyframes cartoon-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes cartoon-wiggle-fast {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+@keyframes cartoon-glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.4)); }
+  50% { filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.9)); }
+}
+
+@keyframes cartoon-spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-wobble {
+  animation: cartoon-wobble 2.5s ease-in-out infinite;
+}
+
+.animate-boing {
+  animation: cartoon-boing 1.8s ease-in-out infinite;
+}
+
+.animate-swing {
+  animation: cartoon-swing 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: cartoon-float 2.5s ease-in-out infinite;
+}
+
+.animate-pop-in {
+  animation: cartoon-pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-rubberband {
+  animation: cartoon-rubberband 1s ease-in-out;
+}
+
+.animate-beer-slosh {
+  animation: cartoon-beer-slosh 2s ease-in-out infinite;
+}
+
+.animate-hop {
+  animation: cartoon-hop 1.5s ease-in-out infinite;
+}
+
+.animate-wiggle-fast {
+  animation: cartoon-wiggle-fast 0.6s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: cartoon-glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: cartoon-spin-slow 14s linear infinite;
+}
+
+

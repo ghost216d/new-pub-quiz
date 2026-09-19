@@ -1,0 +1,6 @@
+{
+  "name": "The Pub Quiz",
+  "description": "An interactive pub quiz app with a colorful cartoony theme, real-time multiplayer rooms, comprehensive Quiz Master controls, TV screen display, music rounds, solo play, and seamless round transitions.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
