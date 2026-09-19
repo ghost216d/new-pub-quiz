@@ -48,6 +48,7 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
         id="bgm-settings-dropdown-btn"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         title="Open music options"
+        aria-label={isMenuOpen ? 'Close music options' : 'Open music options'}
         aria-expanded={isMenuOpen}
         className={`bgm-trigger flex items-center justify-center gap-2 rounded-2xl border-2 font-cartoon transition cursor-pointer ${
           isActuallyAudible
@@ -57,7 +58,7 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
       >
         {isActuallyAudible ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
         {!compact && <span className="hidden sm:inline">MUSIC</span>}
-        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`bgm-trigger-chevron w-4 h-4 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu for Track Selection & Volume */}
