@@ -526,19 +526,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         id="cartoon-map-canvas-board"
         className="game-map-board"
         style={{
-          background: `linear-gradient(180deg, ${activeMap.accentColor || '#38bdf8'} 0%, ${activeMap.themeColor || '#0f766e'} 38%, #17342c 100%)`,
+          backgroundImage: `linear-gradient(rgba(4, 25, 45, 0.08), rgba(4, 25, 45, 0.18)), url("${import.meta.env.BASE_URL}thames-game-map.png")`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }}
       >
-        <div className="game-map-sky">
-          <span>☁️</span>
-          <span>☀️</span>
-          <span>☁️</span>
-        </div>
-
-        <div className="game-river">
-          <span>≈ River Thames ≈</span>
-        </div>
-
         <svg
           className="game-map-path"
           viewBox="0 0 100 100"
@@ -566,7 +559,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             progression.completedLevels[level.id];
 
           const completed = Boolean(progress?.passed);
-          const stars = progress?.stars || 0
+          const stars = progress?.stars || 0;
                   const selected =
             selectedLevel?.id === level.id;
           const current =
@@ -638,17 +631,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           );
         })}
 
-        <div className="game-map-decoration game-pub-building">
-          🏠
-        </div>
-
-        <div className="game-map-decoration game-boat">
-          ⛵
-        </div>
-
-        <div className="game-map-decoration game-tree">
-          🌳
-        </div>
       </section>
 
       {/* Selected level information */}
