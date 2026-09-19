@@ -1,7 +1,6 @@
 import React from 'react';
 import { Beer, Home, Tv, Users, LogOut, Copy, Check } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
-import { BGMController } from './BGMController';
 
 interface Props {
   role: 'landing' | 'host' | 'player' | 'tv' | 'solo';
@@ -53,9 +52,6 @@ export const Header: React.FC<Props> = ({
 
         {/* Dynamic Controls & Badges */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 font-comic">
-          {/* Feel-good background music on-screen controller */}
-          <BGMController />
-
           {/* If inside room, show room code pill */}
           {roomCode && (
             <button
