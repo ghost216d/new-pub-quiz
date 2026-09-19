@@ -14,6 +14,8 @@ import {
   Sparkles,
   Star,
   User,
+  Menu,
+  X,
   Zap,
 } from 'lucide-react';
 import {
@@ -80,6 +82,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const [regenCountdown, setRegenCountdown] =
     useState('Full ❤️');
   const [arrivalLevelId, setArrivalLevelId] = useState<string | null>(null);
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
 
   const activeMap =
     allMaps.find((map) => map.id === activeMapId) ||
@@ -388,8 +391,19 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       )}
 
       {/* Action buttons */}
-      <section className="game-actions">
+      <section className={`game-actions ${isActionsOpen ? 'is-open' : ''}`}>
         <button
+          type="button"
+          onClick={() => setIsActionsOpen((open) => !open)}
+          className="game-actions-toggle"
+          aria-expanded={isActionsOpen}
+          aria-label={isActionsOpen ? 'Close game options' : 'Open game options'}
+        >
+          {isActionsOpen ? <X /> : <Menu />}
+          <strong>{isActionsOpen ? 'Close' : 'Options'}</strong>
+        </button>
+
+        {isActionsOpen && <button
           onClick={onCustomSoloMode}
           className="game-action game-action-purple"
         >
@@ -398,9 +412,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             <strong>Custom Quiz</strong>
             <small>Choose any topic</small>
           </span>
-        </button>
+        </button>}
 
-        <button
+        {isActionsOpen && <button
           onClick={generateAiMap}
           disabled={isGeneratingAiMap}
           className="game-action game-action-green"
@@ -419,9 +433,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             </strong>
             <small>Made by AI</small>
           </span>
-        </button>
+        </button>}
 
-        <button
+        {isActionsOpen && <button
           onClick={onOpenQuizMaster}
           className="game-action game-action-gold"
         >
@@ -430,7 +444,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             <strong>Quiz Master</strong>
             <small>Host a live quiz</small>
           </span>
-        </button>
+        </button>}
       </section>
 
       {/* Realm selector */}

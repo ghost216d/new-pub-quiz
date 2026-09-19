@@ -42,54 +42,28 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
   const isActuallyAudible = status.isPlaying && !status.isMuted && status.volume > 0;
 
   return (
-    <div className={`relative inline-flex items-center ${className}`}>
-      {/* Main Trigger Button */}
-      <div className="flex items-center gap-1 p-0.5 sm:p-1 bg-amber-950/60 border-2 border-amber-600/70 hover:border-amber-400 rounded-2xl shadow-md transition">
-        <button
-          id="bgm-mute-toggle-btn"
-          onClick={handleToggleMute}
-          title={status.isMuted ? 'Unmute feel-good tavern music' : 'Mute background music'}
-          className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer min-h-[36px] ${
-            isActuallyAudible
-              ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-stone-950 font-black shadow-[0_2px_0_#78350f]'
-              : 'bg-stone-800 text-amber-100/80 hover:text-white border border-stone-700'
-          }`}
-        >
-          {isActuallyAudible ? (
-            <>
-              <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-bounce shrink-0 text-amber-950" />
-              {/* Animated Equalizer waves */}
-              <span className="flex items-end gap-0.5 h-3.5 px-0.5">
-                <span className="w-1 bg-stone-950 rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2.5" />
-                <span className="w-1 bg-stone-950 rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3.5" />
-                <span className="w-1 bg-stone-950 rounded-full animate-[pulse_0.8s_ease-in-out_infinite] h-2" />
-              </span>
-              {!compact && <span className="hidden sm:inline font-cartoon text-amber-950">MUSIC ON</span>}
-            </>
-          ) : (
-            <>
-              <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 shrink-0" />
-              {!compact && <span className="text-amber-200/80 hidden sm:inline font-bold">MUTED</span>}
-            </>
-          )}
-        </button>
-
-        {/* Quick Dropdown Toggle for Tracks & Volume */}
-        <button
-          id="bgm-settings-dropdown-btn"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          title="Tavern Music Tracks & Volume"
-          className="p-1.5 rounded-xl hover:bg-amber-900/60 text-amber-200 hover:text-white transition cursor-pointer flex items-center gap-0.5 sm:gap-1 min-h-[36px]"
-        >
-          <span className="text-xs">{status.currentTrack.emoji}</span>
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
+    <div className={`bgm-control relative inline-flex items-center ${isMenuOpen ? 'is-open' : ''} ${className}`}>
+      {/* One simple trigger; all music actions live inside the expanded menu. */}
+      <button
+        id="bgm-settings-dropdown-btn"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        title="Open music options"
+        aria-expanded={isMenuOpen}
+        className={`bgm-trigger flex items-center justify-center gap-2 rounded-2xl border-2 font-cartoon transition cursor-pointer ${
+          isActuallyAudible
+            ? 'bg-sky-100 text-sky-900 border-sky-500'
+            : 'bg-white text-stone-700 border-sky-300'
+        }`}
+      >
+        {isActuallyAudible ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+        {!compact && <span className="hidden sm:inline">MUSIC</span>}
+        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+      </button>
 
       {/* Dropdown Menu for Track Selection & Volume */}
       {isMenuOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-72 p-3.5 bg-[#fffdf8] border-3 border-amber-800 text-stone-900 rounded-3xl shadow-[0_8px_0_#451a03] z-50 space-y-3 animate-pop-in"
+          className="bgm-menu absolute right-0 top-full mt-2 w-72 p-3.5 bg-white border-3 border-sky-500 text-stone-900 rounded-3xl shadow-[0_8px_0_#0369a1] z-50 space-y-3 animate-pop-in"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between border-b-2 border-amber-200 pb-2">
