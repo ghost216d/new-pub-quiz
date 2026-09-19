@@ -332,7 +332,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen min-h-[100dvh] text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
+    <div className={`app-shell min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
       {/* Top App Header (hidden on full TV mode for cinema display) */}
       {role !== 'tv' && role !== 'solo' && (
         <Header
@@ -346,7 +346,7 @@ export default function App() {
       )}
 
       {/* Main App Content Router */}
-      <main className={role === 'solo' ? 'flex-1 w-full min-h-[100dvh]' : 'flex-1 w-full px-2.5 py-3 sm:px-4 md:px-6 md:py-6 flex flex-col justify-start'}>
+      <main className={role === 'solo' ? 'app-content flex-1 w-full max-w-full min-w-0 min-h-[100dvh] overflow-x-hidden' : 'app-content flex-1 w-full max-w-full min-w-0 overflow-x-hidden px-2.5 py-3 sm:px-4 md:px-6 md:py-6 flex flex-col justify-start'}>
         {role === 'landing' && (
           <LandingView
             onHostGame={handleHostGame}
