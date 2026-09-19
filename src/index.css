@@ -1371,6 +1371,60 @@ button, a, input, select {
   }
 }
 
+/* Final mobile priority: keep Solo apps compact above map rules. */
+@media (max-width: 639px) {
+  .game-actions {
+    top: 62px;
+    right: 7px;
+    width: 74px;
+    gap: 7px;
+  }
+
+  .game-action,
+  .game-action-gold {
+    min-height: 62px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border-radius: 18px;
+    text-align: center;
+  }
+
+  .game-action > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .game-action span {
+    align-items: center;
+  }
+
+  .game-action strong {
+    font-size: 9px;
+    line-height: 1.05;
+  }
+
+  .game-action small {
+    display: none;
+  }
+
+  .game-realm-card {
+    width: calc(100vw - 98px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 370px) {
+  .game-actions {
+    width: 66px;
+  }
+
+  .game-realm-card {
+    width: calc(100vw - 88px);
+  }
+}
+
 /* Solo setup, quiz and result layout containment */
 .solo-screen {
   min-width: 0;
@@ -1550,6 +1604,184 @@ button, a, input, select {
   .solo-quiz-hearts {
     padding-right: 5px;
     padding-left: 5px;
+  }
+}
+
+/* Lighter, contained main menu and compact Solo floating apps */
+.landing-shell {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.landing-shell *,
+.app-main-header * {
+  min-width: 0;
+}
+
+.landing-mode-panel,
+.landing-solo-hero,
+.landing-pub-sign,
+.landing-mode-tabs {
+  max-width: 100%;
+}
+
+.landing-mode-panel input,
+.landing-mode-panel select,
+.landing-mode-panel textarea,
+.landing-mode-panel button {
+  max-width: 100%;
+}
+
+@media (max-width: 639px) {
+  .app-main-header {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .app-main-header > div {
+    width: 100%;
+  }
+
+  .app-main-header #header-brand-home-btn {
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .app-main-header #header-brand-home-btn > div:last-child {
+    overflow: hidden;
+  }
+
+  .app-main-header h1,
+  .app-main-header #header-brand-home-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .landing-shell {
+    width: 100%;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .landing-solo-hero > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .landing-play-solo {
+    padding-right: 9px;
+    padding-left: 9px;
+    white-space: nowrap;
+  }
+
+  .landing-pub-sign {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .landing-mode-tabs button {
+    min-height: 50px;
+    flex-direction: column;
+    gap: 3px;
+    padding: 6px 2px;
+    font-size: 9px;
+    line-height: 1.05;
+    text-align: center;
+  }
+
+  .landing-mode-panel {
+    padding: 11px;
+    border-radius: 22px;
+  }
+
+  .landing-mode-panel form > div,
+  .landing-mode-panel form > button {
+    width: 100%;
+  }
+
+  .landing-mode-panel label {
+    overflow-wrap: anywhere;
+  }
+
+  .landing-mode-panel .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-mode-panel .grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .game-actions {
+    top: 62px;
+    right: 7px;
+    width: 74px;
+    gap: 7px;
+  }
+
+  .game-action,
+  .game-action-gold {
+    min-height: 62px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border-radius: 18px;
+    text-align: center;
+  }
+
+  .game-action > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .game-action span {
+    align-items: center;
+  }
+
+  .game-action strong {
+    font-size: 9px;
+    line-height: 1.05;
+  }
+
+  .game-action small {
+    display: none;
+  }
+
+  .game-realm-card {
+    width: calc(100vw - 98px);
+    min-width: 0;
+  }
+
+  .game-hud {
+    width: calc(100vw - 16px);
+  }
+
+  .game-resource {
+    border-radius: 15px;
+  }
+}
+
+@media (max-width: 370px) {
+  .landing-solo-hero > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-play-solo {
+    width: 100%;
+  }
+
+  .landing-mode-tabs button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .game-actions {
+    width: 66px;
+  }
+
+  .game-realm-card {
+    width: calc(100vw - 88px);
   }
 }
 
@@ -1936,5 +2168,59 @@ button, a, input, select {
     bottom: 90px;
     left: auto;
     width: 355px;
+  }
+}
+
+/* Compact Solo floating controls (final cascade override). */
+@media (max-width: 639px) {
+  .game-actions {
+    top: 62px;
+    right: 7px;
+    width: 74px;
+    gap: 7px;
+  }
+
+  .game-action,
+  .game-action-gold {
+    min-height: 62px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border-radius: 18px;
+    text-align: center;
+  }
+
+  .game-action > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .game-action span {
+    align-items: center;
+  }
+
+  .game-action strong {
+    font-size: 9px;
+    line-height: 1.05;
+  }
+
+  .game-action small {
+    display: none;
+  }
+
+  .game-realm-card {
+    width: calc(100vw - 98px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 370px) {
+  .game-actions {
+    width: 66px;
+  }
+
+  .game-realm-card {
+    width: calc(100vw - 88px);
   }
 }
