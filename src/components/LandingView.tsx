@@ -70,10 +70,10 @@ export const LandingView: React.FC<Props> = ({
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-2.5 sm:space-y-3.5 select-none animate-pop-in pb-4 px-1 sm:px-0">
+    <div className="landing-shell w-full max-w-xl mx-auto space-y-2.5 sm:space-y-3.5 select-none animate-pop-in pb-4 px-1 sm:px-0">
       {/* 1. SOLO PLAYER OPTION - PROMINENTLY AT THE VERY TOP OF THE PAGE */}
-      {showSoloHero && <div className="relative overflow-hidden bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-200 rounded-3xl p-3 sm:p-3.5 border-4 border-amber-950 shadow-[0_6px_0_#451a03] transition hover:scale-[1.01] animate-rubberband">
-        <div className="flex items-center justify-between gap-2">
+      {showSoloHero && <div className="landing-solo-hero relative overflow-hidden bg-gradient-to-r from-sky-100 via-white to-amber-100 rounded-3xl p-3 sm:p-3.5 border-[3px] border-sky-500 shadow-[0_5px_0_#0369a1] transition hover:scale-[1.01] animate-rubberband">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 text-slate-950 flex items-center justify-center font-black text-2xl sm:text-3xl shadow-md border-3 border-amber-950 shrink-0 animate-boing">
               🗺️
@@ -94,7 +94,7 @@ export const LandingView: React.FC<Props> = ({
           <button
             id="play-solo-top-btn"
             onClick={onStartSolo}
-            className="shrink-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl cartoon-btn-amber text-xs sm:text-sm font-cartoon tracking-wider flex items-center gap-1 cursor-pointer shadow-md min-h-[42px] hover:scale-105 active:scale-95 transition-transform"
+          className="landing-play-solo shrink-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl bg-gradient-to-b from-sky-300 to-cyan-500 text-sky-950 border-2 border-sky-700 text-xs sm:text-sm font-cartoon tracking-wider flex items-center justify-center gap-1 cursor-pointer shadow-[0_3px_0_#0369a1] min-h-[42px] hover:scale-105 active:scale-95 transition-transform"
           >
             <span>PLAY SOLO!</span>
             <span className="text-sm sm:text-base animate-bounce">➔</span>
@@ -110,7 +110,7 @@ export const LandingView: React.FC<Props> = ({
       )}
 
       {/* 2. TRADITIONAL ENGLISH PUB CARTOON HEADER (Sleek Mobile Sizing) */}
-      <div className="relative text-center bg-gradient-to-b from-[#78350f] via-[#92400e] to-[#78350f] px-2.5 pt-2.5 pb-2.5 sm:px-5 sm:pt-4 sm:pb-4 rounded-3xl border-4 border-amber-950 shadow-[0_6px_0_#451a03] overflow-hidden">
+      <div className="landing-pub-sign relative text-center bg-gradient-to-b from-amber-50 via-orange-50 to-sky-50 px-2.5 pt-2.5 pb-2.5 sm:px-5 sm:pt-4 sm:pb-4 rounded-3xl border-[3px] border-amber-500 shadow-[0_5px_0_#b45309] overflow-hidden">
         {/* Draped British Party Bunting across top */}
         <div className="absolute top-0 left-0 right-0 z-10">
           <CartoonBunting />
@@ -147,7 +147,7 @@ export const LandingView: React.FC<Props> = ({
         </div>
 
         {/* Arcade Mode Selector Tabs */}
-        <div className="grid grid-cols-3 gap-1 sm:gap-2 p-1 sm:p-1.5 bg-amber-950/30 rounded-2xl border-3 border-amber-900/60 shadow-inner">
+        <div className="landing-mode-tabs grid grid-cols-3 gap-1 sm:gap-2 p-1 sm:p-1.5 bg-sky-100 rounded-2xl border-2 border-sky-400 shadow-inner">
           <button
             id="mode-join-tab-btn"
             onClick={() => setMode('join')}
@@ -190,7 +190,7 @@ export const LandingView: React.FC<Props> = ({
       </div>
 
       {/* 4. COMPACT TAB PANELS FOR MOBILE (Warm Tavern Parchment Board) */}
-      <div className="bg-[#fffdf8] rounded-3xl p-3 sm:p-5 border-4 border-amber-800 shadow-[0_6px_0_#451a03] text-stone-900">
+      <div className="landing-mode-panel bg-white rounded-3xl p-3 sm:p-5 border-[3px] border-sky-400 shadow-[0_5px_0_#0284c7] text-stone-900">
         {mode === 'join' && (
           <form onSubmit={handleJoinSubmit} className="space-y-3">
             <div>

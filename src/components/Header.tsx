@@ -30,7 +30,7 @@ export const Header: React.FC<Props> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 border-b-4 border-amber-950/80 px-3 sm:px-4 py-2 sm:py-2.5 pt-safe shadow-md">
+    <header className="app-main-header sticky top-0 z-40 bg-gradient-to-r from-sky-50 via-white to-amber-50 border-b-2 border-sky-300 px-3 sm:px-4 py-2 sm:py-2.5 pt-safe shadow-md">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
         {/* Brand Logo & Name */}
         <button
@@ -42,10 +42,10 @@ export const Header: React.FC<Props> = ({
             🍺
           </div>
           <div>
-            <h1 className="text-sm sm:text-lg font-cartoon text-amber-100 leading-tight tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+            <h1 className="text-sm sm:text-lg font-cartoon text-sky-950 leading-tight tracking-wide">
               THE PUB QUIZ
             </h1>
-            <span className="text-[10px] sm:text-[11px] font-cartoon text-amber-300 uppercase tracking-wider block">
+            <span className="text-[10px] sm:text-[11px] font-cartoon text-amber-700 uppercase tracking-wider block">
               TAVERN TRIVIA LIVE 🍻
             </span>
           </div>
