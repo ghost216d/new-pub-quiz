@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+/* Larger, easier-to-read text throughout the Quiz Master console. */
+.role-host .host-console-shell {
+  font-size: 1.08rem;
+}
+
+.role-host .host-console-shell :is(p, label, button, input, select, textarea) {
+  font-size: max(1rem, 1em);
+}
+
+.role-host .host-console-shell :is(h1, h2, h3) {
+  line-height: 1.15;
+}
+
+@media (min-width: 768px) {
+  .role-host .host-console-shell {
+    font-size: 1.16rem;
+  }
+
+  .role-host .host-console-shell :is(button, input, select, textarea) {
+    min-height: 2.75rem;
+  }
+}
+
+
 @layer base {
   html,
   body,
