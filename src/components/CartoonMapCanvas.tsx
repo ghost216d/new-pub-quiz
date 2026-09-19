@@ -507,7 +507,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
         <p className="game-auto-difficulty-note">
           <Sparkles className="w-4 h-4" />
-          AI refreshes the questions automatically. Every 5th level is a hard challenge.
+          Fresh Internet questions load automatically without repeats. Every 5th level is a hard challenge.
         </p>
       </section>
       </aside>

@@ -99,7 +99,7 @@ const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
   levelNumber % 5 === 0 ? 'hard' : 'medium';
 
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
-  // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = AI free topic
+  // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = online custom topic
   const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup'>('map');
 
   // Progression & Economy state (saved in localStorage)
@@ -186,7 +186,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setSelectedCategory(level.category);
     setDifficulty(getAutomaticLevelDifficulty(level.levelNumber));
     setCustomTopic('');
-    setUseAI(true); // Attempt AI for map level, with instant curated fallback
+    setUseAI(true); // Enable the online topic field, with an unseen offline fallback
     setLaunchingLevel(level);
     handleStartGameWithLevel(level, map);
   };
@@ -588,7 +588,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             Custom Solo Quiz Mode
           </h2>
           <p className="text-xs sm:text-sm text-stone-700 font-bold">
-            Pick any category or generate custom topics with Gemini A.I.!
+            Pick any category and receive fresh Internet questions without repeats.
           </p>
         </div>
 
@@ -639,12 +639,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             </div>
           </div>
 
-          {/* AI CUSTOM TOPIC */}
+          {/* ONLINE CUSTOM TOPIC */}
           <div className="p-3.5 bg-gradient-to-br from-purple-100/90 to-amber-50 rounded-2xl border-2 border-purple-400/60 space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-black text-purple-950 flex items-center gap-1.5 uppercase tracking-wider">
                 <Sparkles className="w-4 h-4 text-purple-600 animate-spin" />
-                <span>Custom Topic via Gemini A.I.</span>
+                <span>Custom Internet Topic</span>
               </label>
               <button
                 onClick={() => setUseAI(!useAI)}
@@ -654,7 +654,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
                     : 'bg-white text-stone-700 border-purple-300 hover:bg-purple-50'
                 }`}
               >
-                {useAI ? '✨ AI Enabled' : 'AI Off'}
+                {useAI ? '✨ Custom On' : 'Custom Off'}
               </button>
             </div>
 
