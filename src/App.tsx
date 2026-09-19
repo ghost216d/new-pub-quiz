@@ -16,7 +16,7 @@ import { SoloProgression } from './types';
 type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
 
 export default function App() {
-  const [role, setRole] = useState<AppRole>('landing');
+  const [role, setRole] = useState<AppRole>('solo');
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
   const [showFirstTimeAuth, setShowFirstTimeAuth] = useState<boolean>(() => {
     try {
@@ -326,7 +326,7 @@ export default function App() {
     if (wsRef.current) {
       wsRef.current.close();
     }
-    setRole('landing');
+    setRole('solo');
     setRoomState(null);
     setErrorMessage(null);
   };
@@ -353,6 +353,8 @@ export default function App() {
             onJoinGame={handleJoinGame}
             onConnectTV={handleConnectTV}
             onStartSolo={() => setRole('solo')}
+            initialMode="host"
+            showSoloHero={false}
             isLoading={isLoading}
             error={errorMessage}
           />
@@ -381,7 +383,10 @@ export default function App() {
         )}
 
         {role === 'solo' && (
-          <SoloQuizView onBackToHome={handleHomeClick} />
+          <SoloQuizView
+            onBackToHome={handleHomeClick}
+            onOpenQuizMaster={() => setRole('landing')}
+          />
         )}
       </main>
 

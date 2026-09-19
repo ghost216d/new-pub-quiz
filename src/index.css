@@ -510,7 +510,7 @@ button, a, input, select {
 
 .game-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 11px;
 }
@@ -558,6 +558,13 @@ button, a, input, select {
 .game-action-green {
   border-color: #064e3b;
   background: linear-gradient(180deg, #34d399, #047857);
+}
+
+.game-action-gold {
+  grid-column: 1 / -1;
+  border-color: #78350f;
+  background: linear-gradient(180deg, #fbbf24, #b45309);
+  color: #451a03;
 }
 
 .game-realm-card {
@@ -1298,6 +1305,14 @@ button, a, input, select {
 
   .game-hud {
     grid-row: 2;
+  }
+
+  .game-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .game-action-gold {
+    grid-column: auto;
   }
 
   .game-regen {
