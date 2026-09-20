@@ -511,9 +511,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       setCorrectCount((count) => count + 1);
       forgetMasteredQuestion(currentQ);
       setStreak((st) => st + 1);
-      const nextStreak = streak + 1;
-      setDrinkCelebration({ id: Date.now(), streak: nextStreak });
-      window.setTimeout(() => setDrinkCelebration(null), 1450);
 
       // Award coins for correct answer!
       const coinGain = 20 + streak * 5;
@@ -578,6 +575,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       : 0;
     const passedStage = !activeLevel || correctPercent >= SOLO_PASS_PERCENT;
     if (passedStage) {
+      setDrinkCelebration({ id: Date.now(), streak: Math.max(1, streak) });
+      window.setTimeout(() => setDrinkCelebration(null), 2600);
       audioSynth.playMilestoneFanfare();
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
     } else {
@@ -901,6 +900,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
     return (
       <div className="solo-screen solo-result-screen max-w-md mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-8 border-4 border-amber-800 shadow-[0_8px_0_#082f49] text-center text-stone-900 space-y-5 animate-in zoom-in-95 font-comic">
+        {drinkCelebration && (
+          <CorrectAnswerDrink key={drinkCelebration.id} streak={drinkCelebration.streak} />
+        )}
         <CartoonBunting className="w-full h-8 -mt-2 opacity-95" />
 
         <div className="flex justify-center">
@@ -1020,9 +1022,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
   return (
     <div className="solo-screen solo-quiz-screen w-full mx-auto space-y-3 sm:space-y-4 font-comic">
-      {drinkCelebration && (
-        <CorrectAnswerDrink key={drinkCelebration.id} streak={drinkCelebration.streak} />
-      )}
       {/* Notice banner if fallback was served */}
       {aiNotice && (
         <div className="p-3 bg-amber-500/10 border border-amber-500/40 rounded-2xl text-amber-300 text-xs flex items-center gap-2">
