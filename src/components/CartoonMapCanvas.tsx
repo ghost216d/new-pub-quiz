@@ -601,18 +601,20 @@ export const CartoonMapCanvas: React.FC<Props> = ({
               )}
 
               <button
+                type="button"
                 aria-label={
                   unlocked
                     ? `Play ${level.pubName || level.name}`
                     : `Locked level ${level.levelNumber}: ${level.pubName || level.name}`
                 }
                 onClick={() => {
-                  audioSynth.playCoinFx();
                   if (unlocked) {
                     onSelectLevel(level, activeMap);
                   } else {
                     setSelectedLevel(level);
                   }
+                  // Sound must never block the navigation action on mobile.
+                  audioSynth.playCoinFx();
                 }}
                 className={[
                   'game-level-node',
