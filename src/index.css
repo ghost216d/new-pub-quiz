@@ -2839,7 +2839,7 @@ body,
   position: absolute;
   z-index: 1;
   inset: 0;
-  animation: correct-drink-character-bob .64s ease-in-out infinite alternate;
+  animation: none;
 }
 
 .correct-drink-animation {
@@ -2849,8 +2849,8 @@ body,
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  filter: brightness(1.08) saturate(1.06) contrast(1.02);
-  transform: scale(1.018);
+  filter: brightness(1.04) saturate(1.03);
+  transform: none;
   transition: opacity .12s ease-out;
   will-change: opacity;
 }
