@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { UserProfile, SoloProgression } from '../types';
 import { audioSynth } from '../utils/audioSynth';
 import {
+  createAccountWithEmail,
   friendlyAuthError,
   isFirebaseAuthConfigured,
-  signInWithFacebook,
+  resetEmailPassword,
+  signInWithEmail,
   signInWithGoogle,
   signOutFromFirebase,
 } from '../utils/firebaseAuth';
@@ -40,37 +42,71 @@ export const AuthModal: React.FC<Props> = ({
   const currentProfile = progression.userProfile;
   const [nameInput, setNameInput] = useState(currentProfile?.name || 'Quiz Master');
   const [selectedAvatar, setSelectedAvatar] = useState(currentProfile?.avatar || '🍺');
-  const [authBusy, setAuthBusy] = useState<'google' | 'facebook' | 'signout' | null>(null);
+  const [authBusy, setAuthBusy] = useState<'google' | 'email' | 'reset' | 'signout' | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState(currentProfile?.email || '');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [emailMode, setEmailMode] = useState<'signin' | 'create'>('signin');
 
   if (!isOpen) return null;
 
-  const handleProviderSignIn = async (provider: 'google' | 'facebook') => {
-    setAuthBusy(provider);
-    setAuthError(null);
-    try {
-      const user = provider === 'google'
-        ? await signInWithGoogle()
-        : await signInWithFacebook();
-      const isSameProvider = currentProfile?.provider === provider;
-      const newProfile: UserProfile = {
-        id: user.uid,
-        name: user.displayName || nameInput.trim() || 'Pub Quiz Player',
-        email: user.email || undefined,
-        avatar: selectedAvatar || '👑',
-        provider,
-        facebookLinked: provider === 'facebook' || currentProfile?.facebookLinked || false,
-        facebookName: provider === 'facebook' ? (user.displayName || undefined) : currentProfile?.facebookName,
-        createdAt: currentProfile?.createdAt || Date.now(),
-      };
+  const saveAuthenticatedUser = (user: { uid: string; displayName: string | null; email: string | null }, provider: 'google' | 'email', bonus: number) => {
+    const isSameProvider = currentProfile?.provider === provider;
+    const newProfile: UserProfile = {
+      id: user.uid,
+      name: user.displayName || nameInput.trim() || 'Pub Quiz Player',
+      email: user.email || undefined,
+      avatar: selectedAvatar || '👑',
+      provider,
+      createdAt: currentProfile?.createdAt || Date.now(),
+    };
+    onUpdateProgression({
+      ...progression,
+      coins: progression.coins + (isSameProvider ? 0 : bonus),
+      userProfile: newProfile,
+    });
+    audioSynth.playPurchaseFx();
+    onClose();
+  };
 
-      onUpdateProgression({
-        ...progression,
-        coins: progression.coins + (isSameProvider ? 0 : provider === 'google' ? 150 : 200),
-        userProfile: newProfile,
-      });
-      audioSynth.playPurchaseFx();
-      onClose();
+  const handleGoogleSignIn = async () => {
+    setAuthBusy('google');
+    setAuthError(null);
+    setAuthNotice(null);
+    try {
+      saveAuthenticatedUser(await signInWithGoogle(), 'google', 150);
+    } catch (error) {
+      setAuthError(friendlyAuthError(error));
+    } finally {
+      setAuthBusy(null);
+    }
+  };
+
+  const handleEmailAuth = async () => {
+    setAuthBusy('email');
+    setAuthError(null);
+    setAuthNotice(null);
+    try {
+      const email = emailInput.trim();
+      const user = emailMode === 'create'
+        ? await createAccountWithEmail(email, passwordInput)
+        : await signInWithEmail(email, passwordInput);
+      saveAuthenticatedUser(user, 'email', 150);
+    } catch (error) {
+      setAuthError(friendlyAuthError(error));
+    } finally {
+      setAuthBusy(null);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setAuthBusy('reset');
+    setAuthError(null);
+    setAuthNotice(null);
+    try {
+      await resetEmailPassword(emailInput.trim());
+      setAuthNotice('Password reset email sent. Check your inbox.');
     } catch (error) {
       setAuthError(friendlyAuthError(error));
     } finally {
@@ -88,7 +124,6 @@ export const AuthModal: React.FC<Props> = ({
       name: guestName,
       avatar: selectedAvatar,
       provider: 'guest',
-      facebookLinked: false,
       createdAt: Date.now(),
     };
 
@@ -156,9 +191,9 @@ export const AuthModal: React.FC<Props> = ({
                       Google
                     </span>
                   )}
-                  {currentProfile.provider === 'facebook' && (
-                    <span className="px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-500 text-[9px] font-bold">
-                      Facebook
+                  {currentProfile.provider === 'email' && (
+                    <span className="px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-500 text-[9px] font-bold">
+                      Email
                     </span>
                   )}
                   {currentProfile.provider === 'guest' && (
@@ -217,7 +252,7 @@ export const AuthModal: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* PRIMARY AUTH OPTIONS: GOOGLE, FACEBOOK & GUEST */}
+        {/* PRIMARY AUTH OPTIONS: GOOGLE, EMAIL & GUEST */}
         <div className="space-y-2.5 pt-1">
           {!isFirebaseAuthConfigured && (
             <div className="rounded-xl border-2 border-amber-600 bg-amber-100 px-3 py-2 text-[11px] font-bold text-amber-950">
@@ -233,7 +268,7 @@ export const AuthModal: React.FC<Props> = ({
 
           <button
             id="sign-in-google-btn"
-            onClick={() => void handleProviderSignIn('google')}
+            onClick={() => void handleGoogleSignIn()}
             disabled={!isFirebaseAuthConfigured || authBusy !== null}
             className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-stone-50 disabled:opacity-55 disabled:cursor-not-allowed text-slate-900 font-black text-xs sm:text-sm shadow-[0_4px_0_#cbd5e1] active:translate-y-0.5 active:shadow-none transition cursor-pointer flex items-center justify-center gap-2.5 border-2 border-stone-300 min-h-[44px]"
           >
@@ -246,15 +281,69 @@ export const AuthModal: React.FC<Props> = ({
             <span>{authBusy === 'google' ? 'Opening Google…' : 'Continue with Google (+150 🪙)'}</span>
           </button>
 
-          <button
-            id="sign-in-facebook-btn"
-            onClick={() => void handleProviderSignIn('facebook')}
-            disabled={!isFirebaseAuthConfigured || authBusy !== null}
-            className="w-full py-2.5 px-4 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] disabled:opacity-55 disabled:cursor-not-allowed text-white border-2 border-blue-800 shadow-[0_3px_0_#0e4ea0] active:translate-y-0.5 active:shadow-none font-black text-xs transition cursor-pointer flex items-center justify-center gap-2.5 min-h-[44px]"
-          >
-            <span className="w-5 h-5 rounded-full bg-white text-[#1877F2] flex items-center justify-center font-bold text-xs font-mono">f</span>
-            <span>{authBusy === 'facebook' ? 'Opening Facebook…' : 'Continue with Facebook (+200 🪙)'}</span>
-          </button>
+          <div className="rounded-2xl border-2 border-amber-800/40 bg-amber-50 p-3 space-y-2">
+            <div className="flex rounded-xl bg-amber-200/70 p-1 gap-1">
+              <button
+                type="button"
+                onClick={() => setEmailMode('signin')}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-black ${emailMode === 'signin' ? 'bg-amber-800 text-white shadow' : 'text-amber-950'}`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setEmailMode('create')}
+                className={`flex-1 rounded-lg py-1.5 text-xs font-black ${emailMode === 'create' ? 'bg-amber-800 text-white shadow' : 'text-amber-950'}`}
+              >
+                Create Account
+              </button>
+            </div>
+            <input
+              type="email"
+              autoComplete="email"
+              value={emailInput}
+              onChange={(event) => setEmailInput(event.target.value)}
+              placeholder="Your email address"
+              className="w-full rounded-xl border-2 border-amber-800/40 bg-white px-3 py-2.5 text-sm font-bold text-stone-900 outline-none focus:border-amber-700"
+            />
+            <input
+              type="password"
+              autoComplete={emailMode === 'create' ? 'new-password' : 'current-password'}
+              minLength={6}
+              value={passwordInput}
+              onChange={(event) => setPasswordInput(event.target.value)}
+              placeholder="Password (at least 6 characters)"
+              className="w-full rounded-xl border-2 border-amber-800/40 bg-white px-3 py-2.5 text-sm font-bold text-stone-900 outline-none focus:border-amber-700"
+            />
+            <button
+              id="sign-in-email-btn"
+              onClick={() => void handleEmailAuth()}
+              disabled={!isFirebaseAuthConfigured || authBusy !== null || !emailInput.trim() || passwordInput.length < 6}
+              className="w-full min-h-[44px] rounded-xl border-2 border-amber-950 bg-amber-700 px-4 py-2.5 text-sm font-black text-white shadow-[0_3px_0_#451a03] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {authBusy === 'email'
+                ? 'Please wait…'
+                : emailMode === 'create'
+                  ? 'Create Email Account (+150 🪙)'
+                  : 'Sign In with Email'}
+            </button>
+            {emailMode === 'signin' && (
+              <button
+                type="button"
+                onClick={() => void handlePasswordReset()}
+                disabled={!isFirebaseAuthConfigured || authBusy !== null || !emailInput.trim()}
+                className="w-full text-[11px] font-bold text-amber-900 underline disabled:opacity-50"
+              >
+                {authBusy === 'reset' ? 'Sending reset email…' : 'Forgot password?'}
+              </button>
+            )}
+          </div>
+
+          {authNotice && (
+            <div role="status" className="rounded-xl border-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-[11px] font-bold text-emerald-800">
+              {authNotice}
+            </div>
+          )}
 
           {currentProfile && currentProfile.provider !== 'guest' && (
             <button
@@ -282,7 +371,7 @@ export const AuthModal: React.FC<Props> = ({
 
         {/* Info footer */}
         <div className="text-[11px] text-stone-600 font-bold text-center pt-1 border-t border-amber-800/30">
-          🔒 Your progress is stored safely on this device. Account sign-in is verified securely by Google or Facebook.
+          🔒 Your progress is stored safely on this device. Sign in securely with Google or any valid email address.
         </div>
       </div>
     </div>
