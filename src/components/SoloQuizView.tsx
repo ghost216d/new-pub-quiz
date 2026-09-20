@@ -98,20 +98,55 @@ const DIFFICULTY_OPTIONS: {
 const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
   levelNumber % 5 === 0 ? 'hard' : 'medium';
 
-const ONLINE_QUESTION_TIMEOUT_MS = 6500;
+const ONLINE_QUESTION_TIMEOUT_MS = 4000;
 
 const loadOnlineQuestionsWithTimeout = (
   options: Parameters<typeof getOnlineTriviaQuestions>[0],
-): Promise<Question[]> =>
-  Promise.race([
-    getOnlineTriviaQuestions(options),
-    new Promise<Question[]>((_, reject) => {
-      window.setTimeout(
-        () => reject(new Error('Internet questions took too long to load.')),
-        ONLINE_QUESTION_TIMEOUT_MS,
-      );
-    }),
-  ]);
+): Promise<Question[]> => new Promise((resolve, reject) => {
+  const timeout = window.setTimeout(
+    () => reject(new Error('Internet questions took too long to load.')),
+    ONLINE_QUESTION_TIMEOUT_MS,
+  );
+  getOnlineTriviaQuestions(options).then(
+    (questions) => {
+      window.clearTimeout(timeout);
+      resolve(questions);
+    },
+    (error) => {
+      window.clearTimeout(timeout);
+      reject(error);
+    },
+  );
+});
+
+const buildGuaranteedFallbackQuestions = (
+  pool: Question[],
+  count: number,
+  difficulty: QuizDifficulty,
+  points: number,
+): Question[] => {
+  try {
+    return chooseUnseenFallbackQuestions(pool, count).map((question) => ({
+      ...question,
+      points,
+      difficulty,
+    }));
+  } catch {
+    // Opening the game is more important than leaving a player trapped on the
+    // map. Only reuse the local vault after every unseen fallback is exhausted.
+    const shuffledPool = [...pool].sort(() => Math.random() - 0.5);
+    const stamp = Date.now();
+    return Array.from({ length: count }, (_, index) => {
+      const question = shuffledPool[index % shuffledPool.length];
+      return {
+        ...question,
+        id: `emergency_${stamp}_${index}_${question.id}`,
+        points,
+        difficulty,
+      };
+    });
+  }
+};
 
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
   // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = online custom topic
@@ -254,19 +289,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    let shuffled: Question[];
-    try {
-      shuffled = chooseUnseenFallbackQuestions(qPool, count).map((q) => ({
-        ...q,
-        points: automaticDifficulty === 'hard' ? 20 : 15,
-        difficulty: automaticDifficulty,
-      }));
-    } catch (error) {
-      setAiNotice(error instanceof Error ? error.message : 'No unseen questions are currently available.');
-      setIsLoading(false);
-      await finishLaunchAnimation();
-      return;
-    }
+    const shuffled = buildGuaranteedFallbackQuestions(
+      qPool,
+      count,
+      automaticDifficulty,
+      automaticDifficulty === 'hard' ? 20 : 15,
+    );
 
     setQuestions(shuffled);
     initGame(shuffled);
@@ -330,18 +358,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    let shuffled: Question[];
-    try {
-      shuffled = chooseUnseenFallbackQuestions(qPool, 10).map((q) => ({
-        ...q,
-        points: targetPoints,
-        difficulty: automaticDifficulty,
-      }));
-    } catch (error) {
-      setAiNotice(error instanceof Error ? error.message : 'No unseen questions are currently available.');
-      setIsLoading(false);
-      return;
-    }
+    const shuffled = buildGuaranteedFallbackQuestions(
+      qPool,
+      10,
+      automaticDifficulty,
+      targetPoints,
+    );
 
     setQuestions(shuffled);
     initGame(shuffled);
