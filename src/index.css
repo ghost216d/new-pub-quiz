@@ -3350,3 +3350,38 @@ html[data-time-theme="day"] .role-solo .game-bottom-nav {
   display: none !important;
   background: transparent !important;
 }
+/* Lift only the illustrated map background; foreground paths and level nodes stay crisp. */
+.role-solo .game-map-board {
+  background-color: rgba(255, 248, 220, 0.3) !important;
+  background-blend-mode: screen, screen !important;
+}
+
+/* Remove the last inherited blue/cyan outlines from every game surface. */
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container)
+  :is(button, input, select, textarea, [class*="border-"]) {
+  border-color: #b45309 !important;
+}
+
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container)
+  :is([class*="text-sky"], [class*="text-cyan"], [class*="text-blue"]) {
+  color: #92400e !important;
+}
+
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container)
+  :is([class*="ring-sky"], [class*="ring-cyan"], [class*="ring-blue"]) {
+  --tw-ring-color: #d97706 !important;
+}
+
+.role-host .host-console-shell,
+.role-player .app-content,
+.role-solo :is(.solo-setup-screen, .solo-result-screen),
+#tavern-shop-modal-container {
+  --pub-cartoon-outline: #b45309;
+}
+
+.role-host .host-console-shell :is(button, input, select, textarea, section, article),
+.role-solo :is(.solo-setup-screen, .solo-result-screen, .solo-question-card)
+  :is(button, input, select, textarea, section, article),
+#tavern-shop-modal-container :is(button, input, select, textarea, section, article, div[class*="border-"]) {
+  border-color: var(--pub-cartoon-outline) !important;
+}
