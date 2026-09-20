@@ -2811,7 +2811,7 @@ body,
   padding: 18px;
   pointer-events: none;
   background: radial-gradient(circle, rgba(255, 222, 92, .38), rgba(65, 8, 20, .22) 60%, transparent 80%);
-  animation: correct-drink-backdrop 2.6s ease both;
+  animation: correct-drink-backdrop 7.5s ease both;
 }
 
 .correct-drink-stage {
@@ -2823,7 +2823,7 @@ body,
   border-radius: 36px;
   background: #762033;
   box-shadow: 0 10px 0 #7f360c, 0 24px 55px rgba(32, 0, 8, .42), inset 0 3px 0 rgba(255,255,255,.52);
-  animation: correct-drink-stage-pop 2.6s cubic-bezier(.2,.9,.25,1) both;
+  animation: correct-drink-stage-pop 7.5s cubic-bezier(.2,.9,.25,1) both;
 }
 
 .correct-drink-lights {
@@ -2905,12 +2905,12 @@ body,
 @keyframes correct-drink-stage-pop {
   0% { opacity: 0; transform: translateY(45px) scale(.72) rotate(-5deg); }
   16% { opacity: 1; transform: translateY(0) scale(1.04) rotate(1deg); }
-  25%, 78% { opacity: 1; transform: scale(1) rotate(0); }
+  10%, 90% { opacity: 1; transform: scale(1) rotate(0); }
   100% { opacity: 0; transform: translateY(-24px) scale(.92); }
 }
 @keyframes correct-drink-backdrop {
   0%, 100% { opacity: 0; }
-  15%, 82% { opacity: 1; }
+  8%, 92% { opacity: 1; }
 }
 @keyframes correct-drink-lights { to { filter: brightness(1.35) saturate(1.2); } }
 @keyframes correct-drink-character-bob { from { transform: translateY(2px) scale(1.002); } to { transform: translateY(-4px) scale(1.008); } }
