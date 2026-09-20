@@ -6,40 +6,38 @@ interface Props {
 
 export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
   const [phase, setPhase] = useState<'cheers' | 'sip' | 'lovely'>('cheers');
-  const [spriteReady, setSpriteReady] = useState(false);
-  const animationUrl = `${import.meta.env.BASE_URL}pub-host-drink-animated.webp`;
+  const [videoReady, setVideoReady] = useState(false);
+  const videoUrl = `${import.meta.env.BASE_URL}pub-host-drink.mp4`;
 
   useEffect(() => {
-    const sprite = new Image();
-    sprite.onload = () => setSpriteReady(true);
-    sprite.src = animationUrl;
-    if (sprite.complete) setSpriteReady(true);
-  }, [animationUrl]);
-
-  useEffect(() => {
-    if (!spriteReady) return;
+    if (!videoReady) return;
     const timers = [
       window.setTimeout(() => setPhase('sip'), 820),
       window.setTimeout(() => setPhase('lovely'), 1720),
     ];
     return () => timers.forEach(window.clearTimeout);
-  }, [spriteReady]);
+  }, [videoReady]);
 
   return (
     <div className="correct-drink-celebration" role="status" aria-live="polite">
       <div className="correct-drink-stage">
         <div className="correct-drink-lights" aria-hidden="true" />
         <img
-          className={`correct-drink-fallback${spriteReady ? ' is-hidden' : ''}`}
+          className={`correct-drink-fallback${videoReady ? ' is-hidden' : ''}`}
           src={`${import.meta.env.BASE_URL}pub-quiz-cover-host.webp`}
           alt=""
           aria-hidden="true"
         />
         <div className="correct-drink-character" aria-hidden="true">
-          <img
-            className={`correct-drink-animation${spriteReady ? ' is-ready' : ''}`}
-            src={animationUrl}
-            alt=""
+          <video
+            className={`correct-drink-animation${videoReady ? ' is-ready' : ''}`}
+            src={videoUrl}
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            onLoadedData={() => setVideoReady(true)}
+            onCanPlay={() => setVideoReady(true)}
           />
         </div>
         <div className="correct-drink-sparkles" aria-hidden="true">

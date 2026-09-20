@@ -24,7 +24,7 @@ export default defineConfig({
         skipWaiting: true,
       },
 
-      includeAssets: ['icon.svg', 'pub-host-drink-animated.webp', 'pub-quiz-cover-host.webp'],
+      includeAssets: ['icon.svg', 'pub-host-drink.mp4', 'pub-quiz-cover-host.webp'],
 
       manifest: {
         id: '/new-pub-quiz/',
