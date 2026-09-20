@@ -129,33 +129,17 @@ const loadOnlineQuestionsWithTimeout = (
   );
 });
 
-const buildGuaranteedFallbackQuestions = (
+const buildUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
   difficulty: QuizDifficulty,
   points: number,
 ): Question[] => {
-  try {
-    return chooseUnseenFallbackQuestions(pool, count).map((question) => ({
-      ...question,
-      points,
-      difficulty,
-    }));
-  } catch {
-    // Opening the game is more important than leaving a player trapped on the
-    // map. Only reuse the local vault after every unseen fallback is exhausted.
-    const shuffledPool = [...pool].sort(() => Math.random() - 0.5);
-    const stamp = Date.now();
-    return Array.from({ length: count }, (_, index) => {
-      const question = shuffledPool[index % shuffledPool.length];
-      return {
-        ...question,
-        id: `emergency_${stamp}_${index}_${question.id}`,
-        points,
-        difficulty,
-      };
-    });
-  }
+  return chooseUnseenFallbackQuestions(pool, count).map((question) => ({
+    ...question,
+    points,
+    difficulty,
+  }));
 };
 
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
@@ -298,12 +282,20 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    const shuffled = buildGuaranteedFallbackQuestions(
-      qPool,
-      count,
-      automaticDifficulty,
-      automaticDifficulty === 'hard' ? 20 : 15,
-    );
+    let shuffled: Question[];
+    try {
+      shuffled = buildUnseenFallbackQuestions(
+        qPool,
+        count,
+        automaticDifficulty,
+        automaticDifficulty === 'hard' ? 20 : 15,
+      );
+    } catch {
+      setIsLoading(false);
+      await finishLaunchAnimation();
+      setAiNotice('No unseen questions remain in this offline category. Connect to the Internet or try another level—old questions will not be repeated.');
+      return;
+    }
 
     setQuestions(shuffled);
     initGame(shuffled);
@@ -367,12 +359,19 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    const shuffled = buildGuaranteedFallbackQuestions(
-      qPool,
-      10,
-      automaticDifficulty,
-      targetPoints,
-    );
+    let shuffled: Question[];
+    try {
+      shuffled = buildUnseenFallbackQuestions(
+        qPool,
+        10,
+        automaticDifficulty,
+        targetPoints,
+      );
+    } catch {
+      setIsLoading(false);
+      setAiNotice('You have completed every unseen question in this category. Choose another category or reconnect to the Internet—completed questions will not be repeated.');
+      return;
+    }
 
     setQuestions(shuffled);
     initGame(shuffled);
