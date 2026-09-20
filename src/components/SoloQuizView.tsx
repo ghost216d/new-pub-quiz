@@ -99,6 +99,79 @@ const DIFFICULTY_OPTIONS: {
 // blocked by the player's network. Fall back quickly instead of leaving the
 // launch animation looking like a button that did nothing.
 const ONLINE_QUESTION_TIMEOUT_MS = 4500;
+const SOLO_PASS_PERCENT = 60;
+const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
+
+type MissedQuestion = {
+  question: Question;
+  levelId: string;
+  missedAt: number;
+};
+
+const shuffleItems = <T,>(items: T[]): T[] => {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[randomIndex]] = [copy[randomIndex], copy[index]];
+  }
+  return copy;
+};
+
+const questionKey = (question: Question): string =>
+  question.prompt.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+const readMissedQuestions = (): MissedQuestion[] => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(MISSED_QUESTIONS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveMissedQuestions = (questions: MissedQuestion[]) => {
+  localStorage.setItem(MISSED_QUESTIONS_KEY, JSON.stringify(questions.slice(-100)));
+};
+
+const rememberMissedQuestion = (question: Question, levelId: string) => {
+  const key = questionKey(question);
+  const previous = readMissedQuestions().filter(
+    (item) => questionKey(item.question) !== key,
+  );
+  saveMissedQuestions([...previous, { question, levelId, missedAt: Date.now() }]);
+};
+
+const forgetMasteredQuestion = (question: Question) => {
+  const key = questionKey(question);
+  saveMissedQuestions(
+    readMissedQuestions().filter((item) => questionKey(item.question) !== key),
+  );
+};
+
+const prepareAttemptQuestions = (
+  freshQuestions: Question[],
+  count: number,
+  levelId?: string,
+): Question[] => {
+  const retryLimit = Math.min(2, Math.max(1, Math.floor(count / 3)));
+  const retries = levelId
+    ? shuffleItems(
+        readMissedQuestions()
+          .filter((item) => item.levelId === levelId)
+          .map((item) => item.question),
+      ).slice(0, retryLimit)
+    : [];
+  const retryKeys = new Set(retries.map(questionKey));
+  const combined = [
+    ...retries,
+    ...freshQuestions.filter((question) => !retryKeys.has(questionKey(question))),
+  ].slice(0, count);
+
+  return shuffleItems(combined).map((question) => ({
+    ...question,
+    options: question.options ? shuffleItems(question.options) : question.options,
+  }));
+};
 
 // Solo mode never serves audio-dependent questions. Quiz Master keeps its
 // music rounds, while Solo uses standard trivia and dedicated picture puzzles.
@@ -206,6 +279,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
   const [streak, setStreak] = useState(0);
   const [coinsEarnedInGame, setCoinsEarnedInGame] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -244,6 +318,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setIsAnswerRevealed(true);
     setStreak(0);
     audioSynth.playLifeLostFx();
+    const timedOutQuestion = questions[currentIdx];
+    if (activeLevel && timedOutQuestion) {
+      rememberMissedQuestion(timedOutQuestion, activeLevel.id);
+    }
 
     // Deduct 1 life
     const remainingLives = Math.max(0, progression.lives - 1);
@@ -294,8 +372,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           `${map.name}: ${level.category}`,
           count,
         );
-        setQuestions(onlineQuestions);
-        initGame(onlineQuestions);
+        const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count, level.id);
+        setQuestions(attemptQuestions);
+        initGame(attemptQuestions);
         setIsLoading(false);
         await finishLaunchAnimation();
         setViewMode('quiz');
@@ -334,8 +413,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       );
     }
 
-    setQuestions(shuffled);
-    initGame(shuffled);
+    const attemptQuestions = prepareAttemptQuestions(shuffled, count, level.id);
+    setQuestions(attemptQuestions);
+    initGame(attemptQuestions);
     setIsLoading(false);
     await finishLaunchAnimation();
     setViewMode('quiz');
@@ -405,6 +485,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const initGame = (qList: Question[]) => {
     setCurrentIdx(0);
     setScore(0);
+    setCorrectCount(0);
     setStreak(0);
     setCoinsEarnedInGame(0);
     setSelectedAnswer(null);
@@ -425,6 +506,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       const bonusStreak = streak * 3;
       const pts = (currentQ.points || 15) + bonusStreak;
       setScore((s) => s + pts);
+      setCorrectCount((count) => count + 1);
+      forgetMasteredQuestion(currentQ);
       setStreak((st) => st + 1);
 
       // Award coins for correct answer!
@@ -446,6 +529,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         confetti({ particleCount: 35, spread: 65, origin: { y: 0.8 } });
       }
     } else {
+      if (activeLevel) rememberMissedQuestion(currentQ, activeLevel.id);
       setStreak(0);
       audioSynth.playWrongFx();
       audioSynth.playLifeLostFx();
@@ -484,13 +568,20 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
   const finishGame = () => {
     setGameOver(true);
-    audioSynth.playMilestoneFanfare();
-    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+    const correctPercent = questions.length > 0
+      ? Math.round((correctCount / questions.length) * 100)
+      : 0;
+    const passedStage = !activeLevel || correctPercent >= SOLO_PASS_PERCENT;
+    if (passedStage) {
+      audioSynth.playMilestoneFanfare();
+      confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+    } else {
+      audioSynth.playWrongFx();
+    }
 
     // If this was a Map Level, calculate stars and unlock rewards
     if (activeLevel && activeMap) {
-      const totalPossiblePoints = questions.reduce((acc, q) => acc + (q.points || 15), 0);
-      const accuracy = totalPossiblePoints > 0 ? Math.round((score / totalPossiblePoints) * 100) : 0;
+      const accuracy = correctPercent;
 
       let starsAwarded = 0;
       if (accuracy >= 80) starsAwarded = 3;
@@ -505,7 +596,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       }
 
       // Bonus level completion reward
-      const bonusReward = activeLevel.coinReward || 150;
+      const bonusReward = passedStage ? (activeLevel.coinReward || 150) : 0;
       const prevProgress = progression.completedLevels[activeLevel.id];
       const prevStars = prevProgress?.stars || 0;
       const netStars = Math.max(0, starsAwarded - prevStars);
@@ -515,8 +606,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         [activeLevel.id]: {
           stars: Math.max(prevStars, starsAwarded),
           highScore: Math.max(prevProgress?.highScore || 0, score),
-          passed: true,
-          completedAt: Date.now(),
+          passed: Boolean(prevProgress?.passed || passedStage),
+          completedAt: passedStage ? Date.now() : prevProgress?.completedAt,
         },
       };
 
@@ -557,18 +648,20 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           ? { mapId: nextMap.id, levelId: nextMap.levels[0].id }
           : { mapId: activeMap.id, levelId: activeLevel.id };
 
-      setAutoAdvanceTarget(nextTarget);
+      setAutoAdvanceTarget(passedStage ? nextTarget : null);
 
-      // Show the victory moment, then travel to the next stage automatically.
-      window.setTimeout(() => {
-        setGameOver(false);
-        setSelectedAnswer(null);
-        setIsAnswerRevealed(false);
-        setActiveLevel(null);
-        setActiveMap(null);
-        setViewMode('map');
-        audioSynth.playChampionFanfare();
-      }, 2600);
+      if (passedStage) {
+        // Show the victory moment, then travel to the next stage automatically.
+        window.setTimeout(() => {
+          setGameOver(false);
+          setSelectedAnswer(null);
+          setIsAnswerRevealed(false);
+          setActiveLevel(null);
+          setActiveMap(null);
+          setViewMode('map');
+          audioSynth.playChampionFanfare();
+        }, 2600);
+      }
     }
   };
 
@@ -791,8 +884,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   // VIEW 3: GAME OVER / LEVEL VICTORY SCREEN
   // ==========================================
   if (gameOver) {
-    const totalPossiblePoints = questions.reduce((acc, q) => acc + (q.points || 15), 0);
-    const accuracy = totalPossiblePoints > 0 ? Math.round((score / totalPossiblePoints) * 100) : 0;
+    const accuracy = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+    const requiredCorrect = Math.ceil((questions.length * SOLO_PASS_PERCENT) / 100);
+    const passedStage = !activeLevel || correctCount >= requiredCorrect;
     const diffObj = DIFFICULTY_OPTIONS.find((d) => d.id === difficulty) || DIFFICULTY_OPTIONS[1];
 
     let starsEarned = 0;
@@ -805,15 +899,28 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         <CartoonBunting className="w-full h-8 -mt-2 opacity-95" />
 
         <div className="flex justify-center">
-          <CartoonTrophy size={96} className="animate-boing" />
+          {passedStage ? (
+            <CartoonTrophy size={96} className="animate-boing" />
+          ) : (
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-sky-700 bg-sky-100 shadow-[0_6px_0_#082f49]">
+              <RotateCcw className="h-12 w-12 text-sky-800" />
+            </div>
+          )}
         </div>
 
         <div className="space-y-1.5">
           <div className="flex justify-center">
-            <CartoonPopBurst text={accuracy >= 80 ? "3-STAR CHAMP!" : "STAGE CLEAR!"} color="yellow" />
+            <CartoonPopBurst
+              text={passedStage ? (accuracy >= 80 ? '3-STAR CHAMP!' : 'STAGE CLEAR!') : 'SO CLOSE!'}
+              color={passedStage ? 'yellow' : 'blue'}
+            />
           </div>
           <h2 className="text-2xl sm:text-3xl font-cartoon text-amber-950 drop-shadow-sm">
-            {activeLevel ? `${activeLevel.name} Clear!` : 'Solo Quiz Complete!'}
+            {activeLevel
+              ? passedStage
+                ? `${activeLevel.name} Clear!`
+                : `${activeLevel.name} Needs Another Go`
+              : 'Solo Quiz Complete!'}
           </h2>
           <div className="flex items-center justify-center gap-2 text-xs font-bold text-stone-700">
             <span>{activeMap ? activeMap.name : selectedCategory}</span>
@@ -844,7 +951,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs font-cartoon">
             <div className="text-emerald-900 bg-emerald-100 px-3 py-1 rounded-xl border border-emerald-400 font-black">
-              ACCURACY: {Math.min(100, Math.max(0, accuracy))}%
+              CORRECT: {correctCount} / {questions.length}
             </div>
             <div className="flex items-center gap-1.5 text-amber-950 bg-amber-200/90 px-3 py-1 rounded-xl border border-amber-400 font-black">
               <Coins className="w-4 h-4 text-amber-600 fill-amber-500" />
@@ -853,7 +960,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           </div>
 
           <p className="text-xs text-stone-700 font-bold">
-            {accuracy >= 80
+            {!passedStage
+              ? `Get ${requiredCorrect} correct to unlock the next stage. Missed questions may return with shuffled answers.`
+              : accuracy >= 80
               ? '👑 True Pub Quiz Master! Flawless performance.'
               : accuracy >= 50
               ? '🍺 Solid round! Bar tab worthy knowledge.'
@@ -884,7 +993,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
               className="flex-1 py-3.5 rounded-2xl cartoon-btn-cyan text-xs sm:text-sm font-cartoon tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 min-h-[44px]"
             >
               <RotateCcw className="w-4 h-4 stroke-[2.5]" />
-              <span>PLAY AGAIN</span>
+              <span>{passedStage ? 'PLAY AGAIN' : 'RETRY STAGE'}</span>
             </button>
             <button
               onClick={onBackToHome}
@@ -922,6 +1031,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           <span className="shrink-0 px-2.5 sm:px-3 py-1 rounded-full cartoon-btn-amber text-[10px] sm:text-xs font-cartoon shadow-sm">
             Q {currentIdx + 1} / {questions.length}
           </span>
+          {activeLevel && (
+            <span className="shrink-0 rounded-full border-2 border-emerald-500 bg-emerald-100 px-2 py-1 text-[10px] font-cartoon text-emerald-900 shadow-sm">
+              ✓ {correctCount}/{Math.ceil((questions.length * SOLO_PASS_PERCENT) / 100)}
+            </span>
+          )}
           <span className="solo-quiz-pub-name min-w-0 text-[11px] sm:text-xs text-stone-900 font-cartoon truncate">
             {activeLevel ? activeLevel.name : currentQ?.category}
           </span>
