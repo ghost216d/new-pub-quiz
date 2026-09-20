@@ -1,12 +1,25 @@
-import { Round, CategoryVaultItem } from '../types';
+import { Round, CategoryVaultItem, Question } from '../types';
 
 export const CATEGORY_VAULT: CategoryVaultItem[] = [
   { id: 'pub_classics', name: 'Pub Classics & Beer Lore', icon: '🍺', description: 'Traditional pub trivia, brews, and bar games', color: '#F59E0B' },
-  { id: 'music_rewind', name: 'Music Hits & Intro Riffs', icon: '🎸', description: '80s, 90s, Pop & Rock song identification', color: '#EC4899' },
+  { id: 'picture_rebus', name: 'Emoji Picture Puzzles', icon: '🧩', description: 'Colourful rebuses, visual clues, and picture puzzles', color: '#EC4899' },
   { id: 'picture_riddles', name: 'Picture Clues & Visuals', icon: '🖼️', description: 'Visual puzzles, album sleeves, and cartoon icons', color: '#8B5CF6' },
   { id: 'movies_tv', name: 'Binge-Worthy TV & Movies', icon: '🍿', description: 'Blockbusters, iconic quotes, and sitcom legends', color: '#3B82F6' },
   { id: 'science_nature', name: 'Wacky Science & Nature', icon: '🧪', description: 'Bizarre animal facts, outer space, and elements', color: '#10B981' },
   { id: 'history_geography', name: 'World Atlas & Odd History', icon: '🌍', description: 'Strange historical quirks and world geography', color: '#EF4444' },
+];
+
+export const SOLO_PICTURE_QUESTIONS: Question[] = [
+  { id: 'pic_1', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐝 + 🍃', prompt: 'Which word is represented by this picture clue?', type: 'multiple_choice', options: ['Believe', 'Beaver', 'Beneath', 'Before'], correctAnswer: 'Believe', acceptableAnswers: ['believe'], explanation: 'Bee + leaf sounds like “believe”.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_2', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '👁️ + scream', prompt: 'Which dessert is represented by this picture clue?', type: 'multiple_choice', options: ['Ice cream', 'Apple pie', 'Cheesecake', 'Fruit salad'], correctAnswer: 'Ice cream', acceptableAnswers: ['ice cream'], explanation: 'Eye sounds like “ice”, followed by scream.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_3', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🌧️ + 🏹', prompt: 'Which colourful natural phenomenon does this rebus show?', type: 'multiple_choice', options: ['Rainbow', 'Sunset', 'Thunder', 'Snowfall'], correctAnswer: 'Rainbow', acceptableAnswers: ['rainbow'], explanation: 'Rain + bow makes rainbow.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_4', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🔥 + 🪰', prompt: 'Which glowing insect is represented by these pictures?', type: 'multiple_choice', options: ['Firefly', 'Butterfly', 'Dragonfly', 'Ladybird'], correctAnswer: 'Firefly', acceptableAnswers: ['firefly'], explanation: 'Fire + fly makes firefly.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_5', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🧈 + 🪰', prompt: 'Which insect is represented by this picture clue?', type: 'multiple_choice', options: ['Butterfly', 'Firefly', 'Horsefly', 'Dragonfly'], correctAnswer: 'Butterfly', acceptableAnswers: ['butterfly'], explanation: 'Butter + fly makes butterfly.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_6', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '⭐ + 🐟', prompt: 'Which sea creature is represented by these pictures?', type: 'multiple_choice', options: ['Starfish', 'Swordfish', 'Jellyfish', 'Seahorse'], correctAnswer: 'Starfish', acceptableAnswers: ['starfish'], explanation: 'Star + fish makes starfish.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_7', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🌙 + 💡', prompt: 'Which word is represented by this visual clue?', type: 'multiple_choice', options: ['Moonlight', 'Midnight', 'Daylight', 'Starlight'], correctAnswer: 'Moonlight', acceptableAnswers: ['moonlight'], explanation: 'Moon + light makes moonlight.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_8', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐝 + 🏠', prompt: 'Which insect home is represented by the pictures?', type: 'multiple_choice', options: ['Beehive', 'Birdhouse', 'Anthill', 'Cocoon'], correctAnswer: 'Beehive', acceptableAnswers: ['beehive', 'bee hive'], explanation: 'Bee + home points to a beehive.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_9', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '☀️ + 🌻', prompt: 'Which flower is represented by these pictures?', type: 'multiple_choice', options: ['Sunflower', 'Rose', 'Daffodil', 'Tulip'], correctAnswer: 'Sunflower', acceptableAnswers: ['sunflower'], explanation: 'Sun + flower makes sunflower.', points: 15, timeLimitSec: 30 },
+  { id: 'pic_10', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🦷 + 🪥', prompt: 'Which everyday activity do these pictures suggest?', type: 'multiple_choice', options: ['Brushing your teeth', 'Eating breakfast', 'Going to sleep', 'Visiting a barber'], correctAnswer: 'Brushing your teeth', acceptableAnswers: ['brushing your teeth', 'brush teeth'], explanation: 'A tooth and toothbrush show brushing your teeth.', points: 15, timeLimitSec: 30 },
 ];
 
 export const DEFAULT_ROUNDS: Round[] = [
