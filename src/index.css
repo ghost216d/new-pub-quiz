@@ -2801,6 +2801,156 @@ body,
   }
 }
 
+/* A quick pub toast after each correct Solo answer. */
+.correct-drink-celebration {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 196, 44, .22), rgba(31, 3, 12, .18) 58%, transparent 72%);
+  animation: correct-drink-backdrop 1.45s ease both;
+}
+
+.correct-drink-card {
+  position: relative;
+  width: min(88vw, 330px);
+  height: 350px;
+  overflow: hidden;
+  border: 5px solid #ffc928;
+  border-radius: 32px;
+  background: #6d0928;
+  box-shadow: 0 10px 0 #6f2908, 0 24px 55px rgba(32, 0, 8, .55), inset 0 3px 0 rgba(255,255,255,.4);
+  animation: correct-drink-card-pop 1.45s cubic-bezier(.2,.9,.25,1) both;
+}
+
+.correct-drink-glow {
+  position: absolute;
+  z-index: 0;
+  inset: -35%;
+  background: conic-gradient(from 0deg, transparent, rgba(255,215,64,.8), transparent 25%, rgba(255,255,255,.5), transparent 55%, rgba(255,186,24,.8), transparent);
+  animation: correct-drink-spin 2s linear infinite;
+}
+
+.correct-drink-host {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  background: #35101b;
+}
+
+.correct-drink-host::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 42%, rgba(55, 0, 18, .18) 58%, rgba(55, 0, 18, .93) 100%);
+}
+
+.correct-drink-host img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 38%;
+  transform: scale(1.08);
+  animation: correct-drink-host-cheer 1.45s ease both;
+}
+
+.correct-drink-pint {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: 30px;
+  font-size: 78px;
+  filter: drop-shadow(0 6px 3px rgba(63, 20, 0, .6));
+  transform-origin: 25% 80%;
+  animation: correct-drink-pint-lift 1.45s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.correct-drink-foam {
+  position: absolute;
+  z-index: 5;
+  left: 68%;
+  top: 28%;
+  color: #fff8db;
+  font-size: 14px;
+  opacity: 0;
+  text-shadow: 0 2px 0 #d69b20;
+}
+.correct-drink-foam.foam-one { animation: correct-drink-foam 1s .48s ease-out both; }
+.correct-drink-foam.foam-two { margin-left: 17px; animation: correct-drink-foam 1s .58s ease-out both; }
+.correct-drink-foam.foam-three { margin-left: -12px; animation: correct-drink-foam 1s .68s ease-out both; }
+
+.correct-drink-copy {
+  position: absolute;
+  z-index: 8;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 3px solid #ffc928;
+  border-radius: 18px;
+  color: #fff8d8;
+  text-align: center;
+  background: rgba(132, 0, 41, .92);
+  box-shadow: 0 4px 0 #5f2108;
+}
+.correct-drink-copy strong {
+  font-family: var(--font-cartoon, ui-rounded, system-ui, sans-serif);
+  font-size: 25px;
+  line-height: 1;
+  text-shadow: 0 2px 0 #5d1907;
+}
+.correct-drink-copy span { color: #ffe783; font-size: 14px; font-weight: 950; }
+
+@keyframes correct-drink-card-pop {
+  0% { opacity: 0; transform: translateY(45px) scale(.72) rotate(-5deg); }
+  16% { opacity: 1; transform: translateY(0) scale(1.04) rotate(1deg); }
+  25%, 78% { opacity: 1; transform: scale(1) rotate(0); }
+  100% { opacity: 0; transform: translateY(-24px) scale(.92); }
+}
+@keyframes correct-drink-backdrop {
+  0%, 100% { opacity: 0; }
+  15%, 82% { opacity: 1; }
+}
+@keyframes correct-drink-spin { to { transform: rotate(360deg); } }
+@keyframes correct-drink-host-cheer {
+  0% { transform: scale(1.15) translateY(2%); filter: brightness(.72); }
+  20%, 76% { transform: scale(1.08) translateY(0); filter: brightness(1.08) saturate(1.14); }
+  100% { transform: scale(1.12) translateY(-1%); filter: brightness(.9); }
+}
+@keyframes correct-drink-pint-lift {
+  0% { opacity: 0; transform: translate(55px, 45px) rotate(18deg) scale(.65); }
+  17% { opacity: 1; transform: translate(24px, 4px) rotate(4deg) scale(1); }
+  42%, 67% { opacity: 1; transform: translate(-4px, -126px) rotate(-24deg) scale(1.08); }
+  82% { opacity: 1; transform: translate(18px, -8px) rotate(2deg) scale(1); }
+  100% { opacity: 0; transform: translate(42px, 24px) rotate(10deg) scale(.8); }
+}
+@keyframes correct-drink-foam {
+  0% { opacity: 0; transform: translateY(15px) scale(.5); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-42px) scale(1.15); }
+}
+
+@media (max-height: 620px) {
+  .correct-drink-card { height: 300px; width: min(80vw, 285px); }
+  .correct-drink-pint { font-size: 66px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .correct-drink-celebration,
+  .correct-drink-card,
+  .correct-drink-glow,
+  .correct-drink-host img,
+  .correct-drink-pint,
+  .correct-drink-foam { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
+
 /* Last Orders Dash — a short, touch-friendly reward between solo stages. */
 .last-orders-shell {
   min-height: min(760px, calc(100dvh - 16px));

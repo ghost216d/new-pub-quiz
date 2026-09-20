@@ -31,7 +31,7 @@ import { chooseUnseenFallbackQuestions, getOnlineTriviaQuestions } from '../util
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
 import { TavernShopModal } from './TavernShopModal';
-import { LastOrdersDash } from './LastOrdersDash';
+import { CorrectAnswerDrink } from './CorrectAnswerDrink';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -291,7 +291,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
   const [launchingLevel, setLaunchingLevel] = useState<MapLevel | null>(null);
-  const [isMiniGameOpen, setIsMiniGameOpen] = useState(false);
+  const [drinkCelebration, setDrinkCelebration] = useState<{ id: number; streak: number } | null>(null);
 
   // Helper to persist progression state updates
   const updateProgression = (updated: SoloProgression) => {
@@ -511,6 +511,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       setCorrectCount((count) => count + 1);
       forgetMasteredQuestion(currentQ);
       setStreak((st) => st + 1);
+      const nextStreak = streak + 1;
+      setDrinkCelebration({ id: Date.now(), streak: nextStreak });
+      window.setTimeout(() => setDrinkCelebration(null), 1450);
 
       // Award coins for correct answer!
       const coinGain = 20 + streak * 5;
@@ -653,31 +656,18 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       setAutoAdvanceTarget(passedStage ? nextTarget : null);
 
       if (passedStage) {
-        // Show the victory moment, then send the player into the short bonus
-        // dash before travelling to the next stage.
+        // Show the victory moment, then travel to the newly unlocked stage.
         window.setTimeout(() => {
           setGameOver(false);
           setSelectedAnswer(null);
           setIsAnswerRevealed(false);
-          setIsMiniGameOpen(true);
+          setActiveLevel(null);
+          setActiveMap(null);
+          setViewMode('map');
+          audioSynth.playChampionFanfare();
         }, 2600);
       }
     }
-  };
-
-  const handleMiniGameComplete = (bonusReward: number) => {
-    if (bonusReward > 0) {
-      updateProgression({
-        ...progression,
-        coins: progression.coins + bonusReward,
-      });
-      audioSynth.playCoinFx();
-    }
-    setIsMiniGameOpen(false);
-    setActiveLevel(null);
-    setActiveMap(null);
-    setViewMode('map');
-    audioSynth.playChampionFanfare();
   };
 
   // Revive with coins
@@ -895,15 +885,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     );
   }
 
-  if (isMiniGameOpen && activeLevel) {
-    return (
-      <LastOrdersDash
-        pubName={activeLevel.name}
-        onComplete={handleMiniGameComplete}
-      />
-    );
-  }
-
   // ==========================================
   // VIEW 3: GAME OVER / LEVEL VICTORY SCREEN
   // ==========================================
@@ -1039,6 +1020,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
   return (
     <div className="solo-screen solo-quiz-screen w-full mx-auto space-y-3 sm:space-y-4 font-comic">
+      {drinkCelebration && (
+        <CorrectAnswerDrink key={drinkCelebration.id} streak={drinkCelebration.streak} />
+      )}
       {/* Notice banner if fallback was served */}
       {aiNotice && (
         <div className="p-3 bg-amber-500/10 border border-amber-500/40 rounded-2xl text-amber-300 text-xs flex items-center gap-2">
