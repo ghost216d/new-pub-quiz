@@ -3251,3 +3251,102 @@ body,
     right: 18px;
   }
 }
+/* Final theme: warm London-pub brown and gold across the whole app. */
+.app-shell,
+.tv-display-shell,
+html[data-time-theme="night"] .app-shell,
+html[data-time-theme="night"] .tv-display-shell {
+  background-color: #fef3c7 !important;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255, 251, 235, 0.96), transparent 30%),
+    linear-gradient(180deg, #fffbeb 0%, #fef3c7 52%, #fde68a 100%) !important;
+}
+
+.app-main-header,
+html[data-time-theme="night"] .app-main-header,
+.role-solo .game-top-bar,
+html[data-time-theme="day"] .role-solo .game-top-bar {
+  color: #fff7ed !important;
+  border-color: #f59e0b !important;
+  background: linear-gradient(180deg, #78350f 0%, #451a03 100%) !important;
+  box-shadow: 0 5px 0 #92400e, 0 10px 24px rgba(69, 26, 3, 0.24) !important;
+}
+
+.role-solo .game-title h1,
+.role-solo .game-title p {
+  color: #fff7ed !important;
+  text-shadow: 0 2px 0 #451a03 !important;
+}
+
+.role-solo .game-icon-button,
+.role-solo .game-avatar-button,
+.global-music-control .bgm-trigger {
+  color: #78350f !important;
+  border-color: #fbbf24 !important;
+  background: linear-gradient(180deg, #fffbeb, #fde68a) !important;
+  box-shadow: 0 3px 0 #b45309, 0 8px 18px rgba(69, 26, 3, 0.22) !important;
+}
+
+.role-solo .game-realm-card,
+html[data-time-theme="day"] .role-solo .game-realm-card,
+.role-solo .game-level-card,
+.role-solo :is(.solo-setup-screen, .solo-result-screen, .solo-question-card),
+.role-landing :is(.landing-pub-sign, .landing-mode-panel),
+.role-host .host-console-shell > div,
+.role-player .app-content > div,
+.tv-display-shell > :is(header, main, footer),
+#tavern-shop-modal-container {
+  color: #451a03 !important;
+  border-color: #d97706 !important;
+  background: linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(254, 243, 199, 0.97)) !important;
+  box-shadow: 0 6px 0 #92400e, 0 14px 28px rgba(69, 26, 3, 0.2) !important;
+}
+
+.role-solo .game-season-badge,
+.role-solo .game-auto-difficulty-note,
+html[data-time-theme="day"] .role-solo .game-season-badge,
+html[data-time-theme="day"] .role-solo .game-auto-difficulty-note {
+  color: #78350f !important;
+  border-color: #f59e0b !important;
+  background: rgba(255, 251, 235, 0.94) !important;
+}
+
+.role-solo .game-bottom-nav,
+html[data-time-theme="day"] .role-solo .game-bottom-nav {
+  border-color: #f59e0b !important;
+  background: linear-gradient(180deg, rgba(120, 53, 15, 0.98), rgba(69, 26, 3, 0.98)) !important;
+  box-shadow: 0 -5px 18px rgba(69, 26, 3, 0.28) !important;
+}
+
+.role-solo .game-bottom-nav button { color: #fde68a !important; }
+.role-solo .game-bottom-nav button.is-active {
+  color: #451a03 !important;
+  border-color: #fbbf24 !important;
+  background: linear-gradient(180deg, #fcd34d, #f59e0b) !important;
+  box-shadow: 0 4px 0 #92400e !important;
+}
+
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="border-sky"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="border-cyan"] {
+  border-color: #d97706 !important;
+}
+
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-sky"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-cyan"] {
+  background-color: #fef3c7 !important;
+}
+
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="text-sky"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="text-cyan"] {
+  color: #92400e !important;
+}
+
+/* Show the generated map artwork without any darkening layer or vignette. */
+.role-solo .game-map-board {
+  box-shadow: none !important;
+}
+
+.role-solo .game-season-overlay {
+  display: none !important;
+  background: transparent !important;
+}
