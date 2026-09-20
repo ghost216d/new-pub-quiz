@@ -19,7 +19,7 @@ import {
   Award,
 } from 'lucide-react';
 import { Question, QuizDifficulty, MapLevel, CartoonMap, SoloProgression } from '../types';
-import { CATEGORY_VAULT, DEFAULT_ROUNDS } from '../data/defaultQuestions';
+import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -99,6 +99,16 @@ const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
   levelNumber % 5 === 0 ? 'hard' : 'medium';
 
 const ONLINE_QUESTION_TIMEOUT_MS = 4000;
+
+// Solo mode never serves audio-dependent questions. Quiz Master keeps its
+// music rounds, while Solo uses standard trivia and dedicated picture puzzles.
+const getSoloQuestionVault = (): Question[] => [
+  ...DEFAULT_ROUNDS
+    .filter((round) => round.type !== 'music')
+    .flatMap((round) => round.questions)
+    .filter((question) => !question.musicData),
+  ...SOLO_PICTURE_QUESTIONS,
+];
 
 const loadOnlineQuestionsWithTimeout = (
   options: Parameters<typeof getOnlineTriviaQuestions>[0],
@@ -277,8 +287,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     }
 
     // 2. Curated fallback
-    const allQuestions: Question[] = [];
-    DEFAULT_ROUNDS.forEach((r) => allQuestions.push(...r.questions));
+    const allQuestions = getSoloQuestionVault();
 
     let qPool = allQuestions.filter(
       (q) =>
@@ -316,6 +325,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setActiveLevel(null);
     setActiveMap(null);
     const topic = customTopic.trim() || selectedCategory;
+    const isPictureRound = !customTopic.trim() && selectedCategory === 'Emoji Picture Puzzles';
     const automaticDifficulty: QuizDifficulty = 'medium';
     setDifficulty(automaticDifficulty);
 
@@ -327,7 +337,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     };
     const targetPoints = pointsByDiff[automaticDifficulty] || 15;
 
-    if (navigator.onLine) {
+    if (navigator.onLine && !isPictureRound) {
       try {
         const onlineQuestions = await loadOnlineQuestionsWithTimeout({
           category: topic,
@@ -346,10 +356,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     }
 
     // Curated local questions fallback
-    const allQuestions: Question[] = [];
-    DEFAULT_ROUNDS.forEach((r) => allQuestions.push(...r.questions));
+    const allQuestions = getSoloQuestionVault();
 
-    let qPool = allQuestions.filter(
+    let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : allQuestions.filter(
       (q) =>
         q.category.toLowerCase().includes(selectedCategory.toLowerCase().slice(0, 4)) ||
         selectedCategory.toLowerCase().includes(q.category.toLowerCase().slice(0, 4))
@@ -952,6 +961,23 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             QUIT TO MAP ➔
           </button>
         </div>
+
+        {currentQ?.pictureClue && (
+          <div
+            className="solo-picture-clue flex min-h-[130px] items-center justify-center rounded-2xl border-4 border-amber-500 bg-gradient-to-br from-sky-100 via-white to-amber-100 p-5 text-center text-6xl sm:text-7xl shadow-inner"
+            aria-label={`Picture clue: ${currentQ.pictureClue}`}
+          >
+            {currentQ.pictureClue}
+          </div>
+        )}
+
+        {currentQ?.imageUrl && !currentQ.pictureClue && (
+          <img
+            src={currentQ.imageUrl}
+            alt="Picture clue for this question"
+            className="max-h-64 w-full rounded-2xl border-4 border-amber-500 object-cover shadow-md"
+          />
+        )}
 
         <h3 className="text-base sm:text-xl font-extrabold text-stone-900 leading-snug">
           {currentQ?.prompt}
