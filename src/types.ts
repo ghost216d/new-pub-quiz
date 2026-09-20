@@ -219,9 +219,7 @@ export interface UserProfile {
   name: string;
   email?: string;
   avatar: string;
-  provider: 'guest' | 'google' | 'facebook';
-  facebookLinked?: boolean;
-  facebookName?: string;
+  provider: 'guest' | 'google' | 'email';
   createdAt: number;
 }
 
