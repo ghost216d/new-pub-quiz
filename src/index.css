@@ -2801,6 +2801,135 @@ body,
   }
 }
 
+/* Collapsible realm control: keep pub markers clear until details are requested. */
+.role-solo .game-realm-card.is-collapsed,
+html[data-time-theme="day"] .role-solo .game-realm-card.is-collapsed,
+html[data-time-theme="night"] .role-solo .game-realm-card.is-collapsed {
+  right: auto;
+  bottom: 10px;
+  left: 50%;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 5px;
+  border: 3px solid #f6c453 !important;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #8f1d2c, #5f0f18) !important;
+  box-shadow: 0 5px 0 #8a3b12, 0 9px 20px rgba(63, 7, 16, 0.3) !important;
+  transform: translateX(-50%);
+}
+
+.role-solo .game-realm-card.is-collapsed .game-realm-heading {
+  grid-template-columns: 48px 42px 48px;
+  gap: 6px;
+}
+
+.role-solo .game-realm-card.is-collapsed .game-map-arrow,
+.role-solo .game-realm-card.is-collapsed .game-realm-toggle {
+  width: 48px;
+  height: 44px;
+  border: 3px solid #ffc928;
+  border-radius: 15px;
+  color: #fff4c7;
+  background: linear-gradient(180deg, #c0003c, #780026);
+  box-shadow: 0 3px 0 #8a3b12, inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+.role-solo .game-realm-card.is-collapsed .game-realm-toggle {
+  width: 42px;
+  color: #ffd65a;
+  background: linear-gradient(180deg, #6248df, #3920a6);
+}
+
+.role-solo .game-realm-toggle {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: inherit;
+}
+
+.role-solo .game-realm-card.is-expanded .game-realm-toggle {
+  width: 100%;
+  padding: 2px 4px;
+}
+
+.role-solo .game-realm-card.is-expanded .game-realm-toggle > svg {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  color: #b45309;
+}
+
+.role-solo .game-realm-title-icon {
+  flex: 0 0 auto;
+  font-size: 25px;
+}
+
+.role-solo .game-realm-title-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+}
+
+.role-solo .game-realm-title-copy strong,
+.role-solo .game-realm-title-copy small {
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+}
+
+.role-solo .game-realm-title-copy strong {
+  color: #78350f;
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: clamp(17px, 4.7vw, 23px);
+  line-height: 1.05;
+  letter-spacing: 0.025em;
+  -webkit-line-clamp: 2;
+}
+
+.role-solo .game-realm-title-copy small {
+  margin-top: 3px;
+  color: #57534e;
+  font-size: clamp(10px, 2.65vw, 13px);
+  font-weight: 800;
+  line-height: 1.2;
+  -webkit-line-clamp: 2;
+}
+
+@media (max-width: 899px) {
+  .role-solo .game-side-panel {
+    inset: 78px 0 100px;
+  }
+
+  .role-solo .game-realm-card.is-expanded {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    padding: 10px;
+  }
+
+  .role-solo .game-realm-card.is-expanded .game-realm-heading {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    gap: 7px;
+  }
+}
+
+@media (min-width: 900px) {
+  .role-solo .game-realm-card.is-collapsed {
+    right: auto;
+    bottom: 14px;
+    left: 50%;
+    width: auto;
+  }
+}
+
 /* Refined Solo map panel: readable headings, more map space and safe nav labels. */
 .role-solo .game-realm-title {
   align-items: flex-start;

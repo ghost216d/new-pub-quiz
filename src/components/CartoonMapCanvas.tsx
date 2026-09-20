@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Beer,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Clock,
   Coins,
   Crown,
@@ -91,6 +93,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     useState('Full ❤️');
   const [arrivalLevelId, setArrivalLevelId] = useState<string | null>(null);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const [isRealmPanelExpanded, setIsRealmPanelExpanded] = useState(false);
   const lastPointerActivationRef = useRef(0);
 
   const isMapUnlocked = useCallback(
@@ -471,7 +474,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       </section>
 
       {/* Realm selector */}
-      <section className="game-realm-card">
+      <section
+        className={`game-realm-card ${isRealmPanelExpanded ? 'is-expanded' : 'is-collapsed'}`}
+      >
         <div className="game-realm-heading">
           <button
             onClick={() => changeMap(-1)}
@@ -482,14 +487,26 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             <ChevronLeft className="w-6 h-6" />
           </button>
 
-          <div className="game-realm-title">
-            <span>{activeMap.icon}</span>
-
-            <div>
-              <h2>{activeMap.name}</h2>
-              <p>{activeMap.subtitle}</p>
-            </div>
-          </div>
+          <button
+            type="button"
+            className="game-realm-toggle"
+            onClick={() => setIsRealmPanelExpanded((expanded) => !expanded)}
+            aria-expanded={isRealmPanelExpanded}
+            aria-label={isRealmPanelExpanded ? 'Minimise map information' : 'Expand map information'}
+          >
+            {isRealmPanelExpanded ? (
+              <>
+                <span className="game-realm-title-icon">{activeMap.icon}</span>
+                <span className="game-realm-title-copy">
+                  <strong>{activeMap.name}</strong>
+                  <small>{activeMap.subtitle}</small>
+                </span>
+                <ChevronDown aria-hidden="true" />
+              </>
+            ) : (
+              <ChevronUp aria-hidden="true" />
+            )}
+          </button>
 
           <button
             onClick={() => changeMap(1)}
@@ -503,7 +520,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           </button>
         </div>
 
-        <div className="game-realm-tabs">
+        {isRealmPanelExpanded && <div className="game-realm-tabs">
           {visibleMaps.map((map) => {
             const selected = map.id === activeMap.id;
 
@@ -521,12 +538,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
               </button>
             );
           })}
-        </div>
+        </div>}
 
-        <p className="game-auto-difficulty-note">
+        {isRealmPanelExpanded && <p className="game-auto-difficulty-note">
           <Sparkles className="w-4 h-4" />
           Tap a pub marker to play. Questions stay fresh and never repeat.
-        </p>
+        </p>}
       </section>
       </aside>
 
