@@ -171,6 +171,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     return 1;
   })();
+  const currentPlayableLevel =
+    activeMap.levels.find((level) => level.levelNumber === currentLevelNumber) ||
+    activeMap.levels[0];
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -533,6 +536,19 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           <strong>{londonSeason.label} {londonTheme.time === 'night' ? 'Night' : 'Day'} in London</strong>
           <small>Season and light change automatically</small>
         </div>
+        {currentPlayableLevel && isLevelUnlocked(currentPlayableLevel) && (
+          <button
+            type="button"
+            className="game-start-current-level"
+            onClick={() => {
+              onSelectLevel(currentPlayableLevel, activeMap);
+              audioSynth.playCoinFx();
+            }}
+          >
+            <span aria-hidden="true">▶</span>
+            <strong>Play {currentPlayableLevel.pubName || currentPlayableLevel.name}</strong>
+          </button>
+        )}
       </section>
       </aside>
 
