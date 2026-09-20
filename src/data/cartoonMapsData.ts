@@ -1,6 +1,6 @@
 import { CartoonMap, ShopBundle, SoloProgression } from '../types';
 
-export const CARTOON_MAPS: CartoonMap[] = [
+const LEGACY_CARTOON_MAPS: CartoonMap[] = [
   {
     id: 'thames_riverside_crawl',
     name: 'The Thames Riverside Crawl',
@@ -385,6 +385,169 @@ export const CARTOON_MAPS: CartoonMap[] = [
       },
     ],
   },
+];
+
+type LondonStageLevel = {
+  id: string;
+  name: string;
+  address: string;
+  postcode: string;
+  category: string;
+  icon: string;
+  description: string;
+  funFact: string;
+};
+
+const makeLondonStage = ({
+  id,
+  name,
+  route,
+  subtitle,
+  icon,
+  requiredStars,
+  distance,
+  boroughs,
+  startArea,
+  endArea,
+  description,
+  artwork,
+  themeColor,
+  pathColor,
+  levels,
+}: {
+  id: string;
+  name: string;
+  route: string;
+  subtitle: string;
+  icon: string;
+  requiredStars: number;
+  distance: string;
+  boroughs: string;
+  startArea: string;
+  endArea: string;
+  description: string;
+  artwork: string;
+  themeColor: string;
+  pathColor: string;
+  levels: LondonStageLevel[];
+}): CartoonMap => ({
+  id,
+  name,
+  crawlRouteName: route,
+  subtitle,
+  icon,
+  themeColor,
+  accentColor: '#F59E0B',
+  bgGradient: 'from-amber-100 via-orange-50 to-stone-100',
+  cardBg: 'bg-amber-100/90 border-amber-800',
+  pathColor,
+  stoneColor: 'from-orange-400 to-amber-500',
+  requiredStars,
+  totalDistance: distance,
+  boroughs,
+  startArea,
+  endArea,
+  description,
+  mapArtwork: `${artwork}-day.webp`,
+  seasonalArtwork: {
+    spring: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
+    summer: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
+    autumn: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
+    winter: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
+  },
+  levels: levels.map((level, index) => ({
+    ...level,
+    mapThemeId: id,
+    levelNumber: index + 1,
+    pubName: level.name,
+    walkingTime: index === 0 ? 'Start of Crawl' : `Stage ${index + 1} of 5`,
+    distanceMiles: Number(((index / 4) * Number.parseFloat(distance)).toFixed(1)),
+    difficulty: (['easy', 'medium', 'medium', 'hard', 'expert'] as const)[index],
+    questionCount: 5,
+    coinReward: [220, 280, 350, 450, 650][index],
+    requiredStars: requiredStars + (index * 2),
+    recommendedPint: 'Ask the bar for a favourite local cask or alcohol-free pour 🍺',
+  })),
+});
+
+const WEST_LONDON_STAGE = makeLondonStage({
+  id: 'west_london_crawl',
+  name: 'West London Tavern Trail',
+  route: 'Kensington to Hammersmith Riverside',
+  subtitle: '5 Characterful West London Pubs in Geographic Order',
+  icon: '🌉',
+  requiredStars: 8,
+  distance: '4.2 Miles (approx. 1h 25m walk)',
+  boroughs: 'Kensington & Chelsea ➔ Hammersmith & Fulham',
+  startArea: 'Kensington Church St, W8',
+  endArea: 'Upper Mall, Hammersmith, W6',
+  description: 'Travel from flower-covered Kensington taverns to historic pubs beside the Thames at Hammersmith.',
+  artwork: 'west-london',
+  themeColor: '#9A3412',
+  pathColor: '#F97316',
+  levels: [
+    { id: 'w1_churchill_arms', name: 'The Churchill Arms', address: '119 Kensington Church St', postcode: 'W8 7LN', category: 'Kensington, Churchill & London History', icon: '🌺', description: 'A famously flower-covered Victorian pub filled with Churchill memorabilia.', funFact: 'The pub is known across London for its spectacular seasonal flower displays.' },
+    { id: 'w2_windsor_castle', name: 'The Windsor Castle', address: '114 Campden Hill Rd', postcode: 'W8 7AR', category: 'Royal London, Notting Hill & Victorian Life', icon: '🏰', description: 'A cosy nineteenth-century pub with snug rooms and a hidden garden.', funFact: 'Its low partitions and intimate rooms preserve the feel of an old London tavern.' },
+    { id: 'w3_dove', name: 'The Dove', address: '19 Upper Mall, Hammersmith', postcode: 'W6 9TA', category: 'Thames Writers, Music & Hammersmith', icon: '🕊️', description: 'A tiny riverside pub associated with writers, artists and generations of Londoners.', funFact: 'The Dove contains one of the smallest public bars in Britain.' },
+    { id: 'w4_blue_anchor', name: 'The Blue Anchor', address: '13 Lower Mall, Hammersmith', postcode: 'W6 9DJ', category: 'Boat Race, Bridges & Riverside London', icon: '⚓', description: 'A landmark Thames pub with views towards Hammersmith Bridge.', funFact: 'Its river terrace is a celebrated viewpoint during the Oxford and Cambridge Boat Race.' },
+    { id: 'w5_old_ship', name: 'The Old Ship', address: '25 Upper Mall, Hammersmith', postcode: 'W6 9TD', category: 'West London Grand Finale', icon: '⛵', description: 'An elegant riverside finale with broad Thames views and a long pub history.', funFact: 'Upper Mall was once lined with boat builders, breweries and fashionable riverside houses.' },
+  ],
+});
+
+const NORTH_LONDON_STAGE = makeLondonStage({
+  id: 'north_london_crawl',
+  name: 'North London Heights Crawl',
+  route: 'King’s Cross to Hampstead Heath',
+  subtitle: '5 Historic North London Pubs from Railways to the Heath',
+  icon: '🏞️',
+  requiredStars: 18,
+  distance: '5.8 Miles (best enjoyed in two walking sections)',
+  boroughs: 'Camden ➔ Highgate ➔ Hampstead',
+  startArea: 'King’s Cross, N1C',
+  endArea: 'Spaniards Rd, Hampstead, NW3',
+  description: 'Climb from the great railway stations through Camden and Highgate to legendary Hampstead Heath taverns.',
+  artwork: 'north-london',
+  themeColor: '#7C2D12',
+  pathColor: '#EA580C',
+  levels: [
+    { id: 'n1_parcel_yard', name: 'The Parcel Yard', address: 'King’s Cross Station', postcode: 'N1C 4AH', category: 'Railways, King’s Cross & Victorian Engineering', icon: '🚂', description: 'A grand station pub set inside restored Victorian railway rooms.', funFact: 'The rooms once formed part of the original Great Northern Railway station offices.' },
+    { id: 'n2_colonel_fawcett', name: 'The Colonel Fawcett', address: '1 Randolph St, Camden', postcode: 'NW1 0SS', category: 'Camden, Canals & Music', icon: '🎸', description: 'A lively Camden tavern near the Regent’s Canal and market district.', funFact: 'Camden’s canal network helped turn the area into an industrial and trading centre.' },
+    { id: 'n3_southampton_arms', name: 'The Southampton Arms', address: '139 Highgate Rd', postcode: 'NW5 1LE', category: 'Independent Ale, Gospel Oak & Kentish Town', icon: '🍺', description: 'A famously simple ale house specialising in independent beer and cider.', funFact: 'Its stripped-back interior champions the classic public-house tradition.' },
+    { id: 'n4_flask', name: 'The Flask', address: '77 Highgate West Hill', postcode: 'N6 6BU', category: 'Highgate Village, Ghosts & Georgian London', icon: '👻', description: 'A historic Highgate pub of snug rooms, courtyards and local legends.', funFact: 'Highgate’s hilltop position made it a popular escape from crowded central London.' },
+    { id: 'n5_spaniards', name: 'The Spaniards Inn', address: 'Spaniards Rd, Hampstead', postcode: 'NW3 7JJ', category: 'Dickens, Highwaymen & Hampstead Finale', icon: '📚', description: 'A storied inn beside Hampstead Heath linked with literature and highwaymen.', funFact: 'The inn appears in Dickens’s The Pickwick Papers and is associated with the legend of Dick Turpin.' },
+  ],
+});
+
+const EAST_LONDON_STAGE = makeLondonStage({
+  id: 'east_london_crawl',
+  name: 'East London Docks Trail',
+  route: 'Spitalfields to the Isle of Dogs',
+  subtitle: '5 Legendary East End Pubs from Brick Lane to Docklands',
+  icon: '⚓',
+  requiredStars: 28,
+  distance: '4.9 Miles (approx. 1h 40m walk)',
+  boroughs: 'Tower Hamlets (Spitalfields, Wapping, Limehouse, Docklands)',
+  startArea: 'Commercial St, E1',
+  endArea: 'Docklands, E14',
+  description: 'Follow old East End streets from Spitalfields through Wapping’s maritime taverns to the Docklands skyline.',
+  artwork: 'east-london',
+  themeColor: '#9A3412',
+  pathColor: '#FB923C',
+  levels: [
+    { id: 'e1_ten_bells', name: 'The Ten Bells', address: '84 Commercial St', postcode: 'E1 6LY', category: 'Spitalfields, Markets & East End History', icon: '🔔', description: 'A tiled Victorian pub opposite Old Spitalfields Market.', funFact: 'Its surviving nineteenth-century tilework depicts local weaving and Spitalfields life.' },
+    { id: 'e2_pride_spitalfields', name: 'The Pride of Spitalfields', address: '3 Heneage St', postcode: 'E1 5LJ', category: 'Brick Lane, Immigration & London Culture', icon: '🧱', description: 'A tiny traditional pub hidden just off bustling Brick Lane.', funFact: 'Spitalfields has welcomed Huguenot, Jewish and Bengali communities across its history.' },
+    { id: 'e3_prospect_whitby', name: 'The Prospect of Whitby', address: '57 Wapping Wall', postcode: 'E1W 3SH', category: 'Pirates, Thames Law & Wapping', icon: '🏴‍☠️', description: 'One of London’s oldest riverside pubs, steeped in maritime history.', funFact: 'The riverside gallows replica recalls Execution Dock, where convicted pirates met their fate.' },
+    { id: 'e4_grapes', name: 'The Grapes', address: '76 Narrow St, Limehouse', postcode: 'E14 8BP', category: 'Dickens, Limehouse & Docklands', icon: '🍇', description: 'A narrow historic pub overlooking the Thames at Limehouse.', funFact: 'A tavern on this site appears in the opening of Dickens’s Our Mutual Friend.' },
+    { id: 'e5_gun', name: 'The Gun', address: '27 Coldharbour, Docklands', postcode: 'E14 9NS', category: 'Docklands, Naval London & East End Finale', icon: '💥', description: 'A riverside dockers’ pub facing the modern towers of Canary Wharf.', funFact: 'The pub’s name recalls the cannon once fired to celebrate the opening of West India Docks.' },
+  ],
+});
+
+// The world now progresses clockwise across London after the opening Thames map.
+export const CARTOON_MAPS: CartoonMap[] = [
+  LEGACY_CARTOON_MAPS[0],
+  WEST_LONDON_STAGE,
+  NORTH_LONDON_STAGE,
+  EAST_LONDON_STAGE,
 ];
 
 // Default shop bundles for buying fake money and lives
