@@ -31,6 +31,7 @@ import { chooseUnseenFallbackQuestions, getOnlineTriviaQuestions } from '../util
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
 import { TavernShopModal } from './TavernShopModal';
+import { LastOrdersDash } from './LastOrdersDash';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -290,6 +291,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
   const [launchingLevel, setLaunchingLevel] = useState<MapLevel | null>(null);
+  const [isMiniGameOpen, setIsMiniGameOpen] = useState(false);
 
   // Helper to persist progression state updates
   const updateProgression = (updated: SoloProgression) => {
@@ -651,18 +653,31 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       setAutoAdvanceTarget(passedStage ? nextTarget : null);
 
       if (passedStage) {
-        // Show the victory moment, then travel to the next stage automatically.
+        // Show the victory moment, then send the player into the short bonus
+        // dash before travelling to the next stage.
         window.setTimeout(() => {
           setGameOver(false);
           setSelectedAnswer(null);
           setIsAnswerRevealed(false);
-          setActiveLevel(null);
-          setActiveMap(null);
-          setViewMode('map');
-          audioSynth.playChampionFanfare();
+          setIsMiniGameOpen(true);
         }, 2600);
       }
     }
+  };
+
+  const handleMiniGameComplete = (bonusReward: number) => {
+    if (bonusReward > 0) {
+      updateProgression({
+        ...progression,
+        coins: progression.coins + bonusReward,
+      });
+      audioSynth.playCoinFx();
+    }
+    setIsMiniGameOpen(false);
+    setActiveLevel(null);
+    setActiveMap(null);
+    setViewMode('map');
+    audioSynth.playChampionFanfare();
   };
 
   // Revive with coins
@@ -877,6 +892,15 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           initialTab={shopTab}
         />
       </div>
+    );
+  }
+
+  if (isMiniGameOpen && activeLevel) {
+    return (
+      <LastOrdersDash
+        pubName={activeLevel.name}
+        onComplete={handleMiniGameComplete}
+      />
     );
   }
 
