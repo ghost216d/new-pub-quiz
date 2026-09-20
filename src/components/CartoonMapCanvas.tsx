@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Beer,
   CheckCircle2,
@@ -91,6 +91,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     useState('Full ❤️');
   const [arrivalLevelId, setArrivalLevelId] = useState<string | null>(null);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const lastPointerActivationRef = useRef(0);
 
   const isMapUnlocked = useCallback(
     (map: CartoonMap) => {
@@ -612,6 +613,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                   // prevents mobile browsers cancelling the tap if it moves
                   // a pixel before pointer-up.
                   event.preventDefault();
+                  lastPointerActivationRef.current = Date.now();
                   if (unlocked) {
                     onSelectLevel(level, activeMap);
                   } else {
@@ -619,10 +621,10 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                   }
                   audioSynth.playCoinFx();
                 }}
-                onClick={(event) => {
-                  // Keyboard and assistive-technology activation has no
-                  // pointer click count. Pointer taps are handled above.
-                  if (event.detail !== 0) return;
+                onClick={() => {
+                  // Some mobile/browser combinations emit only click. Ignore
+                  // this fallback only when pointer-down already opened it.
+                  if (Date.now() - lastPointerActivationRef.current < 700) return;
                   if (unlocked) {
                     onSelectLevel(level, activeMap);
                   } else {
