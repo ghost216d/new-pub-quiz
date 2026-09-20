@@ -319,12 +319,21 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showCover, setShowCover] = useState(true);
+  const [coverProgress, setCoverProgress] = useState(6);
 
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
+    const startedAt = Date.now();
+    const progressTimer = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      setCoverProgress(Math.min(100, 6 + Math.round((elapsed / 3000) * 94)));
+    }, 80);
     const coverTimer = window.setTimeout(() => setShowCover(false), 3200);
-    return () => window.clearTimeout(coverTimer);
+    return () => {
+      window.clearInterval(progressTimer);
+      window.clearTimeout(coverTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -616,10 +625,17 @@ export default function App() {
         <div className="pub-quiz-cover-loading" role="status" aria-live="polite">
           <div className="pub-quiz-cover-loading-label">
             <span>Preparing tonight’s questions</span>
-            <span aria-hidden="true">•••</span>
+            <span>{coverProgress}%</span>
           </div>
-          <div className="pub-quiz-cover-track" aria-hidden="true">
-            <span />
+          <div
+            className="pub-quiz-cover-track"
+            role="progressbar"
+            aria-label="Loading The Pub Quiz"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={coverProgress}
+          >
+            <span style={{ width: `${coverProgress}%` }} />
           </div>
         </div>
       </section>
