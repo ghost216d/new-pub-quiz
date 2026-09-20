@@ -98,7 +98,7 @@ const DIFFICULTY_OPTIONS: {
 const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
   levelNumber % 5 === 0 ? 'hard' : 'medium';
 
-const ONLINE_QUESTION_TIMEOUT_MS = 4000;
+const ONLINE_QUESTION_TIMEOUT_MS = 15000;
 
 // Solo mode never serves audio-dependent questions. Quiz Master keeps its
 // music rounds, while Solo uses standard trivia and dedicated picture puzzles.
