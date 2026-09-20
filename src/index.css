@@ -117,12 +117,12 @@
 
 .pub-quiz-cover-track span {
   display: block;
-  width: 100%;
+  width: 6%;
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #dc2626 0%, #f97316 52%, #facc15 100%);
-  transform-origin: left center;
-  animation: cover-loading 3s cubic-bezier(.25, .8, .25, 1) both;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+  transition: width 100ms linear;
 }
 
 @keyframes cover-camera-settle {
@@ -135,16 +135,14 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes cover-loading {
-  from { transform: scaleX(0.04); }
-  to { transform: scaleX(1); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .pub-quiz-cover-art,
-  .pub-quiz-cover-brand,
-  .pub-quiz-cover-track span {
+  .pub-quiz-cover-brand {
     animation: none;
+  }
+
+  .pub-quiz-cover-track span {
+    transition: none;
   }
 }
 
