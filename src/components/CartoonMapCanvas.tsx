@@ -795,34 +795,43 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       )}
 
       {/* Bottom navigation */}
-      <nav className="game-bottom-nav">
-        <button onClick={onBackToHome}>
-          <span>🏠</span>
+      <nav className="game-bottom-nav" aria-label="Solo game navigation">
+        <button onClick={onBackToHome} aria-label="Home">
+          <span className="game-nav-icon" aria-hidden="true">🏠</span>
           <strong>Home</strong>
         </button>
 
-        <button onClick={() => onOpenShop('bundles')}>
-          <ShoppingBag className="w-6 h-6" />
+        <button onClick={() => onOpenShop('bundles')} aria-label="Shop">
+          <span className="game-nav-icon" aria-hidden="true">
+            <ShoppingBag />
+          </span>
           <strong>Shop</strong>
         </button>
 
         <button
           className="is-active"
           onClick={() => setSelectedLevel(null)}
+          aria-label="World map"
+          aria-current="page"
         >
-          <span>🗺️</span>
+          <span className="game-nav-icon" aria-hidden="true">🗺️</span>
           <strong>World</strong>
         </button>
 
-        <button onClick={onCustomSoloMode}>
-          <Zap className="w-6 h-6" />
+        <button onClick={onCustomSoloMode} aria-label="Quiz">
+          <span className="game-nav-icon" aria-hidden="true">
+            <Zap />
+          </span>
           <strong>Quiz</strong>
         </button>
 
         <button
           onClick={() => setIsAuthModalOpen(true)}
+          aria-label="Profile"
         >
-          <User className="w-6 h-6" />
+          <span className="game-nav-icon" aria-hidden="true">
+            <User />
+          </span>
           <strong>Profile</strong>
         </button>
       </nav>

@@ -3746,3 +3746,135 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
     line-height: 1.05 !important;
   }
 }
+
+/* Pub-adventure navigation: burgundy lacquer, gold trim and a raised map tab. */
+.role-solo .game-bottom-nav,
+html[data-time-theme="day"] .role-solo .game-bottom-nav,
+html[data-time-theme="night"] .role-solo .game-bottom-nav {
+  height: calc(88px + env(safe-area-inset-bottom, 0px));
+  padding: 0 max(4px, env(safe-area-inset-right))
+    env(safe-area-inset-bottom, 0px)
+    max(4px, env(safe-area-inset-left));
+  border-top: 5px solid #ffc928 !important;
+  background: linear-gradient(180deg, #c0003c 0%, #8f002f 48%, #660020 100%) !important;
+  box-shadow:
+    0 -3px 0 #8a3b12,
+    0 -10px 26px rgba(20, 5, 12, 0.4),
+    inset 0 3px 0 rgba(255, 119, 145, 0.38) !important;
+  overflow: visible;
+}
+
+.role-solo .game-bottom-nav button {
+  position: relative;
+  min-width: 0;
+  gap: 3px;
+  padding: 8px 3px 7px;
+  border: 0;
+  border-right: 2px solid rgba(92, 0, 30, 0.62);
+  border-radius: 0;
+  color: #fff7d6 !important;
+  background: linear-gradient(180deg, rgba(213, 0, 65, 0.42), rgba(108, 0, 34, 0.18));
+  text-shadow: 0 2px 1px rgba(64, 0, 21, 0.85);
+  transition: transform 150ms ease, filter 150ms ease;
+}
+
+.role-solo .game-bottom-nav button:last-child {
+  border-right: 0;
+}
+
+.role-solo .game-bottom-nav button:active {
+  filter: brightness(1.14);
+  transform: translateY(2px);
+}
+
+.role-solo .game-bottom-nav .game-nav-icon {
+  width: 45px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #ffbf1f;
+  border-radius: 13px;
+  color: #ffd23f;
+  background: linear-gradient(145deg, #6248df 0%, #3920a6 70%);
+  box-shadow:
+    0 4px 0 #9b3d08,
+    inset 0 2px 0 rgba(255, 255, 255, 0.38),
+    0 6px 10px rgba(54, 0, 18, 0.36);
+  font-size: 25px;
+  line-height: 1;
+}
+
+.role-solo .game-bottom-nav .game-nav-icon svg {
+  width: 27px;
+  height: 27px;
+  stroke-width: 3;
+  filter: drop-shadow(0 2px 0 #7c2d12);
+}
+
+.role-solo .game-bottom-nav button strong {
+  color: inherit;
+  font-size: clamp(10px, 2.8vw, 13px) !important;
+  font-weight: 1000;
+  letter-spacing: 0.035em;
+  line-height: 1 !important;
+}
+
+.role-solo .game-bottom-nav button.is-active {
+  align-self: end;
+  height: 112px;
+  margin: 0 3px;
+  padding-top: 9px;
+  border: 5px solid #ffc928 !important;
+  border-bottom: 0 !important;
+  border-radius: 34px 34px 0 0;
+  color: #fff9dd !important;
+  background: linear-gradient(180deg, #db0650 0%, #ac0038 58%, #780026 100%) !important;
+  box-shadow:
+    0 -4px 0 #9d4009,
+    0 -11px 20px rgba(41, 0, 13, 0.3),
+    inset 0 3px 0 rgba(255, 111, 146, 0.5) !important;
+  transform: none;
+  z-index: 2;
+}
+
+.role-solo .game-bottom-nav button.is-active:active {
+  transform: translateY(2px);
+}
+
+.role-solo .game-bottom-nav button.is-active .game-nav-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  font-size: 31px;
+  box-shadow:
+    0 5px 0 #8c3407,
+    inset 0 2px 0 rgba(255, 255, 255, 0.45),
+    0 8px 14px rgba(54, 0, 18, 0.4);
+}
+
+@media (min-width: 640px) {
+  .role-solo .game-bottom-nav {
+    border-right: 5px solid #ffc928 !important;
+    border-left: 5px solid #ffc928 !important;
+    border-radius: 23px 23px 0 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .role-solo .game-bottom-nav .game-nav-icon {
+    width: 39px;
+    height: 39px;
+    font-size: 22px;
+  }
+
+  .role-solo .game-bottom-nav .game-nav-icon svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  .role-solo .game-bottom-nav button.is-active .game-nav-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 27px;
+  }
+}
