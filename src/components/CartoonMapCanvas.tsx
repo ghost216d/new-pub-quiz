@@ -607,13 +607,27 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                     ? `Play ${level.pubName || level.name}`
                     : `Locked level ${level.levelNumber}: ${level.pubName || level.name}`
                 }
-                onClick={() => {
+                onPointerDown={(event) => {
+                  // The current node gently bounces. Starting on pointer-down
+                  // prevents mobile browsers cancelling the tap if it moves
+                  // a pixel before pointer-up.
+                  event.preventDefault();
                   if (unlocked) {
                     onSelectLevel(level, activeMap);
                   } else {
                     setSelectedLevel(level);
                   }
-                  // Sound must never block the navigation action on mobile.
+                  audioSynth.playCoinFx();
+                }}
+                onClick={(event) => {
+                  // Keyboard and assistive-technology activation has no
+                  // pointer click count. Pointer taps are handled above.
+                  if (event.detail !== 0) return;
+                  if (unlocked) {
+                    onSelectLevel(level, activeMap);
+                  } else {
+                    setSelectedLevel(level);
+                  }
                   audioSynth.playCoinFx();
                 }}
                 className={[
