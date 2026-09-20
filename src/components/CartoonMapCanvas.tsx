@@ -128,6 +128,28 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     || activeMap.mapArtwork
     || 'thames-game-map.png';
 
+  // Preload the active and newly unlocked map artwork. Some mobile browsers
+  // otherwise leave the reused image element blank until another navigation
+  // forces a repaint.
+  useEffect(() => {
+    const artworkNames = visibleMaps.flatMap((map) => {
+      const themedArtwork =
+        map.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time];
+      return [themedArtwork || map.mapArtwork].filter(
+        (artwork): artwork is string => Boolean(artwork)
+      );
+    });
+
+    artworkNames.forEach((artwork) => {
+      const image = new Image();
+      image.src = `${import.meta.env.BASE_URL}${artwork}`;
+    });
+  }, [
+    londonTheme.season,
+    londonTheme.time,
+    visibleMaps.map((map) => map.id).join('|'),
+  ]);
+
   const userProfile = progression.userProfile || {
     id: 'guest_local',
     name: 'Player',
@@ -556,11 +578,15 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         }}
       >
         <img
+          key={`${activeMap.id}-${activeArtwork}`}
           className="game-map-artwork"
           src={`${import.meta.env.BASE_URL}${activeArtwork}`}
           alt=""
           aria-hidden="true"
           draggable={false}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
         />
         <div className="game-season-overlay" aria-hidden="true" />
         <svg
