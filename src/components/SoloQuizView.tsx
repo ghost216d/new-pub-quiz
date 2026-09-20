@@ -95,7 +95,10 @@ const DIFFICULTY_OPTIONS: {
   },
 ];
 
-const ONLINE_QUESTION_TIMEOUT_MS = 15000;
+// A level must feel responsive even when the public trivia service is slow or
+// blocked by the player's network. Fall back quickly instead of leaving the
+// launch animation looking like a button that did nothing.
+const ONLINE_QUESTION_TIMEOUT_MS = 4500;
 
 // Solo mode never serves audio-dependent questions. Quiz Master keeps its
 // music rounds, while Solo uses standard trivia and dedicated picture puzzles.
@@ -322,10 +325,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         count,
       );
     } catch {
-      setIsLoading(false);
-      await finishLaunchAnimation();
-      setAiNotice('No unseen questions remain in this offline category. Connect to the Internet or try another level—old questions will not be repeated.');
-      return;
+      // The helper normally rotates the oldest completed questions when the
+      // finite offline pack has been exhausted. Keep this final guard so a
+      // malformed or empty pack can never leave the launch overlay hanging.
+      shuffled = buildUnseenFallbackQuestions(
+        getSoloQuestionVault(),
+        count,
+      );
     }
 
     setQuestions(shuffled);
@@ -384,9 +390,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         10,
       );
     } catch {
-      setIsLoading(false);
-      setAiNotice('You have completed every unseen question in this category. Choose another category or reconnect to the Internet—completed questions will not be repeated.');
-      return;
+      shuffled = buildUnseenFallbackQuestions(
+        getSoloQuestionVault(),
+        10,
+      );
     }
 
     setQuestions(shuffled);

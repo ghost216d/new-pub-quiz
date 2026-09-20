@@ -89,8 +89,15 @@ const readSeen = (): string[] => {
 };
 
 const saveSeen = (prompts: string[]) => {
-  const merged = [...readSeen(), ...prompts.map(normalizePrompt)];
-  localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set(merged)].slice(-MAX_SEEN)));
+  const normalizedPrompts = prompts.map(normalizePrompt).filter(Boolean);
+  const selected = new Set(normalizedPrompts);
+  // Remove previously stored copies before appending. This makes the end of
+  // the list a true recency record, so recycled questions move to the back.
+  const merged = [
+    ...readSeen().filter((prompt) => !selected.has(normalizePrompt(prompt))),
+    ...normalizedPrompts,
+  ];
+  localStorage.setItem(SEEN_KEY, JSON.stringify(merged.slice(-MAX_SEEN)));
 };
 
 const getSecureQuestionEndpoint = (): string | null => {
@@ -261,11 +268,28 @@ export const chooseUnseenFallbackQuestions = (
   const seen = readSeen();
   const candidates = pool.filter((question) => !hasBeenUsed(question.prompt, seen));
 
-  if (candidates.length < count) {
-    throw new Error('You have completed every unseen question in this offline pack. Connect to the internet for fresh questions.');
+  let playable = candidates;
+  if (playable.length < count) {
+    // The offline pack is finite. Once it has all been completed, exclude the
+    // most recently played prompts and rotate the oldest material back in.
+    // This prevents back-to-back repetition without ever blocking a level.
+    const recentWindowSize = Math.min(
+      Math.max(count * 4, 30),
+      Math.max(0, pool.length - count),
+    );
+    const recent = seen.slice(-recentWindowSize);
+    playable = pool.filter((question) => !hasBeenUsed(question.prompt, recent));
   }
 
-  const selected = shuffled(candidates).slice(0, count);
+  if (playable.length < count) {
+    playable = pool;
+  }
+
+  if (playable.length === 0) {
+    throw new Error('The offline question pack is empty.');
+  }
+
+  const selected = shuffled(playable).slice(0, Math.min(count, playable.length));
   saveSeen(selected.map((question) => question.prompt));
   return selected;
 };
