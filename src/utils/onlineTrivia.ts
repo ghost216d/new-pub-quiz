@@ -2,7 +2,7 @@ import { Question, QuizDifficulty } from '../types';
 
 const TOKEN_KEY = 'pubquiz_opentdb_token_v1';
 const SEEN_KEY = 'pubquiz_seen_questions_v1';
-const MAX_SEEN = 1200;
+const MAX_SEEN = 10000;
 
 const CATEGORY_IDS: Array<[RegExp, number]> = [
   [/film|movie|cinema/i, 11],
@@ -58,6 +58,47 @@ const saveSeen = (prompts: string[]) => {
   localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set(merged)].slice(-MAX_SEEN)));
 };
 
+const getSecureQuestionEndpoint = (): string | null => {
+  const configured = String(import.meta.env.VITE_QUESTION_API_URL || '').trim();
+  return configured ? configured.replace(/\/$/, '') : null;
+};
+
+const getSecureAiQuestions = async ({
+  category,
+  count,
+  difficulty,
+}: {
+  category: string;
+  count: number;
+  difficulty: QuizDifficulty;
+}): Promise<Question[]> => {
+  const endpoint = getSecureQuestionEndpoint();
+  if (!endpoint) throw new Error('Secure question service is not configured.');
+
+  const seen = readSeen();
+  const response = await fetch(`${endpoint}/questions`, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ category, count, difficulty, seen: seen.slice(-1500) }),
+  });
+  if (!response.ok) throw new Error('Secure question service is unavailable.');
+
+  const payload = await response.json() as { questions?: Question[] };
+  const questions = Array.isArray(payload.questions) ? payload.questions : [];
+  const seenSet = new Set(seen);
+  const unique = questions.filter((question, index, all) => {
+    const normalized = normalizePrompt(question.prompt || '');
+    return Boolean(normalized) &&
+      !seenSet.has(normalized) &&
+      all.findIndex((candidate) => normalizePrompt(candidate.prompt || '') === normalized) === index;
+  }).slice(0, count);
+
+  if (unique.length < count) throw new Error('The secure service did not return enough unseen questions.');
+  saveSeen(unique.map((question) => question.prompt));
+  return unique;
+};
+
 const shuffled = <T,>(items: T[]): T[] => {
   const copy = [...items];
   for (let index = copy.length - 1; index > 0; index -= 1) {
@@ -92,6 +133,16 @@ export const getOnlineTriviaQuestions = async ({
   count: number;
   difficulty: QuizDifficulty;
 }): Promise<Question[]> => {
+  // Prefer the protected Gemini proxy. The browser receives questions only;
+  // the Gemini key remains an encrypted server-side secret.
+  if (getSecureQuestionEndpoint()) {
+    try {
+      return await getSecureAiQuestions({ category, count, difficulty });
+    } catch (error) {
+      console.warn('Secure AI questions unavailable; trying Open Trivia DB.', error);
+    }
+  }
+
   const token = await getSessionToken();
   const categoryId = CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1];
   const onlineDifficulty = difficulty === 'expert' ? 'hard' : difficulty;
@@ -108,26 +159,35 @@ export const getOnlineTriviaQuestions = async ({
     return `https://opentdb.com/api.php?${params.toString()}`;
   };
 
-  let response = await fetch(buildUrl(), { cache: 'no-store' });
-  if (!response.ok) throw new Error('Online trivia service is unavailable.');
-  let data = (await response.json()) as OpenTriviaResponse;
-
-  if (data.response_code === 4) {
-    await resetSessionToken(token);
-    response = await fetch(buildUrl(), { cache: 'no-store' });
-    if (!response.ok) throw new Error('Online trivia service is unavailable.');
-    data = (await response.json()) as OpenTriviaResponse;
-  }
-
-  if (data.response_code !== 0 || !Array.isArray(data.results)) {
-    throw new Error(`Online trivia returned response code ${data.response_code}.`);
-  }
-
   const seen = new Set(readSeen());
-  const unique = data.results
-    .map((item) => ({ ...item, decodedPrompt: decodeHtml(item.question) }))
-    .filter((item) => !seen.has(normalizePrompt(item.decodedPrompt)))
-    .slice(0, count);
+  const collected: Array<OpenTriviaQuestion & { decodedPrompt: string }> = [];
+
+  // Fetch more than one batch when necessary. We never recycle an already-seen
+  // question merely to fill a level.
+  for (let attempt = 0; attempt < 5 && collected.length < count; attempt += 1) {
+    let response = await fetch(buildUrl(), { cache: 'no-store' });
+    if (!response.ok) throw new Error('Online trivia service is unavailable.');
+    let data = (await response.json()) as OpenTriviaResponse;
+
+    if (data.response_code === 4) {
+      await resetSessionToken(token);
+      response = await fetch(buildUrl(), { cache: 'no-store' });
+      if (!response.ok) throw new Error('Online trivia service is unavailable.');
+      data = (await response.json()) as OpenTriviaResponse;
+    }
+    if (data.response_code !== 0 || !Array.isArray(data.results)) break;
+
+    for (const item of data.results) {
+      const decodedPrompt = decodeHtml(item.question);
+      const normalized = normalizePrompt(decodedPrompt);
+      if (!seen.has(normalized)) {
+        seen.add(normalized);
+        collected.push({ ...item, decodedPrompt });
+      }
+    }
+  }
+
+  const unique = collected.slice(0, count);
 
   if (unique.length < count) {
     throw new Error('Not enough unseen online questions were returned.');
@@ -164,14 +224,10 @@ export const chooseUnseenFallbackQuestions = (
   count: number,
 ): Question[] => {
   const seen = new Set(readSeen());
-  let candidates = pool.filter((question) => !seen.has(normalizePrompt(question.prompt)));
+  const candidates = pool.filter((question) => !seen.has(normalizePrompt(question.prompt)));
 
-  // Only recycle the oldest local questions after the entire offline vault is exhausted.
   if (candidates.length < count) {
-    const localPrompts = new Set(pool.map((question) => normalizePrompt(question.prompt)));
-    const retained = readSeen().filter((prompt) => !localPrompts.has(prompt));
-    localStorage.setItem(SEEN_KEY, JSON.stringify(retained));
-    candidates = pool;
+    throw new Error('You have completed every unseen question in this offline pack. Connect to the internet for fresh questions.');
   }
 
   const selected = shuffled(candidates).slice(0, count);

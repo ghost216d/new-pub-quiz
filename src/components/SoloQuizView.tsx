@@ -239,12 +239,19 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    const shuffled = chooseUnseenFallbackQuestions(qPool, count)
-      .map((q) => ({
+    let shuffled: Question[];
+    try {
+      shuffled = chooseUnseenFallbackQuestions(qPool, count).map((q) => ({
         ...q,
         points: automaticDifficulty === 'hard' ? 20 : 15,
         difficulty: automaticDifficulty,
       }));
+    } catch (error) {
+      setAiNotice(error instanceof Error ? error.message : 'No unseen questions are currently available.');
+      setIsLoading(false);
+      await finishLaunchAnimation();
+      return;
+    }
 
     setQuestions(shuffled);
     initGame(shuffled);
@@ -308,12 +315,18 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       qPool = allQuestions;
     }
 
-    const shuffled = chooseUnseenFallbackQuestions(qPool, 10)
-      .map((q) => ({
+    let shuffled: Question[];
+    try {
+      shuffled = chooseUnseenFallbackQuestions(qPool, 10).map((q) => ({
         ...q,
         points: targetPoints,
         difficulty: automaticDifficulty,
       }));
+    } catch (error) {
+      setAiNotice(error instanceof Error ? error.message : 'No unseen questions are currently available.');
+      setIsLoading(false);
+      return;
+    }
 
     setQuestions(shuffled);
     initGame(shuffled);
@@ -557,7 +570,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   // ==========================================
   if (viewMode === 'custom_setup') {
     return (
-      <div className="solo-screen solo-setup-screen max-w-xl mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-7 border-4 border-amber-800 shadow-[0_8px_0_#451a03] text-stone-900 space-y-5">
+      <div className="solo-screen solo-setup-screen max-w-xl mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-7 border-4 border-amber-800 shadow-[0_8px_0_#082f49] text-stone-900 space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-amber-800/30 pb-3">
           <button
             onClick={() => setViewMode('map')}
@@ -683,7 +696,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             id="solo-start-game-btn"
             disabled={isLoading}
             onClick={handleStartCustomGame}
-            className="w-full min-[380px]:w-2/3 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-black text-sm shadow-[0_4px_0_#92400e] hover:brightness-105 active:translate-y-1 active:shadow-none disabled:opacity-60 transition cursor-pointer border-2 border-amber-900 flex items-center justify-center gap-2 min-h-[44px] text-center"
+            className="w-full min-[380px]:w-2/3 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-black text-sm shadow-[0_4px_0_#0369a1] hover:brightness-105 active:translate-y-1 active:shadow-none disabled:opacity-60 transition cursor-pointer border-2 border-amber-900 flex items-center justify-center gap-2 min-h-[44px] text-center"
           >
             <Zap className="w-4 h-4 text-slate-950 fill-current" />
             <span>{isLoading ? 'Generating Questions...' : 'Start 10-Question Quiz'}</span>
@@ -715,7 +728,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     else if (accuracy >= 40) starsEarned = 1;
 
     return (
-      <div className="solo-screen solo-result-screen max-w-md mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-8 border-4 border-amber-800 shadow-[0_8px_0_#451a03] text-center text-stone-900 space-y-5 animate-in zoom-in-95 font-comic">
+      <div className="solo-screen solo-result-screen max-w-md mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-8 border-4 border-amber-800 shadow-[0_8px_0_#082f49] text-center text-stone-900 space-y-5 animate-in zoom-in-95 font-comic">
         <CartoonBunting className="w-full h-8 -mt-2 opacity-95" />
 
         <div className="flex justify-center">
@@ -802,7 +815,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             </button>
             <button
               onClick={onBackToHome}
-              className="flex-1 py-3.5 rounded-2xl bg-amber-100 hover:bg-white text-stone-900 font-cartoon text-xs sm:text-sm tracking-wider transition cursor-pointer border-2 border-amber-800 min-h-[44px] shadow-[0_3px_0_#78350f]"
+              className="flex-1 py-3.5 rounded-2xl bg-amber-100 hover:bg-white text-stone-900 font-cartoon text-xs sm:text-sm tracking-wider transition cursor-pointer border-2 border-amber-800 min-h-[44px] shadow-[0_3px_0_#075985]"
             >
               MAIN MENU
             </button>
@@ -830,7 +843,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       )}
 
       {/* Top Solo Header (Vibrant Cartoon Game HUD) */}
-      <div className="solo-quiz-hud bg-[#fffdf8] p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-[3px] sm:border-4 border-amber-800 shadow-[0_5px_0_#451a03] gap-2">
+      <div className="solo-quiz-hud bg-[#fffdf8] p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-[3px] sm:border-4 border-amber-800 shadow-[0_5px_0_#082f49] gap-2">
         {/* Left: Level / Question index */}
         <div className="solo-quiz-progress flex min-w-0 items-center gap-2">
           <span className="shrink-0 px-2.5 sm:px-3 py-1 rounded-full cartoon-btn-amber text-[10px] sm:text-xs font-cartoon shadow-sm">
@@ -884,7 +897,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       </div>
 
       {/* Solo Question Card (Vibrant Cartoon Styling) */}
-      <div className="solo-question-card bg-[#fffdf8] rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 border-[3px] sm:border-4 border-amber-800 shadow-[0_6px_0_#451a03] space-y-4">
+      <div className="solo-question-card bg-[#fffdf8] rounded-2xl sm:rounded-3xl p-3.5 sm:p-7 border-[3px] sm:border-4 border-amber-800 shadow-[0_6px_0_#082f49] space-y-4">
         {/* Difficulty Pill */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className={`max-w-full text-[10px] sm:text-xs font-cartoon px-2.5 sm:px-3 py-1 rounded-full border-2 ${diffObj.bgClass} ${diffObj.borderClass} ${diffObj.textClass} shadow-sm whitespace-normal`}>
@@ -1012,7 +1025,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
                   setShopTab('lives');
                   setIsShopOpen(true);
                 }}
-                className="w-full py-2.5 rounded-2xl bg-amber-500 text-slate-950 font-black text-xs shadow-[0_3px_0_#78350f] hover:brightness-105 transition cursor-pointer flex items-center justify-center gap-1.5 border border-amber-900"
+                className="w-full py-2.5 rounded-2xl bg-amber-500 text-slate-950 font-black text-xs shadow-[0_3px_0_#075985] hover:brightness-105 transition cursor-pointer flex items-center justify-center gap-1.5 border border-amber-900"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
                 <span>Open Tavern Store & Bundles</span>

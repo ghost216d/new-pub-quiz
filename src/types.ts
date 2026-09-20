@@ -198,6 +198,8 @@ export interface CartoonMap {
   boroughs?: string;
   startArea?: string;
   endArea?: string;
+  /** Illustrated background used for this particular London route. */
+  mapArtwork?: string;
 }
 
 export interface LevelProgress {

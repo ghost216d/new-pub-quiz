@@ -19,6 +19,7 @@ export const CARTOON_MAPS: CartoonMap[] = [
     startArea: 'Borough High St, SE1',
     endArea: 'Royal Greenwich, SE10',
     description: 'Walk the historic South London river path from London Bridge coaching inns past Samuel Pepys’s tavern to Greenwich Meridian.',
+    mapArtwork: 'thames-riverside.svg',
     levels: [
       {
         id: 'c1_george',
@@ -140,6 +141,7 @@ export const CARTOON_MAPS: CartoonMap[] = [
     startArea: 'Tabard St, Borough, SE1',
     endArea: 'Nunhead Green, SE15',
     description: 'Journey from traditional Borough coaching taverns through the bustling Bermondsey Beer Mile arches down to Peckham Rye.',
+    mapArtwork: 'bermondsey-peckham.svg',
     levels: [
       {
         id: 'b1_royal_oak',
@@ -261,6 +263,7 @@ export const CARTOON_MAPS: CartoonMap[] = [
     startArea: 'Cleaver Square, Kennington, SE11',
     endArea: 'Dulwich Village, SE21',
     description: 'Explore South London’s finest village greens and musical taverns from historic Cleaver Square to idyllic Dulwich Village.',
+    mapArtwork: 'kennington-dulwich.svg',
     levels: [
       {
         id: 's1_prince_wales',

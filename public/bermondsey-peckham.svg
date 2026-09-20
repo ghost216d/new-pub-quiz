@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+  <defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="#fb923c"/><stop offset=".55" stop-color="#fde68a"/><stop offset="1" stop-color="#86efac"/></linearGradient><pattern id="b" width="90" height="54" patternUnits="userSpaceOnUse"><path d="M0 27h90M45 0v27M0 27v27M90 27v27" stroke="#fff" stroke-width="5" opacity=".22"/></pattern></defs>
+  <rect width="1200" height="900" fill="url(#g)"/><rect width="1200" height="900" fill="url(#b)"/>
+  <path d="M130 60 C260 250 520 235 565 430 S760 640 1050 820" fill="none" stroke="#334155" stroke-width="42"/><path d="M130 60 C260 250 520 235 565 430 S760 640 1050 820" fill="none" stroke="#f8fafc" stroke-width="8" stroke-dasharray="28 16"/>
+  <g fill="#0f172a" font-family="system-ui" font-weight="900"><text x="58" y="115" font-size="38">BOROUGH</text><text x="470" y="330" font-size="36">BERMONDSEY</text><text x="705" y="625" font-size="40">PECKHAM</text><text x="850" y="845" font-size="34">NUNHEAD</text></g>
+  <g fill="#1e293b"><path d="M250 180h190v35H250zM270 215h35v80h-35zM385 215h35v80h-35z"/><circle cx="710" cy="520" r="58" fill="#16a34a"/><circle cx="995" cy="710" r="72" fill="#15803d"/></g>
+</svg>

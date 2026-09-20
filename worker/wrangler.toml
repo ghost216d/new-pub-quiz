@@ -1,0 +1,10 @@
+name = "pub-quiz-question-api"
+main = "question-worker.ts"
+compatibility_date = "2026-09-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://ghost216d.github.io"
+GEMINI_MODEL = "gemini-2.5-flash"
+
+# Add GEMINI_API_KEY with `wrangler secret put GEMINI_API_KEY`.
+# Never write the key in this file or commit it to GitHub.
