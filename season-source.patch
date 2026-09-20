@@ -1,0 +1,253 @@
+diff --git a/src/App.tsx b/src/App.tsx
+index 61eaf34..be44222 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -13,6 +13,7 @@ import { AuthModal } from './components/AuthModal';
+ import { BGMController } from './components/BGMController';
+ import { getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
+ import { SoloProgression } from './types';
++import { getLondonTheme } from './utils/londonTheme';
+ 
+ type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
+ 
+@@ -298,6 +299,7 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
+ };
+ 
+ export default function App() {
++  const [londonTheme, setLondonTheme] = useState(getLondonTheme);
+   const [role, setRole] = useState<AppRole>('solo');
+   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
+   const [showFirstTimeAuth, setShowFirstTimeAuth] = useState<boolean>(() => {
+@@ -319,6 +321,14 @@ export default function App() {
+ 
+   const wsRef = useRef<WebSocket | null>(null);
+ 
++  useEffect(() => {
++    const refreshTheme = () => setLondonTheme(getLondonTheme());
++    document.documentElement.dataset.timeTheme = londonTheme.time;
++    document.documentElement.dataset.season = londonTheme.season;
++    const themeTimer = window.setInterval(refreshTheme, 60_000);
++    return () => window.clearInterval(themeTimer);
++  }, [londonTheme.time, londonTheme.season]);
++
+   // GitHub Pages uses the local fallback, so keep its Quiz Master timer live too.
+   useEffect(() => {
+     if (!roomState?.isTimerRunning || wsRef.current?.readyState === WebSocket.OPEN) return;
+@@ -584,7 +594,7 @@ export default function App() {
+   };
+ 
+   return (
+-    <div className={`app-shell role-${role} min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
++    <div className={`app-shell role-${role} theme-${londonTheme.time} season-${londonTheme.season} min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
+       {/* Top App Header (hidden on full TV mode for cinema display) */}
+       {role !== 'tv' && role !== 'solo' && (
+         <Header
+diff --git a/src/components/CartoonMapCanvas.tsx b/src/components/CartoonMapCanvas.tsx
+index 44013cc..d43ede5 100644
+--- a/src/components/CartoonMapCanvas.tsx
++++ b/src/components/CartoonMapCanvas.tsx
+@@ -29,6 +29,7 @@ import {
+   getAllMaps,
+ } from '../data/cartoonMapsData';
+ import { audioSynth } from '../utils/audioSynth';
++import { getLondonTheme } from '../utils/londonTheme';
+ import { AuthModal } from './AuthModal';
+ import confetti from 'canvas-confetti';
+ 
+@@ -52,13 +53,12 @@ const LEVEL_COORDS = [
+   { x: 75, y: 18 },
+ ];
+ 
+-const getLondonSeason = () => {
+-  const month = new Date().getMonth();
+-  if (month >= 2 && month <= 4) return { id: 'spring', label: 'Spring in London', icon: '🌸' };
+-  if (month >= 5 && month <= 7) return { id: 'summer', label: 'Summer in London', icon: '☀️' };
+-  if (month >= 8 && month <= 10) return { id: 'autumn', label: 'Autumn in London', icon: '🍂' };
+-  return { id: 'winter', label: 'Winter in London', icon: '❄️' };
+-};
++const SEASON_DETAILS = {
++  spring: { label: 'Spring', icon: '🌸' },
++  summer: { label: 'Summer', icon: '☀️' },
++  autumn: { label: 'Autumn', icon: '🍂' },
++  winter: { label: 'Winter', icon: '❄️' },
++} as const;
+ 
+ export const CartoonMapCanvas: React.FC<Props> = ({
+   progression,
+@@ -100,7 +100,11 @@ export const CartoonMapCanvas: React.FC<Props> = ({
+   const activeMapIndex = allMaps.findIndex(
+     (map) => map.id === activeMap.id
+   );
+-  const londonSeason = getLondonSeason();
++  const londonTheme = getLondonTheme();
++  const londonSeason = { id: londonTheme.season, ...SEASON_DETAILS[londonTheme.season] };
++  const activeArtwork = activeMap.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time]
++    || activeMap.mapArtwork
++    || 'thames-game-map.png';
+ 
+   const userProfile = progression.userProfile || {
+     id: 'guest_local',
+@@ -520,8 +524,8 @@ export const CartoonMapCanvas: React.FC<Props> = ({
+         </p>
+         <div className="game-season-badge" aria-label={`Current map theme: ${londonSeason.label}`}>
+           <span>{londonSeason.icon}</span>
+-          <strong>{londonSeason.label}</strong>
+-          <small>Changes automatically</small>
++          <strong>{londonSeason.label} {londonTheme.time === 'night' ? 'Night' : 'Day'} in London</strong>
++          <small>Season and light change automatically</small>
+         </div>
+       </section>
+       </aside>
+@@ -529,9 +533,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
+       {/* Main illustrated map */}
+       <section
+         id="cartoon-map-canvas-board"
+-        className={`game-map-board season-${londonSeason.id}`}
++        className={`game-map-board season-${londonSeason.id} time-${londonTheme.time}`}
+         style={{
+-          backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.02), rgba(6, 182, 212, 0.08)), url("${import.meta.env.BASE_URL}${activeMap.mapArtwork || 'thames-game-map.png'}")`,
++          backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.01), rgba(6, 182, 212, 0.03)), url("${import.meta.env.BASE_URL}${activeArtwork}")`,
+           backgroundSize: 'cover',
+           backgroundPosition: 'center',
+           backgroundRepeat: 'no-repeat',
+diff --git a/src/data/cartoonMapsData.ts b/src/data/cartoonMapsData.ts
+index 47c81ba..9f39307 100644
+--- a/src/data/cartoonMapsData.ts
++++ b/src/data/cartoonMapsData.ts
+@@ -19,7 +19,13 @@ export const CARTOON_MAPS: CartoonMap[] = [
+     startArea: 'Borough High St, SE1',
+     endArea: 'Royal Greenwich, SE10',
+     description: 'Walk the historic South London river path from London Bridge coaching inns past Samuel Pepys’s tavern to Greenwich Meridian.',
+-    mapArtwork: 'thames-riverside.svg',
++    mapArtwork: 'thames-summer-day.webp',
++    seasonalArtwork: {
++      spring: { day: 'thames-spring-day.webp', night: 'thames-spring-night.webp' },
++      summer: { day: 'thames-summer-day.webp', night: 'thames-summer-night.webp' },
++      autumn: { day: 'thames-autumn-day.webp', night: 'thames-autumn-night.webp' },
++      winter: { day: 'thames-winter-day.webp', night: 'thames-winter-night.webp' },
++    },
+     levels: [
+       {
+         id: 'c1_george',
+@@ -141,7 +147,13 @@ export const CARTOON_MAPS: CartoonMap[] = [
+     startArea: 'Tabard St, Borough, SE1',
+     endArea: 'Nunhead Green, SE15',
+     description: 'Journey from traditional Borough coaching taverns through the bustling Bermondsey Beer Mile arches down to Peckham Rye.',
+-    mapArtwork: 'bermondsey-peckham.svg',
++    mapArtwork: 'bermondsey-summer-day.webp',
++    seasonalArtwork: {
++      spring: { day: 'bermondsey-spring-day.webp', night: 'bermondsey-spring-night.webp' },
++      summer: { day: 'bermondsey-summer-day.webp', night: 'bermondsey-summer-night.webp' },
++      autumn: { day: 'bermondsey-autumn-day.webp', night: 'bermondsey-autumn-night.webp' },
++      winter: { day: 'bermondsey-winter-day.webp', night: 'bermondsey-winter-night.webp' },
++    },
+     levels: [
+       {
+         id: 'b1_royal_oak',
+@@ -263,7 +275,13 @@ export const CARTOON_MAPS: CartoonMap[] = [
+     startArea: 'Cleaver Square, Kennington, SE11',
+     endArea: 'Dulwich Village, SE21',
+     description: 'Explore South London’s finest village greens and musical taverns from historic Cleaver Square to idyllic Dulwich Village.',
+-    mapArtwork: 'kennington-dulwich.svg',
++    mapArtwork: 'kennington-summer-day.webp',
++    seasonalArtwork: {
++      spring: { day: 'kennington-spring-day.webp', night: 'kennington-spring-night.webp' },
++      summer: { day: 'kennington-summer-day.webp', night: 'kennington-summer-night.webp' },
++      autumn: { day: 'kennington-autumn-day.webp', night: 'kennington-autumn-night.webp' },
++      winter: { day: 'kennington-winter-day.webp', night: 'kennington-winter-night.webp' },
++    },
+     levels: [
+       {
+         id: 's1_prince_wales',
+diff --git a/src/index.css b/src/index.css
+index e2b9cc5..71f8c20 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -1479,6 +1479,36 @@ button, a, input, select {
+   }
+ }
+ 
++/* London night mode follows local London time across every app screen. */
++html[data-time-theme="night"] .app-shell,
++html[data-time-theme="night"] .tv-display-shell {
++  color: #f8fafc;
++  background-color: #07152f !important;
++  background-image:
++    radial-gradient(circle at 14% 4%, rgba(14, 165, 233, 0.22), transparent 28%),
++    linear-gradient(180deg, #06142d 0%, #0b2447 52%, #07152f 100%) !important;
++}
++
++html[data-time-theme="night"] .app-main-header {
++  color: #f8fafc;
++  border-color: #38bdf8 !important;
++  background: linear-gradient(180deg, rgba(7, 21, 47, 0.98), rgba(11, 36, 71, 0.97)) !important;
++  box-shadow: 0 4px 0 #0369a1, 0 10px 26px rgba(0, 0, 0, 0.38) !important;
++}
++
++html[data-time-theme="night"] :is(.role-landing, .role-host, .role-player, .role-solo, .tv-display-shell)
++  :is(.landing-pub-sign, .landing-mode-panel, .host-console-shell > div, .solo-setup-screen, .solo-result-screen, .solo-question-card) {
++  color: #f8fafc;
++  border-color: #38bdf8 !important;
++  background-color: rgba(7, 21, 47, 0.94) !important;
++  box-shadow: 0 6px 0 #0369a1, 0 16px 32px rgba(0, 0, 0, 0.4) !important;
++}
++
++html[data-time-theme="night"] :is(.role-landing, .role-host, .role-player, .role-solo, .tv-display-shell)
++  :is(h1, h2, h3, p, label) {
++  color: inherit;
++}
++
+ /* Final palette guard: retire every remaining legacy brown/wood surface. */
+ body,
+ .bg-pub-wood,
+diff --git a/src/types.ts b/src/types.ts
+index 7911e00..038d1df 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -200,6 +200,11 @@ export interface CartoonMap {
+   endArea?: string;
+   /** Illustrated background used for this particular London route. */
+   mapArtwork?: string;
++  /** Route artwork that follows London's current season and time of day. */
++  seasonalArtwork?: Partial<Record<'spring' | 'summer' | 'autumn' | 'winter', {
++    day: string;
++    night: string;
++  }>>;
+ }
+ 
+ export interface LevelProgress {
+diff --git a/src/utils/londonTheme.ts b/src/utils/londonTheme.ts
+new file mode 100644
+index 0000000..92d287e
+--- /dev/null
++++ b/src/utils/londonTheme.ts
+@@ -0,0 +1,29 @@
++export type LondonSeason = 'spring' | 'summer' | 'autumn' | 'winter';
++export type LondonTimeTheme = 'day' | 'night';
++
++const londonParts = () => {
++  const parts = new Intl.DateTimeFormat('en-GB', {
++    timeZone: 'Europe/London',
++    month: 'numeric',
++    hour: '2-digit',
++    hourCycle: 'h23',
++  }).formatToParts(new Date());
++
++  return {
++    month: Number(parts.find((part) => part.type === 'month')?.value || 1),
++    hour: Number(parts.find((part) => part.type === 'hour')?.value || 12),
++  };
++};
++
++export const getLondonTheme = (): { season: LondonSeason; time: LondonTimeTheme } => {
++  const { month, hour } = londonParts();
++  const season: LondonSeason = month >= 3 && month <= 5
++    ? 'spring'
++    : month >= 6 && month <= 8
++      ? 'summer'
++      : month >= 9 && month <= 11
++        ? 'autumn'
++        : 'winter';
++
++  return { season, time: hour >= 7 && hour < 19 ? 'day' : 'night' };
++};
