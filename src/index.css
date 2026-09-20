@@ -1257,6 +1257,8 @@ button, a, input, select {
 }
 
 .game-level-node {
+  position: relative;
+  z-index: 2;
   width: 72px;
   min-height: 72px;
   display: flex;
@@ -1271,6 +1273,9 @@ button, a, input, select {
   color: white;
   box-shadow: 0 6px 0 #7c2d12;
   text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .game-level-node.is-boss {
@@ -1372,7 +1377,12 @@ button, a, input, select {
   font-size: 9px;
   box-shadow: 0 3px 0 #78350f;
   animation: cartoon-float 1.6s ease-in-out infinite;
+  pointer-events: none;
   white-space: nowrap;
+}
+
+.game-node-stars {
+  pointer-events: none;
 }
 
 .game-you-marker span {
