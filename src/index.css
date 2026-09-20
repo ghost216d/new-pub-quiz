@@ -1286,7 +1286,13 @@ button, a, input, select {
 }
 
 .game-level-node.is-current {
-  animation: cartoon-boing 1.5s ease-in-out infinite;
+  animation: none;
+  outline: 4px solid rgba(255, 248, 213, 0.95);
+  outline-offset: 4px;
+  box-shadow:
+    0 0 0 8px rgba(251, 191, 36, 0.28),
+    0 0 26px rgba(250, 204, 21, 0.82),
+    0 6px 0 #7c2d12;
 }
 
 .game-level-node.is-arriving {
