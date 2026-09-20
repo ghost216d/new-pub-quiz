@@ -29,6 +29,7 @@ import {
   getAllMaps,
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
+import { getLondonTheme } from '../utils/londonTheme';
 import { AuthModal } from './AuthModal';
 import confetti from 'canvas-confetti';
 
@@ -52,13 +53,12 @@ const LEVEL_COORDS = [
   { x: 75, y: 18 },
 ];
 
-const getLondonSeason = () => {
-  const month = new Date().getMonth();
-  if (month >= 2 && month <= 4) return { id: 'spring', label: 'Spring in London', icon: '🌸' };
-  if (month >= 5 && month <= 7) return { id: 'summer', label: 'Summer in London', icon: '☀️' };
-  if (month >= 8 && month <= 10) return { id: 'autumn', label: 'Autumn in London', icon: '🍂' };
-  return { id: 'winter', label: 'Winter in London', icon: '❄️' };
-};
+const SEASON_DETAILS = {
+  spring: { label: 'Spring', icon: '🌸' },
+  summer: { label: 'Summer', icon: '☀️' },
+  autumn: { label: 'Autumn', icon: '🍂' },
+  winter: { label: 'Winter', icon: '❄️' },
+} as const;
 
 export const CartoonMapCanvas: React.FC<Props> = ({
   progression,
@@ -100,7 +100,11 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const activeMapIndex = allMaps.findIndex(
     (map) => map.id === activeMap.id
   );
-  const londonSeason = getLondonSeason();
+  const londonTheme = getLondonTheme();
+  const londonSeason = { id: londonTheme.season, ...SEASON_DETAILS[londonTheme.season] };
+  const activeArtwork = activeMap.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time]
+    || activeMap.mapArtwork
+    || 'thames-game-map.png';
 
   const userProfile = progression.userProfile || {
     id: 'guest_local',
@@ -520,8 +524,8 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         </p>
         <div className="game-season-badge" aria-label={`Current map theme: ${londonSeason.label}`}>
           <span>{londonSeason.icon}</span>
-          <strong>{londonSeason.label}</strong>
-          <small>Changes automatically</small>
+          <strong>{londonSeason.label} {londonTheme.time === 'night' ? 'Night' : 'Day'} in London</strong>
+          <small>Season and light change automatically</small>
         </div>
       </section>
       </aside>
@@ -529,9 +533,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       {/* Main illustrated map */}
       <section
         id="cartoon-map-canvas-board"
-        className={`game-map-board season-${londonSeason.id}`}
+        className={`game-map-board season-${londonSeason.id} time-${londonTheme.time}`}
         style={{
-          backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.02), rgba(6, 182, 212, 0.08)), url("${import.meta.env.BASE_URL}${activeMap.mapArtwork || 'thames-game-map.png'}")`,
+          backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.01), rgba(6, 182, 212, 0.03)), url("${import.meta.env.BASE_URL}${activeArtwork}")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',

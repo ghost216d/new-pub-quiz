@@ -200,6 +200,11 @@ export interface CartoonMap {
   endArea?: string;
   /** Illustrated background used for this particular London route. */
   mapArtwork?: string;
+  /** Route artwork that follows London's current season and time of day. */
+  seasonalArtwork?: Partial<Record<'spring' | 'summer' | 'autumn' | 'winter', {
+    day: string;
+    night: string;
+  }>>;
 }
 
 export interface LevelProgress {

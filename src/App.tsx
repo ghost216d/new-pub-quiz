@@ -13,6 +13,7 @@ import { AuthModal } from './components/AuthModal';
 import { BGMController } from './components/BGMController';
 import { getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
 import { SoloProgression } from './types';
+import { getLondonTheme } from './utils/londonTheme';
 
 type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
 
@@ -298,6 +299,7 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
 };
 
 export default function App() {
+  const [londonTheme, setLondonTheme] = useState(getLondonTheme);
   const [role, setRole] = useState<AppRole>('solo');
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
   const [showFirstTimeAuth, setShowFirstTimeAuth] = useState<boolean>(() => {
@@ -318,6 +320,14 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    const refreshTheme = () => setLondonTheme(getLondonTheme());
+    document.documentElement.dataset.timeTheme = londonTheme.time;
+    document.documentElement.dataset.season = londonTheme.season;
+    const themeTimer = window.setInterval(refreshTheme, 60_000);
+    return () => window.clearInterval(themeTimer);
+  }, [londonTheme.time, londonTheme.season]);
 
   // GitHub Pages uses the local fallback, so keep its Quiz Master timer live too.
   useEffect(() => {
@@ -584,7 +594,7 @@ export default function App() {
   };
 
   return (
-    <div className={`app-shell role-${role} min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
+    <div className={`app-shell role-${role} theme-${londonTheme.time} season-${londonTheme.season} min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
       {/* Top App Header (hidden on full TV mode for cinema display) */}
       {role !== 'tv' && role !== 'solo' && (
         <Header

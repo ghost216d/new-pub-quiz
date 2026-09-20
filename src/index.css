@@ -1479,6 +1479,36 @@ button, a, input, select {
   }
 }
 
+/* London night mode follows local London time across every app screen. */
+html[data-time-theme="night"] .app-shell,
+html[data-time-theme="night"] .tv-display-shell {
+  color: #f8fafc;
+  background-color: #07152f !important;
+  background-image:
+    radial-gradient(circle at 14% 4%, rgba(14, 165, 233, 0.22), transparent 28%),
+    linear-gradient(180deg, #06142d 0%, #0b2447 52%, #07152f 100%) !important;
+}
+
+html[data-time-theme="night"] .app-main-header {
+  color: #f8fafc;
+  border-color: #38bdf8 !important;
+  background: linear-gradient(180deg, rgba(7, 21, 47, 0.98), rgba(11, 36, 71, 0.97)) !important;
+  box-shadow: 0 4px 0 #0369a1, 0 10px 26px rgba(0, 0, 0, 0.38) !important;
+}
+
+html[data-time-theme="night"] :is(.role-landing, .role-host, .role-player, .role-solo, .tv-display-shell)
+  :is(.landing-pub-sign, .landing-mode-panel, .host-console-shell > div, .solo-setup-screen, .solo-result-screen, .solo-question-card) {
+  color: #f8fafc;
+  border-color: #38bdf8 !important;
+  background-color: rgba(7, 21, 47, 0.94) !important;
+  box-shadow: 0 6px 0 #0369a1, 0 16px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-time-theme="night"] :is(.role-landing, .role-host, .role-player, .role-solo, .tv-display-shell)
+  :is(h1, h2, h3, p, label) {
+  color: inherit;
+}
+
 /* Final palette guard: retire every remaining legacy brown/wood surface. */
 body,
 .bg-pub-wood,
