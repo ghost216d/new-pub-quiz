@@ -707,7 +707,7 @@ export default function App() {
       {/* Offline Status Badge */}
       <OfflineIndicator />
 
-      {/* First-Time Sign In Prompt (Google vs Guest + Facebook Linking) */}
+      {/* First-Time Sign In Prompt (Google, email or guest) */}
       <AuthModal
         isOpen={showFirstTimeAuth}
         onClose={() => {
