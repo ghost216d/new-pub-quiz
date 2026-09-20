@@ -2801,6 +2801,132 @@ body,
   }
 }
 
+/* Refined Solo map panel: readable headings, more map space and safe nav labels. */
+.role-solo .game-realm-title {
+  align-items: flex-start;
+}
+
+.role-solo .game-realm-title h2 {
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+  text-overflow: clip;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.role-solo .game-realm-title p {
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+  text-overflow: clip;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.role-solo .game-auto-difficulty-note {
+  align-items: center;
+  justify-content: center;
+  margin-top: 7px;
+  padding: 7px 9px;
+  text-align: center;
+}
+
+@media (max-width: 899px) {
+  .role-solo .game-side-panel {
+    inset: 78px 0 100px;
+  }
+
+  .role-solo .game-realm-card {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-width: none;
+    padding: 10px 11px 9px;
+    border-width: 3px;
+    border-radius: 22px;
+  }
+
+  .role-solo .game-realm-heading {
+    grid-template-columns: 45px minmax(0, 1fr) 45px;
+    gap: 8px;
+  }
+
+  .role-solo .game-map-arrow {
+    width: 44px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
+  .role-solo .game-realm-title > span {
+    margin-top: 2px;
+    font-size: 25px;
+  }
+
+  .role-solo .game-realm-title h2 {
+    font-size: clamp(17px, 4.7vw, 23px) !important;
+    line-height: 1.04 !important;
+  }
+
+  .role-solo .game-realm-title p {
+    margin-top: 5px;
+    font-size: clamp(10px, 2.65vw, 13px) !important;
+  }
+
+  .role-solo .game-realm-tabs {
+    margin: 8px 0 3px;
+  }
+
+  .role-solo .game-auto-difficulty-note {
+    font-size: clamp(10px, 2.55vw, 12px) !important;
+    line-height: 1.2 !important;
+  }
+
+  .role-solo .game-bottom-nav,
+  html[data-time-theme="day"] .role-solo .game-bottom-nav,
+  html[data-time-theme="night"] .role-solo .game-bottom-nav {
+    height: calc(100px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .role-solo .game-bottom-nav button {
+    padding-bottom: 9px;
+  }
+
+  .role-solo .game-bottom-nav button.is-active {
+    height: 120px;
+    padding-bottom: 10px;
+  }
+
+  .role-solo .game-bottom-nav button strong {
+    display: block;
+    flex: 0 0 auto;
+    overflow: visible;
+    padding: 1px 0 2px;
+    font-size: clamp(11px, 2.85vw, 14px) !important;
+    line-height: 1.1 !important;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .role-solo .game-realm-title > span {
+    display: none;
+  }
+
+  .role-solo .game-realm-heading {
+    grid-template-columns: 41px minmax(0, 1fr) 41px;
+    gap: 5px;
+  }
+
+  .role-solo .game-map-arrow {
+    width: 40px;
+    height: 45px;
+  }
+}
+
 /* =========================================================
    FULL-SCREEN SOLO MAP + LIGHT FLOATING CONTROLS
 ========================================================= */

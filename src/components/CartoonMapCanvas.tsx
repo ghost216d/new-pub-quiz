@@ -171,10 +171,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     return 1;
   })();
-  const currentPlayableLevel =
-    activeMap.levels.find((level) => level.levelNumber === currentLevelNumber) ||
-    activeMap.levels[0];
-
   useEffect(() => {
     const timer = window.setInterval(() => {
       const result = checkAndReplenishLives(progression);
@@ -529,34 +525,8 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
         <p className="game-auto-difficulty-note">
           <Sparkles className="w-4 h-4" />
-          Fresh Internet questions load automatically without repeats. Every 5th level is a hard challenge.
+          Tap a pub marker to play. Questions stay fresh and never repeat.
         </p>
-        <div className="game-season-badge" aria-label={`Current map theme: ${londonSeason.label}`}>
-          <span>{londonSeason.icon}</span>
-          <strong>{londonSeason.label} {londonTheme.time === 'night' ? 'Night' : 'Day'} in London</strong>
-          <small>Season and light change automatically</small>
-        </div>
-        {currentPlayableLevel && isLevelUnlocked(currentPlayableLevel) && (
-          <button
-            type="button"
-            className="game-start-current-level"
-            onClick={() => {
-              if (progression.lives <= 0) {
-                onOpenShop('lives');
-              } else {
-                onSelectLevel(currentPlayableLevel, activeMap);
-              }
-              audioSynth.playCoinFx();
-            }}
-          >
-            <span aria-hidden="true">{progression.lives <= 0 ? '❤️' : '▶'}</span>
-            <strong>
-              {progression.lives <= 0
-                ? 'Refill Hearts to Play'
-                : `Play ${currentPlayableLevel.pubName || currentPlayableLevel.name}`}
-            </strong>
-          </button>
-        )}
       </section>
       </aside>
 
