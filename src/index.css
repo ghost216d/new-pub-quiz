@@ -3632,6 +3632,36 @@ html[data-time-theme="day"] .role-solo .game-bottom-nav {
   opacity: 0 !important;
 }
 
+/* Match the richer cover-preview palette: burgundy lacquer, gold and cream. */
+:is(.app-main-header, .role-solo .game-top-bar),
+html[data-time-theme="day"] .role-solo .game-top-bar,
+html[data-time-theme="night"] .role-solo .game-top-bar {
+  background: linear-gradient(180deg, #8f1d2c 0%, #5f0f18 62%, #3f0710 100%) !important;
+  border-color: #f6c453 !important;
+  box-shadow: 0 5px 0 #8a3b12, 0 12px 26px rgba(63, 7, 16, 0.34) !important;
+}
+
+.role-solo .game-realm-card,
+.role-solo .game-level-card,
+.role-solo :is(.solo-setup-screen, .solo-result-screen, .solo-question-card, .solo-quiz-hud) {
+  background: linear-gradient(180deg, #fffaf0 0%, #ffedbd 100%) !important;
+  border-color: #c87916 !important;
+  box-shadow: 0 6px 0 #7f1d1d, 0 14px 30px rgba(63, 7, 16, 0.22) !important;
+}
+
+.role-solo .game-bottom-nav,
+html[data-time-theme="day"] .role-solo .game-bottom-nav,
+html[data-time-theme="night"] .role-solo .game-bottom-nav {
+  background: linear-gradient(180deg, #781323 0%, #450a0a 100%) !important;
+  border-color: #f6c453 !important;
+}
+
+.role-solo .game-start-current-level {
+  background: linear-gradient(180deg, #c92a3d 0%, #7f1d1d 100%) !important;
+  border-color: #ffd76a !important;
+  box-shadow: 0 5px 0 #450a0a, 0 10px 22px rgba(69, 10, 10, 0.3) !important;
+}
+
 /* Use a real image instead of a CSS background so mobile dark mode cannot dim it. */
 .game-map-artwork {
   position: absolute;
