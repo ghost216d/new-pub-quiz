@@ -12,8 +12,8 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
   useEffect(() => {
     if (!videoReady) return;
     const timers = [
-      window.setTimeout(() => setPhase('sip'), 820),
-      window.setTimeout(() => setPhase('lovely'), 1720),
+      window.setTimeout(() => setPhase('sip'), 1200),
+      window.setTimeout(() => setPhase('lovely'), 3300),
     ];
     return () => timers.forEach(window.clearTimeout);
   }, [videoReady]);
