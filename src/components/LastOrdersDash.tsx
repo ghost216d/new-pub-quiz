@@ -159,11 +159,10 @@ export const LastOrdersDash: React.FC<Props> = ({ pubName, onComplete }) => {
           </div>
 
           {!started && !finished && (
-            <div className="last-orders-overlay">
+            <div className="last-orders-overlay is-opening">
+              <img className="last-orders-cover-art" src={hostImage} alt="The Pub Quiz host ready for Last Orders Dash" />
               <div className="last-orders-instructions">
-                <span className="last-orders-character-preview">
-                  <img src={hostImage} alt="The Pub Quiz cover character" />
-                </span>
+                <span className="last-orders-ready-badge">🏃 BONUS DASH</span>
                 <h3>Ready for last orders?</h3>
                 <p>Move left and right. Collect 🪙 and ⭐. Dodge 🪑 and 💦.</p>
                 <button type="button" onClick={() => setStarted(true)}>
@@ -174,11 +173,16 @@ export const LastOrdersDash: React.FC<Props> = ({ pubName, onComplete }) => {
           )}
 
           {finished && (
-            <div className="last-orders-overlay is-finished" role="status">
+            <div className={`last-orders-overlay is-finished ${score > 0 ? 'is-winner' : 'is-try-again'}`} role="status">
+              <img
+                className="last-orders-ending-art"
+                src={hostImage}
+                alt={score > 0 ? 'The quiz host celebrating outside the pub' : 'The quiz host encouraging the player to try again'}
+              />
               <div className="last-orders-finish-copy">
-                <span>🎉</span>
-                <strong>{message}</strong>
-                <small>+{score} bonus Pub Bucks</small>
+                <span>{score > 0 ? '🏆' : '👍'}</span>
+                <strong>{score > 0 ? message : 'Better luck next time!'}</strong>
+                <small>{score > 0 ? `+${score} bonus Pub Bucks` : 'The next pub is still unlocked'}</small>
               </div>
             </div>
           )}
