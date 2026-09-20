@@ -318,8 +318,14 @@ export default function App() {
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showCover, setShowCover] = useState(true);
 
   const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    const coverTimer = window.setTimeout(() => setShowCover(false), 3200);
+    return () => window.clearTimeout(coverTimer);
+  }, []);
 
   useEffect(() => {
     const refreshTheme = () => setLondonTheme(getLondonTheme());
@@ -592,6 +598,33 @@ export default function App() {
     setRoomState(null);
     setErrorMessage(null);
   };
+
+  if (showCover) {
+    return (
+      <section className="pub-quiz-cover" aria-label="The Pub Quiz is loading">
+        <img
+          className="pub-quiz-cover-art"
+          src={`${import.meta.env.BASE_URL}pub-quiz-cover-host.webp`}
+          alt="Cartoon portrait of the pub quiz host welcoming players"
+        />
+        <div className="pub-quiz-cover-shade" aria-hidden="true" />
+        <div className="pub-quiz-cover-brand">
+          <span className="pub-quiz-cover-kicker">🍺 TAVERN TRIVIA ADVENTURE 🍺</span>
+          <h1>THE PUB QUIZ</h1>
+          <p>Test your knowledge across London</p>
+        </div>
+        <div className="pub-quiz-cover-loading" role="status" aria-live="polite">
+          <div className="pub-quiz-cover-loading-label">
+            <span>Preparing tonight’s questions</span>
+            <span aria-hidden="true">•••</span>
+          </div>
+          <div className="pub-quiz-cover-track" aria-hidden="true">
+            <span />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className={`app-shell role-${role} theme-${londonTheme.time} season-${londonTheme.season} min-h-screen min-h-[100dvh] w-full max-w-full min-w-0 overflow-x-hidden text-stone-900 flex flex-col justify-between selection:bg-sky-300 selection:text-slate-950 pb-safe ${role === 'solo' ? 'bg-sky-100' : 'bg-pub-wood'}`}>
