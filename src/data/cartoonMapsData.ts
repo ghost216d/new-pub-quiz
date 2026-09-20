@@ -448,12 +448,12 @@ const makeLondonStage = ({
   startArea,
   endArea,
   description,
-  mapArtwork: `${artwork}-day.webp`,
+  mapArtwork: `${artwork}-summer-day.webp`,
   seasonalArtwork: {
-    spring: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
-    summer: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
-    autumn: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
-    winter: { day: `${artwork}-day.webp`, night: `${artwork}-night.webp` },
+    spring: { day: `${artwork}-spring-day.webp`, night: `${artwork}-spring-night.webp` },
+    summer: { day: `${artwork}-summer-day.webp`, night: `${artwork}-summer-night.webp` },
+    autumn: { day: `${artwork}-autumn-day.webp`, night: `${artwork}-autumn-night.webp` },
+    winter: { day: `${artwork}-winter-day.webp`, night: `${artwork}-winter-night.webp` },
   },
   levels: levels.map((level, index) => ({
     ...level,
