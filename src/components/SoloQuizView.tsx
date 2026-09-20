@@ -95,9 +95,6 @@ const DIFFICULTY_OPTIONS: {
   },
 ];
 
-const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
-  levelNumber % 5 === 0 ? 'hard' : 'medium';
-
 const ONLINE_QUESTION_TIMEOUT_MS = 15000;
 
 // Solo mode never serves audio-dependent questions. Quiz Master keeps its
@@ -129,17 +126,56 @@ const loadOnlineQuestionsWithTimeout = (
   );
 });
 
+const interleaveDifficulty = (easy: Question[], hard: Question[]): Question[] => {
+  const mixed: Question[] = [];
+  const total = easy.length + hard.length;
+  for (let index = 0; index < total; index += 1) {
+    const useHard = index % 2 === 1;
+    const question = useHard ? hard.shift() : easy.shift();
+    const fallback = useHard ? easy.shift() : hard.shift();
+    const selected = question || fallback;
+    if (selected) mixed.push(selected);
+  }
+  return mixed;
+};
+
+const loadMixedOnlineQuestions = async (category: string, count: number): Promise<Question[]> => {
+  const easyCount = Math.ceil(count / 2);
+  const hardCount = Math.floor(count / 2);
+  const [easy, hard] = await Promise.all([
+    loadOnlineQuestionsWithTimeout({ category, count: easyCount, difficulty: 'easy' }),
+    loadOnlineQuestionsWithTimeout({ category, count: hardCount, difficulty: 'hard' }),
+  ]);
+  return interleaveDifficulty([...easy], [...hard]);
+};
+
 const buildUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
-  difficulty: QuizDifficulty,
-  points: number,
 ): Question[] => {
-  return chooseUnseenFallbackQuestions(pool, count).map((question) => ({
-    ...question,
-    points,
-    difficulty,
-  }));
+  const easyCount = Math.ceil(count / 2);
+  const hardCount = Math.floor(count / 2);
+  const labelledEasy = pool.filter((question) => question.difficulty !== 'hard');
+  const labelledHard = pool.filter((question) => question.difficulty === 'hard');
+  let selected: Question[];
+
+  if (labelledEasy.length >= easyCount && labelledHard.length >= hardCount) {
+    const easy = chooseUnseenFallbackQuestions(labelledEasy, easyCount);
+    const hard = chooseUnseenFallbackQuestions(labelledHard, hardCount);
+    selected = interleaveDifficulty([...easy], [...hard]);
+  } else {
+    selected = chooseUnseenFallbackQuestions(pool, count);
+  }
+
+  return selected.map((question, index) => {
+    const questionDifficulty: QuizDifficulty = index % 2 === 0 ? 'easy' : 'hard';
+    return {
+      ...question,
+      points: questionDifficulty === 'hard' ? 20 : 10,
+      timeLimitSec: questionDifficulty === 'hard' ? 40 : 30,
+      difficulty: questionDifficulty,
+    };
+  });
 };
 
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
@@ -228,7 +264,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setActiveLevel(level);
     setActiveMap(map);
     setSelectedCategory(level.category);
-    setDifficulty(getAutomaticLevelDifficulty(level.levelNumber));
+    setDifficulty('easy');
     setCustomTopic('');
     setUseAI(true); // Enable the online topic field, with an unseen offline fallback
     setLaunchingLevel(level);
@@ -247,17 +283,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       setLaunchingLevel(null);
     };
     const count = level.questionCount || 5;
-    const automaticDifficulty = getAutomaticLevelDifficulty(level.levelNumber);
-
     // 1. Fetch fresh Internet questions. The online session token and local
     // seen-question history prevent repeats across levels and later visits.
     if (navigator.onLine) {
       try {
-        const onlineQuestions = await loadOnlineQuestionsWithTimeout({
-          category: `${map.name}: ${level.category}`,
+        const onlineQuestions = await loadMixedOnlineQuestions(
+          `${map.name}: ${level.category}`,
           count,
-          difficulty: automaticDifficulty,
-        });
+        );
         setQuestions(onlineQuestions);
         initGame(onlineQuestions);
         setIsLoading(false);
@@ -287,8 +320,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       shuffled = buildUnseenFallbackQuestions(
         qPool,
         count,
-        automaticDifficulty,
-        automaticDifficulty === 'hard' ? 20 : 15,
       );
     } catch {
       setIsLoading(false);
@@ -318,24 +349,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setActiveMap(null);
     const topic = customTopic.trim() || selectedCategory;
     const isPictureRound = !customTopic.trim() && selectedCategory === 'Emoji Picture Puzzles';
-    const automaticDifficulty: QuizDifficulty = 'medium';
-    setDifficulty(automaticDifficulty);
-
-    const pointsByDiff: Record<QuizDifficulty, number> = {
-      easy: 10,
-      medium: 15,
-      hard: 20,
-      expert: 25,
-    };
-    const targetPoints = pointsByDiff[automaticDifficulty] || 15;
+    setDifficulty('easy');
 
     if (navigator.onLine && !isPictureRound) {
       try {
-        const onlineQuestions = await loadOnlineQuestionsWithTimeout({
-          category: topic,
-          count: 10,
-          difficulty: automaticDifficulty,
-        });
+        const onlineQuestions = await loadMixedOnlineQuestions(topic, 10);
         setQuestions(onlineQuestions);
         initGame(onlineQuestions);
         setIsLoading(false);
@@ -364,8 +382,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       shuffled = buildUnseenFallbackQuestions(
         qPool,
         10,
-        automaticDifficulty,
-        targetPoints,
       );
     } catch {
       setIsLoading(false);
@@ -655,12 +671,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           </p>
         </div>
 
-        {/* Difficulty is automatic: every fifth level becomes a hard challenge. */}
+        {/* Difficulty alternates automatically throughout every round. */}
         <div className="flex items-center gap-3 p-3.5 bg-amber-50/90 rounded-2xl border-2 border-amber-800/40">
           <Flame className="w-5 h-5 text-orange-500" />
           <div>
             <p className="text-xs font-black uppercase tracking-wider text-amber-950">Automatic challenge</p>
-            <p className="text-[11px] font-bold text-stone-600">Standard questions, with a hard challenge every 5th level.</p>
+            <p className="text-[11px] font-bold text-stone-600">Questions alternate between easy and hard throughout every game.</p>
           </div>
         </div>
 
