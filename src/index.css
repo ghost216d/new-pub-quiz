@@ -3445,3 +3445,26 @@ html[data-time-theme="day"] .role-solo .game-bottom-nav {
   box-shadow: none !important;
   opacity: 0 !important;
 }
+
+/* Use a real image instead of a CSS background so mobile dark mode cannot dim it. */
+.game-map-artwork {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  pointer-events: none;
+  user-select: none;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  forced-color-adjust: none;
+}
+
+@media (max-width: 899px) {
+  .game-map-artwork {
+    object-fit: fill;
+  }
+}
