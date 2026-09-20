@@ -24,7 +24,7 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
   useEffect(() => {
     if (!spriteReady) return;
     const timers = POSES.slice(1).map((_, index) =>
-      window.setTimeout(() => setFrame(index + 1), 360 + index * 360),
+      window.setTimeout(() => setFrame(index + 1), 320 + index * 320),
     );
     return () => timers.forEach(window.clearTimeout);
   }, [spriteReady]);
@@ -34,19 +34,23 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
       <div className="correct-drink-stage">
         <div className="correct-drink-lights" aria-hidden="true" />
         <img
-          className="correct-drink-fallback"
+          className={`correct-drink-fallback${spriteReady ? ' is-hidden' : ''}`}
           src={`${import.meta.env.BASE_URL}pub-quiz-cover-host.webp`}
           alt=""
           aria-hidden="true"
         />
-        <div
-          className={`correct-drink-sprite${spriteReady ? ' is-ready' : ''}`}
-          aria-hidden="true"
-          style={{
-            backgroundImage: `url(${spriteUrl})`,
-            backgroundPosition: POSES[frame],
-          }}
-        />
+        <div className="correct-drink-character" aria-hidden="true">
+          {POSES.map((position, poseIndex) => (
+            <div
+              key={position}
+              className={`correct-drink-sprite${spriteReady && poseIndex === frame ? ' is-active' : ''}`}
+              style={{
+                backgroundImage: `url(${spriteUrl})`,
+                backgroundPosition: position,
+              }}
+            />
+          ))}
+        </div>
         <div className="correct-drink-sparkles" aria-hidden="true">
           <i>✦</i><i>✧</i><i>✦</i><i>✧</i>
         </div>
