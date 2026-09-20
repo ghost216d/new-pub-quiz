@@ -2948,7 +2948,12 @@ body,
   .correct-drink-glow,
   .correct-drink-host img,
   .correct-drink-pint,
-  .correct-drink-foam { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  .correct-drink-foam { animation: none !important; }
+  .correct-drink-celebration,
+  .correct-drink-card { opacity: 1; transform: none; }
+  .correct-drink-host img { filter: brightness(1.04) saturate(1.08); transform: scale(1.08); }
+  .correct-drink-pint { opacity: 1; transform: translate(-4px, -126px) rotate(-24deg) scale(1.08); }
+  .correct-drink-foam { opacity: .85; }
 }
 
 /* Last Orders Dash — a short, touch-friendly reward between solo stages. */
