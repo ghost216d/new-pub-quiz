@@ -1509,6 +1509,38 @@ html[data-time-theme="night"] :is(.role-landing, .role-host, .role-player, .role
   color: inherit;
 }
 
+/* Keep floating audio controls clear of modal close/exit controls. */
+body:has(#tavern-shop-modal-overlay) .global-music-control {
+  display: none;
+}
+
+/* The daytime Solo chrome should feel bright and airy over the illustrated map. */
+html[data-time-theme="day"] .role-solo .game-top-bar {
+  color: #0c4a6e !important;
+  border-color: #38bdf8 !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(224, 242, 254, 0.94)) !important;
+  box-shadow: 0 5px 0 rgba(2, 132, 199, 0.72), 0 10px 24px rgba(15, 23, 42, 0.16) !important;
+}
+
+html[data-time-theme="day"] .role-solo .game-realm-card {
+  color: #0c4a6e !important;
+  border-color: #38bdf8 !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(224, 242, 254, 0.95)) !important;
+  box-shadow: 0 6px 0 rgba(2, 132, 199, 0.78), 0 14px 28px rgba(15, 23, 42, 0.18) !important;
+}
+
+html[data-time-theme="day"] .role-solo .game-bottom-nav {
+  border-color: #38bdf8 !important;
+  background: linear-gradient(180deg, rgba(248, 252, 255, 0.98), rgba(186, 230, 253, 0.97)) !important;
+  box-shadow: 0 -5px 18px rgba(15, 23, 42, 0.16) !important;
+}
+
+html[data-time-theme="day"] .role-solo .game-season-badge,
+html[data-time-theme="day"] .role-solo .game-auto-difficulty-note {
+  color: #0e7490 !important;
+  background: rgba(240, 249, 255, 0.92) !important;
+}
+
 /* Final palette guard: retire every remaining legacy brown/wood surface. */
 body,
 .bg-pub-wood,
