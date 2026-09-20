@@ -16,6 +16,14 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
 
+      // Replace stale app shells immediately when a new GitHub Pages build
+      // is published, and remove precaches left behind by older releases.
+      workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+      },
+
       includeAssets: ['icon.svg'],
 
       manifest: {
