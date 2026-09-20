@@ -7,7 +7,7 @@ interface Props {
 export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
   const [phase, setPhase] = useState<'cheers' | 'sip' | 'lovely'>('cheers');
   const [videoReady, setVideoReady] = useState(false);
-  const videoUrl = `${import.meta.env.BASE_URL}pub-host-drink-v5.mp4`;
+  const videoUrl = `${import.meta.env.BASE_URL}pub-host-drink-v6.mp4`;
 
   useEffect(() => {
     if (!videoReady) return;
