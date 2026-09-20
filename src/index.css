@@ -1153,6 +1153,32 @@ button, a, input, select {
 .game-season-badge strong { flex: 1; }
 .game-season-badge small { color: #92400e; font-size: 9px; font-weight: 800; }
 
+.game-start-current-level {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 3px solid #fcd34d;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #dc2626, #991b1b);
+  color: #fff7d6;
+  box-shadow: 0 5px 0 #5f160c;
+  font-family: 'Luckiest Guy', 'Titan One', 'Fredoka', cursive;
+  font-size: clamp(14px, 3.8vw, 18px);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.game-start-current-level:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #5f160c;
+}
+
 .game-season-overlay {
   position: absolute;
   inset: 0;
