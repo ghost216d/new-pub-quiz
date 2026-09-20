@@ -1001,43 +1001,49 @@ button, a, input, select {
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  overflow: hidden;
   transition: background 500ms ease;
 }
 
 .game-map-board.season-spring .game-season-overlay {
-  background:
-    radial-gradient(circle at 14% 24%, rgba(244, 114, 182, .42) 0 4px, transparent 5px),
-    radial-gradient(circle at 82% 33%, rgba(251, 113, 133, .38) 0 5px, transparent 6px),
-    linear-gradient(rgba(236, 253, 245, .08), rgba(240, 253, 250, .16));
-  background-size: 54px 54px, 73px 73px, auto;
-  animation: season-petals 14s linear infinite;
+  background: linear-gradient(rgba(236, 253, 245, .04), rgba(240, 253, 250, .1));
 }
 
 .game-map-board.season-summer .game-season-overlay {
-  background: linear-gradient(145deg, rgba(250, 204, 21, .16), transparent 42%, rgba(34, 211, 238, .12));
+  background: radial-gradient(circle at 88% 8%, rgba(254, 240, 138, .2), transparent 24%);
   animation: season-sunshine 5s ease-in-out infinite alternate;
 }
 
 .game-map-board.season-autumn .game-season-overlay {
-  background:
-    radial-gradient(ellipse at 20% 15%, rgba(249, 115, 22, .38) 0 6px, transparent 7px),
-    radial-gradient(ellipse at 76% 28%, rgba(234, 179, 8, .36) 0 7px, transparent 8px),
-    linear-gradient(rgba(254, 215, 170, .12), rgba(253, 186, 116, .2));
-  background-size: 67px 49px, 83px 63px, auto;
-  animation: season-leaves 12s linear infinite;
+  background: linear-gradient(rgba(255, 247, 237, .02), rgba(251, 146, 60, .08));
 }
 
 .game-map-board.season-winter .game-season-overlay {
-  background:
-    radial-gradient(circle, rgba(255, 255, 255, .86) 0 3px, transparent 4px),
-    linear-gradient(rgba(224, 242, 254, .18), rgba(186, 230, 253, .32));
-  background-size: 45px 45px, auto;
-  animation: season-snow 10s linear infinite;
+  background: linear-gradient(rgba(240, 249, 255, .06), rgba(224, 242, 254, .15));
 }
 
-@keyframes season-petals {
-  from { background-position: 0 -70px, 30px -120px, 0 0; }
-  to { background-position: 80px 900px, -55px 900px, 0 0; }
+.game-season-overlay span {
+  position: absolute;
+  top: -8%;
+  left: var(--season-x);
+  font-size: var(--season-size);
+  opacity: 0;
+  filter: drop-shadow(0 2px 2px rgba(15, 23, 42, .16));
+  animation: season-drift var(--season-speed) linear infinite;
+  animation-delay: var(--season-delay);
+}
+
+.game-season-overlay span:nth-child(1) { --season-x: 9%; --season-size: 16px; --season-speed: 15s; --season-delay: -3s; }
+.game-season-overlay span:nth-child(2) { --season-x: 26%; --season-size: 12px; --season-speed: 18s; --season-delay: -12s; }
+.game-season-overlay span:nth-child(3) { --season-x: 44%; --season-size: 18px; --season-speed: 20s; --season-delay: -7s; }
+.game-season-overlay span:nth-child(4) { --season-x: 63%; --season-size: 13px; --season-speed: 16s; --season-delay: -14s; }
+.game-season-overlay span:nth-child(5) { --season-x: 79%; --season-size: 17px; --season-speed: 22s; --season-delay: -9s; }
+.game-season-overlay span:nth-child(6) { --season-x: 92%; --season-size: 11px; --season-speed: 17s; --season-delay: -5s; }
+
+@keyframes season-drift {
+  0% { opacity: 0; transform: translate3d(0, -30px, 0) rotate(0deg); }
+  10%, 82% { opacity: .58; }
+  100% { opacity: 0; transform: translate3d(42px, 1120px, 0) rotate(300deg); }
 }
 
 @keyframes season-sunshine {
@@ -1045,20 +1051,13 @@ button, a, input, select {
   to { opacity: .94; filter: saturate(1.18) brightness(1.05); }
 }
 
-@keyframes season-leaves {
-  from { background-position: -20px -90px, 75px -140px, 0 0; }
-  to { background-position: 120px 900px, -70px 900px, 0 0; }
-}
-
-@keyframes season-snow {
-  from { background-position: 0 -90px, 0 0; }
-  to { background-position: 55px 900px, 0 0; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .game-season-overlay {
+  .game-season-overlay,
+  .game-season-overlay span {
     animation: none !important;
   }
+
+  .game-season-overlay span { display: none; }
 }
 
 .game-map-sky {
@@ -3111,6 +3110,7 @@ body,
     height: max(132dvh, 980px);
     min-height: max(132dvh, 980px);
     background-position: center top !important;
+    background-size: 100% 100% !important;
   }
 
   .game-bottom-nav {

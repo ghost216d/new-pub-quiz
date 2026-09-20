@@ -1,8 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
-  <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#7dd3fc"/><stop offset="1" stop-color="#fef08a"/></linearGradient></defs>
-  <rect width="1200" height="900" fill="url(#g)"/>
-  <path d="M-50 240 C170 125 310 350 520 240 S900 115 1250 250" fill="none" stroke="#0284c7" stroke-width="120" opacity=".82"/>
-  <path d="M-50 240 C170 125 310 350 520 240 S900 115 1250 250" fill="none" stroke="#bae6fd" stroke-width="8" stroke-dasharray="22 18"/>
-  <g fill="#0f172a" font-family="system-ui" font-weight="800" opacity=".76"><text x="70" y="165" font-size="38">LONDON BRIDGE</text><text x="410" y="385" font-size="34">ROTHERHITHE</text><text x="820" y="155" font-size="36">GREENWICH</text><text x="70" y="820" font-size="26">THAMES RIVERSIDE</text></g>
-  <g fill="#fff" stroke="#0369a1" stroke-width="8"><rect x="100" y="305" width="120" height="95" rx="18"/><rect x="500" y="105" width="130" height="105" rx="18"/><rect x="920" y="290" width="125" height="95" rx="18"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 1100">
+  <defs><linearGradient id="land" x2="0" y2="1"><stop stop-color="#dff6ee"/><stop offset="1" stop-color="#b9e5c8"/><stop offset="1" stop-color="#f6dda1"/></linearGradient><pattern id="streets" width="110" height="110" patternUnits="userSpaceOnUse"><path d="M-20 35L130 80M20-20L75 130" stroke="#fff" stroke-width="10" opacity=".38"/></pattern></defs>
+  <rect width="720" height="1100" fill="url(#land)"/><rect width="720" height="1100" fill="url(#streets)"/>
+  <path d="M-80 120C120 20 176 234 354 142S590 42 800 176" fill="none" stroke="#38aee0" stroke-width="142"/>
+  <path d="M-80 120C120 20 176 234 354 142S590 42 800 176" fill="none" stroke="#8edcf4" stroke-width="5" stroke-dasharray="18 15" opacity=".8"/>
+  <g fill="#79b886" opacity=".8"><circle cx="86" cy="428" r="62"/><circle cx="604" cy="380" r="78"/><circle cx="145" cy="820" r="82"/><circle cx="590" cy="920" r="105"/></g>
+  <g fill="#fff" opacity=".72"><rect x="44" y="280" width="95" height="58" rx="12"/><rect x="532" y="545" width="112" height="64" rx="12"/><rect x="282" y="830" width="88" height="52" rx="12"/></g>
+  <g fill="#155e75" font-family="system-ui,sans-serif" font-weight="800" font-size="23" letter-spacing="2" opacity=".72"><text x="34" y="250">LONDON BRIDGE</text><text x="430" y="300">ROTHERHITHE</text><text x="34" y="670">DEPTFORD</text><text x="470" y="1025">GREENWICH</text></g>
+  <g fill="#0f766e" opacity=".55"><circle cx="90" cy="422" r="8"/><circle cx="615" cy="370" r="8"/><circle cx="154" cy="814" r="8"/><circle cx="596" cy="912" r="8"/></g>
 </svg>

@@ -60,6 +60,13 @@ const getLondonSeason = () => {
   return { id: 'winter', label: 'Winter in London', icon: '❄️' };
 };
 
+const SEASON_PARTICLES: Record<string, string[]> = {
+  spring: ['🌸', '·', '🌸', '·', '🌸', '·'],
+  summer: [],
+  autumn: ['🍂', '🍁', '🍂', '🍁', '🍂', '🍁'],
+  winter: ['❄', '•', '❄', '•', '❄', '•'],
+};
+
 export const CartoonMapCanvas: React.FC<Props> = ({
   progression,
   onUpdateProgression,
@@ -537,7 +544,11 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           backgroundRepeat: 'no-repeat',
         }}
       >
-        <div className="game-season-overlay" aria-hidden="true" />
+        <div className="game-season-overlay" aria-hidden="true">
+          {(SEASON_PARTICLES[londonSeason.id] || []).map((particle, index) => (
+            <span key={`${londonSeason.id}-${index}`}>{particle}</span>
+          ))}
+        </div>
         <svg
           className="game-map-path"
           viewBox="0 0 100 100"
