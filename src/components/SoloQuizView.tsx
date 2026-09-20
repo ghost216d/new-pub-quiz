@@ -454,14 +454,19 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
       const updatedTotalStars = progression.totalStars + netStars;
 
-      // Check if new maps unlock with new star count (including AI dynamic maps)
+      // Reveal stages sequentially. A stage remains completely hidden until
+      // every level in every preceding stage has been passed.
       const allKnownMaps = getAllMaps(progression);
-      const updatedUnlockedMaps = [...progression.unlockedMaps];
-      allKnownMaps.forEach((m) => {
-        if (updatedTotalStars >= m.requiredStars && !updatedUnlockedMaps.includes(m.id)) {
-          updatedUnlockedMaps.push(m.id);
-        }
-      });
+      const updatedUnlockedMaps = allKnownMaps
+        .filter((_, mapIndex) =>
+          mapIndex === 0 ||
+          allKnownMaps.slice(0, mapIndex).every((previousMap) =>
+            previousMap.levels.every(
+              (level) => updatedCompleted[level.id]?.passed
+            )
+          )
+        )
+        .map((map) => map.id);
 
       updateProgression({
         ...progression,
