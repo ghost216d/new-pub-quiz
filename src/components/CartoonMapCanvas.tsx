@@ -541,12 +541,20 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             type="button"
             className="game-start-current-level"
             onClick={() => {
-              onSelectLevel(currentPlayableLevel, activeMap);
+              if (progression.lives <= 0) {
+                onOpenShop('lives');
+              } else {
+                onSelectLevel(currentPlayableLevel, activeMap);
+              }
               audioSynth.playCoinFx();
             }}
           >
-            <span aria-hidden="true">▶</span>
-            <strong>Play {currentPlayableLevel.pubName || currentPlayableLevel.name}</strong>
+            <span aria-hidden="true">{progression.lives <= 0 ? '❤️' : '▶'}</span>
+            <strong>
+              {progression.lives <= 0
+                ? 'Refill Hearts to Play'
+                : `Play ${currentPlayableLevel.pubName || currentPlayableLevel.name}`}
+            </strong>
           </button>
         )}
       </section>
