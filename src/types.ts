@@ -16,6 +16,7 @@ export interface Question {
   points: number;
   timeLimitSec: number;
   imageUrl?: string; // Optional picture round image or music clue
+  pictureClue?: string; // Large emoji/rebus clue used by Solo picture rounds
   musicData?: {
     songTitle: string;
     artist: string;
