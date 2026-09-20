@@ -92,12 +92,30 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const [arrivalLevelId, setArrivalLevelId] = useState<string | null>(null);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
 
+  const isMapUnlocked = useCallback(
+    (map: CartoonMap) => {
+      const mapIndex = allMaps.findIndex((candidate) => candidate.id === map.id);
+      if (mapIndex <= 0) return mapIndex === 0;
+
+      return allMaps.slice(0, mapIndex).every((previousMap) =>
+        previousMap.levels.every(
+          (level) => progression.completedLevels[level.id]?.passed
+        )
+      );
+    },
+    [allMaps, progression.completedLevels]
+  );
+
+  // Future stages are not rendered at all until every level in the stages
+  // before them has been completed.
+  const visibleMaps = allMaps.filter(isMapUnlocked);
   const activeMap =
-    allMaps.find((map) => map.id === activeMapId) ||
+    visibleMaps.find((map) => map.id === activeMapId) ||
+    visibleMaps[visibleMaps.length - 1] ||
     allMaps[0] ||
     CARTOON_MAPS[0];
 
-  const activeMapIndex = allMaps.findIndex(
+  const activeMapIndex = visibleMaps.findIndex(
     (map) => map.id === activeMap.id
   );
   const londonTheme = getLondonTheme();
@@ -114,13 +132,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     createdAt: Date.now(),
   };
 
-  const isMapUnlocked = useCallback(
-    (map: CartoonMap) =>
-      progression.totalStars >= map.requiredStars ||
-      progression.unlockedMaps.includes(map.id),
-    [progression.totalStars, progression.unlockedMaps]
-  );
-
   const isLevelUnlocked = useCallback(
     (level: MapLevel) => {
       if (!isMapUnlocked(activeMap)) return false;
@@ -132,13 +143,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       return Boolean(
         previousLevel &&
           progression.completedLevels[previousLevel.id]?.passed
-      ) || progression.totalStars >= level.requiredStars;
+      );
     },
     [
       activeMap,
       isMapUnlocked,
       progression.completedLevels,
-      progression.totalStars,
     ]
   );
 
@@ -224,7 +234,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
   const changeMap = (direction: -1 | 1) => {
     const nextIndex = activeMapIndex + direction;
-    const nextMap = allMaps[nextIndex];
+    const nextMap = visibleMaps[nextIndex];
 
     if (!nextMap) return;
 
@@ -484,7 +494,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           <button
             onClick={() => changeMap(1)}
             disabled={
-              activeMapIndex >= allMaps.length - 1
+              activeMapIndex >= visibleMaps.length - 1
             }
             className="game-map-arrow"
             aria-label="Next realm"
@@ -494,8 +504,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         </div>
 
         <div className="game-realm-tabs">
-          {allMaps.map((map) => {
-            const unlocked = isMapUnlocked(map);
+          {visibleMaps.map((map) => {
             const selected = map.id === activeMap.id;
 
             return (
@@ -505,14 +514,10 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                 className={[
                   'game-realm-tab',
                   selected ? 'is-selected' : '',
-                  !unlocked ? 'is-locked' : '',
                 ].join(' ')}
                 aria-label={map.name}
               >
                 <span>{map.icon}</span>
-                {!unlocked && (
-                  <Lock className="w-3 h-3" />
-                )}
               </button>
             );
           })}
