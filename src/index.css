@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: only light;
+}
+
+html,
+body,
+#root,
+.app-shell,
+.game-map-shell,
+.game-map-board {
+  forced-color-adjust: none;
+}
+
 /* Remove the remaining old wood/brown palette from every app surface. */
 body,
 .bg-pub-wood,
