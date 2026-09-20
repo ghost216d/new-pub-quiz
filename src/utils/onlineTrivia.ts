@@ -44,6 +44,41 @@ const decodeHtml = (value: string): string => {
 const normalizePrompt = (value: string): string =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
+// Exact matching alone lets lightly reworded questions through. Compare the
+// meaningful words too, so "Who painted the Mona Lisa?" and "Which artist
+// painted the Mona Lisa?" are treated as the same question.
+const SIMILARITY_STOP_WORDS = new Set([
+  'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'did', 'do', 'does', 'for',
+  'from', 'has', 'have', 'how', 'in', 'is', 'it', 'its', 'of', 'on', 'or',
+  'that', 'the', 'this', 'to', 'was', 'were', 'what', 'when', 'where', 'which',
+  'who', 'whose', 'with',
+]);
+
+const meaningfulWords = (value: string): Set<string> => new Set(
+  normalizePrompt(value)
+    .split(' ')
+    .filter((word) => word.length > 2 && !SIMILARITY_STOP_WORDS.has(word)),
+);
+
+const isTooSimilar = (candidate: string, previous: string): boolean => {
+  const normalizedCandidate = normalizePrompt(candidate);
+  const normalizedPrevious = normalizePrompt(previous);
+  if (!normalizedCandidate || !normalizedPrevious) return false;
+  if (normalizedCandidate === normalizedPrevious) return true;
+
+  const candidateWords = meaningfulWords(normalizedCandidate);
+  const previousWords = meaningfulWords(normalizedPrevious);
+  if (candidateWords.size < 2 || previousWords.size < 2) return false;
+
+  const shared = [...candidateWords].filter((word) => previousWords.has(word)).length;
+  const smaller = Math.min(candidateWords.size, previousWords.size);
+  const union = new Set([...candidateWords, ...previousWords]).size;
+  return shared / smaller >= 0.8 || shared / union >= 0.68;
+};
+
+const hasBeenUsed = (prompt: string, history: string[]): boolean =>
+  history.some((previous) => isTooSimilar(prompt, previous));
+
 const readSeen = (): string[] => {
   try {
     const parsed = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
@@ -80,18 +115,18 @@ const getSecureAiQuestions = async ({
     method: 'POST',
     cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ category, count, difficulty, seen: seen.slice(-1500) }),
+    body: JSON.stringify({ category, count, difficulty, seen: seen.slice(-3000) }),
   });
   if (!response.ok) throw new Error('Secure question service is unavailable.');
 
   const payload = await response.json() as { questions?: Question[] };
   const questions = Array.isArray(payload.questions) ? payload.questions : [];
-  const seenSet = new Set(seen);
-  const unique = questions.filter((question, index, all) => {
+  const comparisonHistory = [...seen];
+  const unique = questions.filter((question) => {
     const normalized = normalizePrompt(question.prompt || '');
-    return Boolean(normalized) &&
-      !seenSet.has(normalized) &&
-      all.findIndex((candidate) => normalizePrompt(candidate.prompt || '') === normalized) === index;
+    if (!normalized || hasBeenUsed(normalized, comparisonHistory)) return false;
+    comparisonHistory.push(normalized);
+    return true;
   }).slice(0, count);
 
   if (unique.length < count) throw new Error('The secure service did not return enough unseen questions.');
@@ -159,7 +194,7 @@ export const getOnlineTriviaQuestions = async ({
     return `https://opentdb.com/api.php?${params.toString()}`;
   };
 
-  const seen = new Set(readSeen());
+  const seen = readSeen();
   const collected: Array<OpenTriviaQuestion & { decodedPrompt: string }> = [];
 
   // Fetch more than one batch when necessary. We never recycle an already-seen
@@ -180,8 +215,8 @@ export const getOnlineTriviaQuestions = async ({
     for (const item of data.results) {
       const decodedPrompt = decodeHtml(item.question);
       const normalized = normalizePrompt(decodedPrompt);
-      if (!seen.has(normalized)) {
-        seen.add(normalized);
+      if (!hasBeenUsed(normalized, seen)) {
+        seen.push(normalized);
         collected.push({ ...item, decodedPrompt });
       }
     }
@@ -223,8 +258,8 @@ export const chooseUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
 ): Question[] => {
-  const seen = new Set(readSeen());
-  const candidates = pool.filter((question) => !seen.has(normalizePrompt(question.prompt)));
+  const seen = readSeen();
+  const candidates = pool.filter((question) => !hasBeenUsed(question.prompt, seen));
 
   if (candidates.length < count) {
     throw new Error('You have completed every unseen question in this offline pack. Connect to the internet for fresh questions.');
