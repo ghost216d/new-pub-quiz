@@ -3468,3 +3468,67 @@ html[data-time-theme="day"] .role-solo .game-bottom-nav {
     object-fit: fill;
   }
 }
+
+/* Larger, readable typography throughout the complete Solo map interface. */
+@media (max-width: 899px) {
+  .role-solo .game-title h1 {
+    font-size: clamp(21px, 5.4vw, 27px) !important;
+    line-height: 1.05 !important;
+  }
+
+  .role-solo .game-title p {
+    font-size: clamp(11px, 2.8vw, 14px) !important;
+    line-height: 1.15 !important;
+  }
+
+  .role-solo .game-resource {
+    font-size: clamp(15px, 4vw, 19px) !important;
+  }
+
+  .role-solo .game-regen {
+    font-size: clamp(12px, 3.2vw, 15px) !important;
+    line-height: 1.15 !important;
+  }
+
+  .role-solo .game-actions-toggle strong,
+  .role-solo .game-action strong {
+    font-size: clamp(11px, 3vw, 14px) !important;
+  }
+
+  .role-solo .game-you-marker {
+    font-size: clamp(13px, 3.4vw, 16px) !important;
+  }
+
+  .role-solo .game-level-node strong {
+    font-size: clamp(11px, 2.9vw, 14px) !important;
+    line-height: 1.1 !important;
+  }
+
+  .role-solo .game-realm-title h2 {
+    font-size: clamp(19px, 5vw, 25px) !important;
+    line-height: 1.1 !important;
+  }
+
+  .role-solo .game-realm-title p {
+    font-size: clamp(11px, 2.8vw, 14px) !important;
+    line-height: 1.25 !important;
+  }
+
+  .role-solo .game-auto-difficulty-note {
+    font-size: clamp(11px, 2.8vw, 14px) !important;
+    line-height: 1.25 !important;
+  }
+
+  .role-solo .game-season-badge {
+    font-size: clamp(13px, 3.3vw, 16px) !important;
+  }
+
+  .role-solo .game-season-badge small {
+    font-size: clamp(10px, 2.6vw, 13px) !important;
+  }
+
+  .role-solo .game-bottom-nav button strong {
+    font-size: clamp(10px, 2.7vw, 13px) !important;
+    line-height: 1.05 !important;
+  }
+}
