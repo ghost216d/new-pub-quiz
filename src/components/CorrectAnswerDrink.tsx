@@ -13,7 +13,7 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
     if (!videoReady) return;
     const timers = [
       window.setTimeout(() => setPhase('sip'), 1200),
-      window.setTimeout(() => setPhase('lovely'), 3300),
+      window.setTimeout(() => setPhase('lovely'), 4400),
     ];
     return () => timers.forEach(window.clearTimeout);
   }, [videoReady]);

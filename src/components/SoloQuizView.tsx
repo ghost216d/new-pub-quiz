@@ -576,7 +576,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     const passedStage = !activeLevel || correctPercent >= SOLO_PASS_PERCENT;
     if (passedStage) {
       setDrinkCelebration({ id: Date.now(), streak: Math.max(1, streak) });
-      window.setTimeout(() => setDrinkCelebration(null), 4200);
+      window.setTimeout(() => setDrinkCelebration(null), 7000);
       audioSynth.playMilestoneFanfare();
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
     } else {
@@ -664,7 +664,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           setActiveMap(null);
           setViewMode('map');
           audioSynth.playChampionFanfare();
-        }, 4200);
+        }, 7000);
       }
     }
   };
