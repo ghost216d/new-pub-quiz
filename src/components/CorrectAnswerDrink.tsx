@@ -4,28 +4,24 @@ interface Props {
   streak: number;
 }
 
-const POSES = [
-  '0% 0%', '50% 0%', '100% 0%',
-  '0% 100%', '50% 100%', '100% 100%',
-];
-
 export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
-  const [frame, setFrame] = useState(0);
+  const [phase, setPhase] = useState<'cheers' | 'sip' | 'lovely'>('cheers');
   const [spriteReady, setSpriteReady] = useState(false);
-  const spriteUrl = `${import.meta.env.BASE_URL}pub-host-drink-sprite.webp`;
+  const animationUrl = `${import.meta.env.BASE_URL}pub-host-drink-animated.webp`;
 
   useEffect(() => {
     const sprite = new Image();
     sprite.onload = () => setSpriteReady(true);
-    sprite.src = spriteUrl;
+    sprite.src = animationUrl;
     if (sprite.complete) setSpriteReady(true);
-  }, [spriteUrl]);
+  }, [animationUrl]);
 
   useEffect(() => {
     if (!spriteReady) return;
-    const timers = POSES.slice(1).map((_, index) =>
-      window.setTimeout(() => setFrame(index + 1), 320 + index * 320),
-    );
+    const timers = [
+      window.setTimeout(() => setPhase('sip'), 820),
+      window.setTimeout(() => setPhase('lovely'), 1720),
+    ];
     return () => timers.forEach(window.clearTimeout);
   }, [spriteReady]);
 
@@ -40,22 +36,17 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
           aria-hidden="true"
         />
         <div className="correct-drink-character" aria-hidden="true">
-          {POSES.map((position, poseIndex) => (
-            <div
-              key={position}
-              className={`correct-drink-sprite${spriteReady && poseIndex === frame ? ' is-active' : ''}`}
-              style={{
-                backgroundImage: `url(${spriteUrl})`,
-                backgroundPosition: position,
-              }}
-            />
-          ))}
+          <img
+            className={`correct-drink-animation${spriteReady ? ' is-ready' : ''}`}
+            src={animationUrl}
+            alt=""
+          />
         </div>
         <div className="correct-drink-sparkles" aria-hidden="true">
           <i>✦</i><i>✧</i><i>✦</i><i>✧</i>
         </div>
         <div className="correct-drink-copy">
-          <strong>{spriteReady && frame >= 3 && frame <= 4 ? 'Sip, sip…' : spriteReady && frame === 5 ? 'Lovely!' : 'Correct! Cheers!'}</strong>
+          <strong>{phase === 'sip' ? 'Sip, sip…' : phase === 'lovely' ? 'Lovely!' : 'Correct! Cheers!'}</strong>
           <span>{streak > 1 ? `🔥 ${streak} correct in a row` : '🍺 A well-earned drink'}</span>
         </div>
       </div>
