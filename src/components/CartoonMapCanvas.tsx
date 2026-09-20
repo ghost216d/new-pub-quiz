@@ -535,12 +535,16 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         id="cartoon-map-canvas-board"
         className={`game-map-board season-${londonSeason.id} time-${londonTheme.time}`}
         style={{
-          backgroundImage: `url("${import.meta.env.BASE_URL}${activeArtwork}")`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          background: 'transparent',
         }}
       >
+        <img
+          className="game-map-artwork"
+          src={`${import.meta.env.BASE_URL}${activeArtwork}`}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+        />
         <div className="game-season-overlay" aria-hidden="true" />
         <svg
           className="game-map-path"
