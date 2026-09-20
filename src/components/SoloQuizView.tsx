@@ -98,6 +98,21 @@ const DIFFICULTY_OPTIONS: {
 const getAutomaticLevelDifficulty = (levelNumber: number): QuizDifficulty =>
   levelNumber % 5 === 0 ? 'hard' : 'medium';
 
+const ONLINE_QUESTION_TIMEOUT_MS = 6500;
+
+const loadOnlineQuestionsWithTimeout = (
+  options: Parameters<typeof getOnlineTriviaQuestions>[0],
+): Promise<Question[]> =>
+  Promise.race([
+    getOnlineTriviaQuestions(options),
+    new Promise<Question[]>((_, reject) => {
+      window.setTimeout(
+        () => reject(new Error('Internet questions took too long to load.')),
+        ONLINE_QUESTION_TIMEOUT_MS,
+      );
+    }),
+  ]);
+
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
   // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = online custom topic
   const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup'>('map');
@@ -209,7 +224,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     // seen-question history prevent repeats across levels and later visits.
     if (navigator.onLine) {
       try {
-        const onlineQuestions = await getOnlineTriviaQuestions({
+        const onlineQuestions = await loadOnlineQuestionsWithTimeout({
           category: `${map.name}: ${level.category}`,
           count,
           difficulty: automaticDifficulty,
@@ -286,7 +301,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
     if (navigator.onLine) {
       try {
-        const onlineQuestions = await getOnlineTriviaQuestions({
+        const onlineQuestions = await loadOnlineQuestionsWithTimeout({
           category: topic,
           count: 10,
           difficulty: automaticDifficulty,
