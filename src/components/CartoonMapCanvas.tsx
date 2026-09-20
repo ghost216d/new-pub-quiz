@@ -535,7 +535,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         id="cartoon-map-canvas-board"
         className={`game-map-board season-${londonSeason.id} time-${londonTheme.time}`}
         style={{
-          backgroundImage: `linear-gradient(rgba(14, 165, 233, 0.01), rgba(6, 182, 212, 0.03)), url("${import.meta.env.BASE_URL}${activeArtwork}")`,
+          backgroundImage: `url("${import.meta.env.BASE_URL}${activeArtwork}")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
