@@ -6,24 +6,21 @@ interface Props {
   onComplete: () => void;
 }
 
-const FRAME_COUNT = 16;
 const RUN_DURATION_MS = 8600;
 const MINIMUM_COVER_MS = 2400;
-const FRAME_INTERVAL_MS = 60;
 
 export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComplete }) => {
-  const [frame, setFrame] = useState(0);
   const [phase, setPhase] = useState<'leaving' | 'running' | 'arriving'>('leaving');
   const [assetsReady, setAssetsReady] = useState(false);
   const [loadedAssetCount, setLoadedAssetCount] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const loadingCover = `${import.meta.env.BASE_URL}london-route-loading-cover.webp`;
   const background = `${import.meta.env.BASE_URL}london-pub-run-background.webp`;
-  const sprite = useMemo(() => `${import.meta.env.BASE_URL}london-run-sprite-2d.webp`, []);
+  const runner = useMemo(() => `${import.meta.env.BASE_URL}london-run-animated-2d.webp`, []);
 
   useEffect(() => {
     let cancelled = false;
-    const assets = [background, sprite];
+    const assets = [background, runner];
     setLoadedAssetCount(0);
     const loadAssets = Promise.all(
       assets.map((src) => new Promise<void>((resolve) => {
@@ -44,7 +41,7 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
       if (!cancelled) setAssetsReady(true);
     });
     return () => { cancelled = true; };
-  }, [background, sprite]);
+  }, [background, runner]);
 
   useEffect(() => {
     if (!assetsReady) return;
@@ -54,8 +51,6 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
     const animate = (now: number) => {
       if (startTimeRef.current === null) startTimeRef.current = now;
       const elapsed = now - startTimeRef.current;
-      const nextFrame = Math.floor(elapsed / FRAME_INTERVAL_MS) % FRAME_COUNT;
-      setFrame((currentFrame) => currentFrame === nextFrame ? currentFrame : nextFrame);
       if (elapsed >= 650 && elapsed < 7200) setPhase('running');
       if (elapsed >= 7200) setPhase('arriving');
       if (elapsed >= RUN_DURATION_MS) { onComplete(); return; }
@@ -66,8 +61,6 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
   }, [assetsReady, onComplete]);
 
   const loadProgress = Math.round((loadedAssetCount / 2) * 100);
-  const spriteColumn = frame % 4;
-  const spriteRow = Math.floor(frame / 4);
 
   return (
     <div className={`pub-run-cinematic is-${phase}${assetsReady ? ' is-ready' : ' is-loading'}`} role="status" aria-live="polite">
@@ -88,13 +81,7 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
         )}
       </div>
       {assetsReady && <div className="pub-run-character" aria-hidden="true">
-        <span
-          className="pub-run-sprite"
-          style={{
-            backgroundImage: `url("${sprite}")`,
-            backgroundPosition: `${(spriteColumn * 100) / 3}% ${(spriteRow * 100) / 3}%`,
-          }}
-        />
+        <img className="pub-run-runner" src={runner} alt="" draggable={false} />
         <span className="pub-run-shadow" />
       </div>}
       <div className="pub-run-speed-lines" aria-hidden="true"><i /><i /><i /><i /><i /></div>

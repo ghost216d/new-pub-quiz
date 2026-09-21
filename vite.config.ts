@@ -29,6 +29,7 @@ export default defineConfig({
         'drink-frames/*.webp',
         'london-run-frames/*.webp',
         'london-run-sprite-2d.webp',
+        'london-run-animated-2d.webp',
         'pub-host-drink-2d.mp4',
         'london-pub-run-background.webp',
         'london-route-loading-cover.webp',
