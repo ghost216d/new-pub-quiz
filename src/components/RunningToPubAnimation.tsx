@@ -9,7 +9,7 @@ interface Props {
 const FRAME_COUNT = 16;
 const RUN_DURATION_MS = 8600;
 const MINIMUM_COVER_MS = 2400;
-const FRAME_INTERVAL_MS = 74;
+const FRAME_INTERVAL_MS = 60;
 
 export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComplete }) => {
   const [frame, setFrame] = useState(0);
@@ -19,17 +19,11 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
   const startTimeRef = useRef<number | null>(null);
   const loadingCover = `${import.meta.env.BASE_URL}london-route-loading-cover.webp`;
   const background = `${import.meta.env.BASE_URL}london-pub-run-background.webp`;
-  const frames = useMemo(
-    () => Array.from(
-      { length: FRAME_COUNT },
-      (_, index) => `${import.meta.env.BASE_URL}london-run-frames/run-frame-${String(index).padStart(2, '0')}.webp`,
-    ),
-    [],
-  );
+  const sprite = useMemo(() => `${import.meta.env.BASE_URL}london-run-sprite-2d.webp`, []);
 
   useEffect(() => {
     let cancelled = false;
-    const assets = [background, ...frames];
+    const assets = [background, sprite];
     setLoadedAssetCount(0);
     const loadAssets = Promise.all(
       assets.map((src) => new Promise<void>((resolve) => {
@@ -50,7 +44,7 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
       if (!cancelled) setAssetsReady(true);
     });
     return () => { cancelled = true; };
-  }, [background, frames]);
+  }, [background, sprite]);
 
   useEffect(() => {
     if (!assetsReady) return;
@@ -71,7 +65,9 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
     return () => window.cancelAnimationFrame(requestId);
   }, [assetsReady, onComplete]);
 
-  const loadProgress = Math.round((loadedAssetCount / (FRAME_COUNT + 1)) * 100);
+  const loadProgress = Math.round((loadedAssetCount / 2) * 100);
+  const spriteColumn = frame % 4;
+  const spriteRow = Math.floor(frame / 4);
 
   return (
     <div className={`pub-run-cinematic is-${phase}${assetsReady ? ' is-ready' : ' is-loading'}`} role="status" aria-live="polite">
@@ -92,7 +88,13 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
         )}
       </div>
       {assetsReady && <div className="pub-run-character" aria-hidden="true">
-        <img src={frames[frame]} alt="" draggable={false} />
+        <span
+          className="pub-run-sprite"
+          style={{
+            backgroundImage: `url("${sprite}")`,
+            backgroundPosition: `${(spriteColumn * 100) / 3}% ${(spriteRow * 100) / 3}%`,
+          }}
+        />
         <span className="pub-run-shadow" />
       </div>}
       <div className="pub-run-speed-lines" aria-hidden="true"><i /><i /><i /><i /><i /></div>

@@ -15,7 +15,7 @@
 .pub-run-atmosphere { position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(255,170,80,.05), transparent 48%, rgba(20,10,18,.2)); }
 .pub-run-road-lines { position: absolute; z-index: 2; right: -30%; bottom: 6%; left: -30%; height: 4px; opacity: .68; background: repeating-linear-gradient(90deg, transparent 0 70px, #ffe6a4 70px 145px); animation: pub-run-road 1s linear infinite; }
 .pub-run-character { position: absolute; z-index: 5; bottom: clamp(7%, 8vw, 13%); left: -34vw; width: clamp(210px, 34vw, 410px); aspect-ratio: 1; contain: layout paint; animation: pub-run-cross 8.1s linear .35s both; will-change: transform; }
-.pub-run-character img { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 5px rgba(0,0,0,.35)); transform: translateZ(0); }
+.pub-run-sprite { position: absolute; z-index: 2; inset: 0; display: block; width: 100%; height: 100%; background-repeat: no-repeat; background-size: 400% 400%; filter: drop-shadow(0 8px 5px rgba(0,0,0,.35)); transform: translateZ(0); }
 .pub-run-shadow { position: absolute; z-index: 1; right: 16%; bottom: 6%; left: 16%; height: 8%; border-radius: 50%; background: rgba(0,0,0,.38); filter: blur(7px); animation: pub-run-shadow-pulse .38s ease-in-out infinite alternate; }
 .pub-run-label { position: absolute; z-index: 8; top: max(20px, env(safe-area-inset-top)); left: 50%; display: grid; min-width: min(86vw, 380px); padding: 11px 18px; border: 3px solid #ffd34d; border-radius: 20px; color: #fff7d6; text-align: center; background: rgba(96,18,36,.92); box-shadow: 0 6px 0 #4a210d,0 12px 25px rgba(0,0,0,.3); transform: translateX(-50%); }
 .pub-run-label span { color: #ffd96a; font-size: 13px; font-weight: 950; text-transform: uppercase; letter-spacing: .12em; }
@@ -2871,27 +2871,19 @@ body,
   animation: correct-drink-lights 1s ease-in-out infinite alternate;
 }
 
-.correct-drink-character {
+.correct-drink-video {
   position: absolute;
   z-index: 1;
-  inset: 0;
-  animation: none;
-}
-
-.correct-drink-frame {
-  position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  filter: brightness(1.035) saturate(1.04);
-  transform: none;
-  transition: opacity .2s ease-in-out;
+  transition: opacity .12s linear;
   will-change: opacity;
   user-select: none;
 }
-.correct-drink-frame.is-current { opacity: 1; }
+.correct-drink-video.is-ready { opacity: 1; }
 
 .correct-drink-fallback {
   position: absolute;
@@ -2960,7 +2952,7 @@ body,
   .correct-drink-celebration,
   .correct-drink-stage,
   .correct-drink-lights,
-  .correct-drink-character,
+  .correct-drink-video,
   .correct-drink-sparkles i { animation: none !important; }
   .correct-drink-celebration,
   .correct-drink-stage { opacity: 1; transform: none; }
