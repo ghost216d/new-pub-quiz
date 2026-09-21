@@ -2850,6 +2850,10 @@ body,
   animation: correct-drink-backdrop .45s ease-out both;
 }
 
+.correct-drink-celebration.is-dismissed {
+  display: none;
+}
+
 .correct-drink-stage {
   position: relative;
   width: min(94vw, 460px);

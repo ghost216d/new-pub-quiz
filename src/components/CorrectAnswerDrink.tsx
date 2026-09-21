@@ -11,6 +11,20 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak, onComplete }) => {
   const [videoFinished, setVideoFinished] = useState(false);
   const animationSrc = `${import.meta.env.BASE_URL}pub-host-drink-2d.mp4`;
 
+  const finishVideo = (video: HTMLVideoElement) => {
+    if (videoFinished) return;
+    setVideoFinished(true);
+    // Android browsers can leave a decoded video frame in a hardware overlay
+    // after React removes the element. Stop decoding and clear the source,
+    // then wait for two paints before unmounting the celebration.
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => onComplete?.());
+    });
+  };
+
   useEffect(() => {
     const timers = [
       window.setTimeout(() => setPhase('sip'), 1350),
@@ -20,7 +34,7 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak, onComplete }) => {
   }, []);
 
   return (
-    <div className="correct-drink-celebration" role="status" aria-live="polite">
+    <div className={`correct-drink-celebration${videoFinished ? ' is-dismissed' : ''}`} role="status" aria-live="polite">
       <div className="correct-drink-stage">
         <div className="correct-drink-lights" aria-hidden="true" />
         <img
@@ -37,10 +51,8 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak, onComplete }) => {
           playsInline
           preload="auto"
           onLoadedData={() => setVideoReady(true)}
-          onEnded={() => {
-            setVideoFinished(true);
-            onComplete?.();
-          }}
+          onEnded={(event) => finishVideo(event.currentTarget)}
+          onError={(event) => finishVideo(event.currentTarget)}
           aria-hidden="true"
         />
         <div className="correct-drink-sparkles" aria-hidden="true">
