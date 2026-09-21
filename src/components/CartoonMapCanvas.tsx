@@ -127,6 +127,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const activeArtwork = activeMap.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time]
     || activeMap.mapArtwork
     || 'thames-game-map.png';
+  const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
 
   // Preload the active and newly unlocked map artwork. Some mobile browsers
   // otherwise leave the reused image element blank until another navigation
@@ -574,13 +575,17 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         id="cartoon-map-canvas-board"
         className={`game-map-board season-${londonSeason.id} time-${londonTheme.time}`}
         style={{
-          background: 'transparent',
+          backgroundColor: activeMap.themeColor || '#7c2d12',
+          backgroundImage: `url("${activeArtworkUrl}")`,
+          backgroundPosition: 'center top',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
         }}
       >
         <img
           key={`${activeMap.id}-${activeArtwork}`}
           className="game-map-artwork"
-          src={`${import.meta.env.BASE_URL}${activeArtwork}`}
+          src={activeArtworkUrl}
           alt=""
           aria-hidden="true"
           draggable={false}

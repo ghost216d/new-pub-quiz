@@ -4513,6 +4513,10 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
 }
 
 @media (max-width: 899px) {
+  .game-map-board {
+    background-size: 100% 100% !important;
+  }
+
   .game-map-artwork {
     object-fit: fill;
   }
