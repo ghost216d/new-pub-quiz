@@ -10,6 +10,7 @@ const CATEGORY_IDS: Array<[RegExp, number]> = [
   [/music|song|band/i, 12],
   [/television|tv/i, 14],
   [/science|nature/i, 17],
+  [/math|maths|mathematics|arithmetic|number/i, 19],
   [/computer|technology|tech/i, 18],
   [/history|historic/i, 23],
   [/politic|government/i, 24],
@@ -205,7 +206,10 @@ export const getOnlineTriviaQuestions = async ({
 
   const token = await getSessionToken();
   const categoryId = CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1];
-  const onlineDifficulty = difficulty === 'expert' ? 'hard' : difficulty;
+  const mathsTopic = /\b(math|maths|mathematics|arithmetic|numbers?)\b/i.test(category);
+  const onlineDifficulty = mathsTopic
+    ? (difficulty === 'easy' ? 'easy' : 'medium')
+    : (difficulty === 'expert' ? 'hard' : difficulty);
   const amount = Math.min(50, Math.max(count * 3, 12));
 
   const buildUrl = () => {

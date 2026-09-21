@@ -104,6 +104,9 @@ const ONLINE_QUESTION_TIMEOUT_MS = 4500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 
+const isMathsTopic = (topic: string): boolean =>
+  /\b(math|maths|mathematics|arithmetic|numbers?)\b/i.test(topic);
+
 type MissedQuestion = {
   question: Question;
   levelId: string;
@@ -182,9 +185,12 @@ const prepareAttemptQuestions = (
 // music rounds, while Solo uses standard trivia and dedicated picture puzzles.
 const getProceduralBackupQuestions = (): Question[] => Array.from({ length: 400 }, (_, index) => {
   const hard = index % 2 === 1;
-  const left = 12 + index;
-  const right = 3 + (index % 9);
-  const add = 7 + (index % 23);
+  // Keep emergency maths suitable for a social pub quiz. Cycling through
+  // small values provides plenty of unique prompts without escalating into
+  // three-digit multiplication as the fallback index increases.
+  const left = 3 + (index % 10);
+  const right = 2 + (Math.floor(index / 10) % 9);
+  const add = 2 + (Math.floor(index / 90) % 9);
   const answer = hard ? (left * right) + add : left * right;
   const prompt = hard
     ? `Mental maths: what is (${left} × ${right}) + ${add}?`
@@ -252,11 +258,20 @@ const interleaveDifficulty = (medium: Question[], hard: Question[]): Question[] 
 const loadMixedOnlineQuestions = async (category: string, count: number): Promise<Question[]> => {
   const mediumCount = Math.ceil(count / 2);
   const hardCount = Math.floor(count / 2);
+  // Maths is deliberately gentler than the other categories: "hard" maths
+  // from trivia services often means specialist formulas rather than fun
+  // mental arithmetic. Keep the displayed mix, scoring and progression the
+  // same while requesting easy/medium source material for maths topics.
+  const mediumSourceDifficulty: QuizDifficulty = isMathsTopic(category) ? 'easy' : 'medium';
+  const hardSourceDifficulty: QuizDifficulty = isMathsTopic(category) ? 'medium' : 'hard';
   const [medium, hard] = await Promise.all([
-    loadOnlineQuestionsWithTimeout({ category, count: mediumCount, difficulty: 'medium' }),
-    loadOnlineQuestionsWithTimeout({ category, count: hardCount, difficulty: 'hard' }),
+    loadOnlineQuestionsWithTimeout({ category, count: mediumCount, difficulty: mediumSourceDifficulty }),
+    loadOnlineQuestionsWithTimeout({ category, count: hardCount, difficulty: hardSourceDifficulty }),
   ]);
-  return interleaveDifficulty([...medium], [...hard]);
+  return interleaveDifficulty(
+    medium.map((question) => ({ ...question, difficulty: 'medium', points: 15, timeLimitSec: 35 })),
+    hard.map((question) => ({ ...question, difficulty: 'hard', points: 20, timeLimitSec: 40 })),
+  );
 };
 
 const buildUnseenFallbackQuestions = (
