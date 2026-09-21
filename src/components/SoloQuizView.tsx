@@ -19,7 +19,7 @@ import {
   Award,
 } from 'lucide-react';
 import { Question, QuizDifficulty, MapLevel, CartoonMap, SoloProgression } from '../types';
-import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
+import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_PHOTO_QUESTIONS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -27,7 +27,7 @@ import {
   saveSoloProgression,
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
-import { chooseUnseenFallbackQuestions, getOnlineTriviaQuestions } from '../utils/onlineTrivia';
+import { chooseUnseenFallbackQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../utils/onlineTrivia';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
 import { TavernShopModal } from './TavernShopModal';
@@ -122,6 +122,9 @@ const shuffleItems = <T,>(items: T[]): T[] => {
 const questionKey = (question: Question): string =>
   question.prompt.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
+const questionImageUrl = (imageUrl: string): string =>
+  /^https?:|^data:|^\//.test(imageUrl) ? imageUrl : `${import.meta.env.BASE_URL}${imageUrl}`;
+
 const readMissedQuestions = (): MissedQuestion[] => {
   try {
     const parsed = JSON.parse(localStorage.getItem(MISSED_QUESTIONS_KEY) || '[]');
@@ -177,12 +180,41 @@ const prepareAttemptQuestions = (
 
 // Solo mode never serves audio-dependent questions. Quiz Master keeps its
 // music rounds, while Solo uses standard trivia and dedicated picture puzzles.
+const getProceduralBackupQuestions = (): Question[] => Array.from({ length: 400 }, (_, index) => {
+  const hard = index % 2 === 1;
+  const left = 12 + index;
+  const right = 3 + (index % 9);
+  const add = 7 + (index % 23);
+  const answer = hard ? (left * right) + add : left * right;
+  const prompt = hard
+    ? `Mental maths: what is (${left} × ${right}) + ${add}?`
+    : `Mental maths: what is ${left} × ${right}?`;
+  return {
+    id: `procedural_${index}`,
+    roundNumber: 1,
+    category: 'Knowledge Workout',
+    prompt,
+    type: 'multiple_choice',
+    difficulty: hard ? 'hard' : 'medium',
+    options: [String(answer), String(answer + right), String(answer - right), String(answer + add + right)],
+    correctAnswer: String(answer),
+    acceptableAnswers: [String(answer)],
+    explanation: hard
+      ? `${left} × ${right} = ${left * right}; adding ${add} gives ${answer}.`
+      : `${left} multiplied by ${right} is ${answer}.`,
+    points: hard ? 20 : 15,
+    timeLimitSec: hard ? 40 : 35,
+  } satisfies Question;
+});
+
 const getSoloQuestionVault = (): Question[] => [
   ...DEFAULT_ROUNDS
     .filter((round) => round.type !== 'music')
     .flatMap((round) => round.questions)
     .filter((question) => !question.musicData),
   ...SOLO_PICTURE_QUESTIONS,
+  ...SOLO_PHOTO_QUESTIONS,
+  ...getProceduralBackupQuestions(),
 ];
 
 const loadOnlineQuestionsWithTimeout = (
@@ -204,13 +236,13 @@ const loadOnlineQuestionsWithTimeout = (
   );
 });
 
-const interleaveDifficulty = (easy: Question[], hard: Question[]): Question[] => {
+const interleaveDifficulty = (medium: Question[], hard: Question[]): Question[] => {
   const mixed: Question[] = [];
-  const total = easy.length + hard.length;
+  const total = medium.length + hard.length;
   for (let index = 0; index < total; index += 1) {
     const useHard = index % 2 === 1;
-    const question = useHard ? hard.shift() : easy.shift();
-    const fallback = useHard ? easy.shift() : hard.shift();
+    const question = useHard ? hard.shift() : medium.shift();
+    const fallback = useHard ? medium.shift() : hard.shift();
     const selected = question || fallback;
     if (selected) mixed.push(selected);
   }
@@ -218,39 +250,39 @@ const interleaveDifficulty = (easy: Question[], hard: Question[]): Question[] =>
 };
 
 const loadMixedOnlineQuestions = async (category: string, count: number): Promise<Question[]> => {
-  const easyCount = Math.ceil(count / 2);
+  const mediumCount = Math.ceil(count / 2);
   const hardCount = Math.floor(count / 2);
-  const [easy, hard] = await Promise.all([
-    loadOnlineQuestionsWithTimeout({ category, count: easyCount, difficulty: 'easy' }),
+  const [medium, hard] = await Promise.all([
+    loadOnlineQuestionsWithTimeout({ category, count: mediumCount, difficulty: 'medium' }),
     loadOnlineQuestionsWithTimeout({ category, count: hardCount, difficulty: 'hard' }),
   ]);
-  return interleaveDifficulty([...easy], [...hard]);
+  return interleaveDifficulty([...medium], [...hard]);
 };
 
 const buildUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
 ): Question[] => {
-  const easyCount = Math.ceil(count / 2);
+  const mediumCount = Math.ceil(count / 2);
   const hardCount = Math.floor(count / 2);
-  const labelledEasy = pool.filter((question) => question.difficulty !== 'hard');
+  const labelledMedium = pool.filter((question) => question.difficulty !== 'hard');
   const labelledHard = pool.filter((question) => question.difficulty === 'hard');
   let selected: Question[];
 
-  if (labelledEasy.length >= easyCount && labelledHard.length >= hardCount) {
-    const easy = chooseUnseenFallbackQuestions(labelledEasy, easyCount);
+  if (labelledMedium.length >= mediumCount && labelledHard.length >= hardCount) {
+    const medium = chooseUnseenFallbackQuestions(labelledMedium, mediumCount);
     const hard = chooseUnseenFallbackQuestions(labelledHard, hardCount);
-    selected = interleaveDifficulty([...easy], [...hard]);
+    selected = interleaveDifficulty([...medium], [...hard]);
   } else {
     selected = chooseUnseenFallbackQuestions(pool, count);
   }
 
   return selected.map((question, index) => {
-    const questionDifficulty: QuizDifficulty = index % 2 === 0 ? 'easy' : 'hard';
+    const questionDifficulty: QuizDifficulty = index % 2 === 0 ? 'medium' : 'hard';
     return {
       ...question,
-      points: questionDifficulty === 'hard' ? 20 : 10,
-      timeLimitSec: questionDifficulty === 'hard' ? 40 : 30,
+      points: questionDifficulty === 'hard' ? 20 : 15,
+      timeLimitSec: questionDifficulty === 'hard' ? 40 : 35,
       difficulty: questionDifficulty,
     };
   });
@@ -349,7 +381,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setActiveLevel(level);
     setActiveMap(map);
     setSelectedCategory(level.category);
-    setDifficulty('easy');
+    setDifficulty('medium');
     setCustomTopic('');
     setUseAI(true); // Enable the online topic field, with an unseen offline fallback
     setLaunchingLevel(level);
@@ -439,9 +471,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setActiveMap(null);
     const topic = customTopic.trim() || selectedCategory;
     const isPictureRound = !customTopic.trim() && selectedCategory === 'Emoji Picture Puzzles';
-    setDifficulty('easy');
+    const isPhotoRound = !customTopic.trim() && selectedCategory === 'Photo Round: World Landmarks';
+    setDifficulty('medium');
 
-    if (navigator.onLine && !isPictureRound) {
+    if (navigator.onLine && !isPictureRound && !isPhotoRound) {
       try {
         const onlineQuestions = await loadMixedOnlineQuestions(topic, 10);
         setQuestions(onlineQuestions);
@@ -458,7 +491,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     // Curated local questions fallback
     const allQuestions = getSoloQuestionVault();
 
-    let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : allQuestions.filter(
+    let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : isPhotoRound ? SOLO_PHOTO_QUESTIONS : allQuestions.filter(
       (q) =>
         q.category.toLowerCase().includes(selectedCategory.toLowerCase().slice(0, 4)) ||
         selectedCategory.toLowerCase().includes(q.category.toLowerCase().slice(0, 4))
@@ -512,6 +545,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       setScore((s) => s + pts);
       setCorrectCount((count) => count + 1);
       forgetMasteredQuestion(currentQ);
+      markQuestionMastered(currentQ.prompt);
       setStreak((st) => st + 1);
 
       // Award coins for correct answer!
@@ -1138,7 +1172,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
 
         {currentQ?.imageUrl && !currentQ.pictureClue && (
           <img
-            src={currentQ.imageUrl}
+            src={questionImageUrl(currentQ.imageUrl)}
             alt="Picture clue for this question"
             className="max-h-64 w-full rounded-2xl border-4 border-amber-500 object-cover shadow-md"
           />

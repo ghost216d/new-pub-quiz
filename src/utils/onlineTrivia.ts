@@ -2,6 +2,7 @@ import { Question, QuizDifficulty } from '../types';
 
 const TOKEN_KEY = 'pubquiz_opentdb_token_v1';
 const SEEN_KEY = 'pubquiz_seen_questions_v1';
+const MASTERED_KEY = 'pubquiz_mastered_questions_v1';
 const MAX_SEEN = 10000;
 
 const CATEGORY_IDS: Array<[RegExp, number]> = [
@@ -57,7 +58,7 @@ const SIMILARITY_STOP_WORDS = new Set([
 const meaningfulWords = (value: string): Set<string> => new Set(
   normalizePrompt(value)
     .split(' ')
-    .filter((word) => word.length > 2 && !SIMILARITY_STOP_WORDS.has(word)),
+    .filter((word) => (/^\d+$/.test(word) || word.length > 2) && !SIMILARITY_STOP_WORDS.has(word)),
 );
 
 const isTooSimilar = (candidate: string, previous: string): boolean => {
@@ -86,6 +87,23 @@ const readSeen = (): string[] => {
   } catch {
     return [];
   }
+};
+
+const readMastered = (): string[] => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(MASTERED_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
+};
+
+export const markQuestionMastered = (prompt: string): void => {
+  const normalized = normalizePrompt(prompt);
+  if (!normalized) return;
+  const mastered = readMastered();
+  if (hasBeenUsed(normalized, mastered)) return;
+  localStorage.setItem(MASTERED_KEY, JSON.stringify([...mastered, normalized].slice(-MAX_SEEN)));
 };
 
 const saveSeen = (prompts: string[]) => {
@@ -117,7 +135,7 @@ const getSecureAiQuestions = async ({
   const endpoint = getSecureQuestionEndpoint();
   if (!endpoint) throw new Error('Secure question service is not configured.');
 
-  const seen = readSeen();
+  const seen = [...readSeen(), ...readMastered()];
   const response = await fetch(`${endpoint}/questions`, {
     method: 'POST',
     cache: 'no-store',
@@ -201,7 +219,7 @@ export const getOnlineTriviaQuestions = async ({
     return `https://opentdb.com/api.php?${params.toString()}`;
   };
 
-  const seen = readSeen();
+  const seen = [...readSeen(), ...readMastered()];
   const collected: Array<OpenTriviaQuestion & { decodedPrompt: string }> = [];
 
   // Fetch more than one batch when necessary. We never recycle an already-seen
@@ -265,8 +283,10 @@ export const chooseUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
 ): Question[] => {
+  const mastered = readMastered();
   const seen = readSeen();
-  const candidates = pool.filter((question) => !hasBeenUsed(question.prompt, seen));
+  const allowedPool = pool.filter((question) => !hasBeenUsed(question.prompt, mastered));
+  const candidates = allowedPool.filter((question) => !hasBeenUsed(question.prompt, seen));
 
   let playable = candidates;
   if (playable.length < count) {
@@ -278,11 +298,11 @@ export const chooseUnseenFallbackQuestions = (
       Math.max(0, pool.length - count),
     );
     const recent = seen.slice(-recentWindowSize);
-    playable = pool.filter((question) => !hasBeenUsed(question.prompt, recent));
+    playable = allowedPool.filter((question) => !hasBeenUsed(question.prompt, recent));
   }
 
   if (playable.length < count) {
-    playable = pool;
+    playable = allowedPool;
   }
 
   if (playable.length === 0) {
