@@ -12,7 +12,11 @@ const RUN_DURATION_MS = 8600;
 export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComplete }) => {
   const [framePosition, setFramePosition] = useState(0);
   const [phase, setPhase] = useState<'leaving' | 'running' | 'arriving'>('leaving');
+  const [assetsReady, setAssetsReady] = useState(false);
+  const [loadedAssetCount, setLoadedAssetCount] = useState(0);
   const startTimeRef = useRef<number | null>(null);
+  const loadingCover = `${import.meta.env.BASE_URL}london-route-loading-cover.webp`;
+  const background = `${import.meta.env.BASE_URL}london-pub-run-background.webp`;
   const frames = useMemo(
     () => Array.from(
       { length: FRAME_COUNT },
@@ -22,7 +26,29 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
   );
 
   useEffect(() => {
-    frames.forEach((src) => { const image = new Image(); image.src = src; });
+    let cancelled = false;
+    const assets = [background, ...frames];
+    setLoadedAssetCount(0);
+    Promise.all(
+      assets.map((src) => new Promise<void>((resolve) => {
+        const image = new Image();
+        const finish = () => {
+          if (!cancelled) setLoadedAssetCount((count) => Math.min(count + 1, assets.length));
+          resolve();
+        };
+        image.onload = finish;
+        image.onerror = finish;
+        image.src = src;
+      })),
+    ).then(() => {
+      if (!cancelled) setAssetsReady(true);
+    });
+    return () => { cancelled = true; };
+  }, [background, frames]);
+
+  useEffect(() => {
+    if (!assetsReady) return;
+    startTimeRef.current = null;
     audioSynth.playFunnyEntranceSfx();
     let requestId = 0;
     const animate = (now: number) => {
@@ -36,26 +62,36 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
     };
     requestId = window.requestAnimationFrame(animate);
     return () => window.cancelAnimationFrame(requestId);
-  }, [frames, onComplete]);
+  }, [assetsReady, onComplete]);
 
   const currentFrame = Math.floor(framePosition) % FRAME_COUNT;
   const nextFrame = (currentFrame + 1) % FRAME_COUNT;
   const blend = framePosition - Math.floor(framePosition);
+  const loadProgress = Math.round((loadedAssetCount / (FRAME_COUNT + 1)) * 100);
 
   return (
-    <div className={`pub-run-cinematic is-${phase}`} role="status" aria-live="polite">
-      <div className="pub-run-city" />
+    <div className={`pub-run-cinematic is-${phase}${assetsReady ? ' is-ready' : ' is-loading'}`} role="status" aria-live="polite">
+      <div className="pub-run-loading-cover" style={{ backgroundImage: `url("${loadingCover}")` }} />
+      <div className="pub-run-city" style={{ backgroundImage: `url("${background}")` }} />
       <div className="pub-run-atmosphere" />
       <div className="pub-run-road-lines" />
       <div className="pub-run-label">
-        <span>{phase === 'arriving' ? 'Made it!' : 'Running to the next pub'}</span>
+        <span>{!assetsReady ? 'Getting the London route ready…' : phase === 'arriving' ? 'Made it!' : 'Running to the next pub'}</span>
         <strong>{destinationName}</strong>
+        {!assetsReady && (
+          <div className="pub-run-loader" aria-label={`Loading ${loadProgress}%`}>
+            <div className="pub-run-loader-track">
+              <span style={{ width: `${loadProgress}%` }} />
+            </div>
+            <small>{loadProgress}%</small>
+          </div>
+        )}
       </div>
-      <div className="pub-run-character" aria-hidden="true">
+      {assetsReady && <div className="pub-run-character" aria-hidden="true">
         <img src={frames[currentFrame]} alt="" style={{ opacity: 1 - blend }} draggable={false} />
         <img src={frames[nextFrame]} alt="" style={{ opacity: blend }} draggable={false} />
         <span className="pub-run-shadow" />
-      </div>
+      </div>}
       <div className="pub-run-speed-lines" aria-hidden="true"><i /><i /><i /><i /><i /></div>
       <div className="pub-run-arrival-burst" aria-hidden="true">🍻</div>
     </div>
