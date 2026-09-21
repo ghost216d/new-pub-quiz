@@ -33,7 +33,6 @@ import {
 import { audioSynth } from '../utils/audioSynth';
 import { getLondonTheme } from '../utils/londonTheme';
 import { AuthModal } from './AuthModal';
-import { RunningToPubAnimation } from './RunningToPubAnimation';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -95,11 +94,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const [arrivalLevelId, setArrivalLevelId] = useState<string | null>(null);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isRealmPanelExpanded, setIsRealmPanelExpanded] = useState(false);
-  const [runningJourney, setRunningJourney] = useState<{
-    mapId: string;
-    levelId: string;
-    destinationName: string;
-  } | null>(null);
   const lastPointerActivationRef = useRef(0);
 
   const isMapUnlocked = useCallback(
@@ -251,15 +245,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     const targetLevel = targetMap?.levels.find((level) => level.id === autoAdvanceTarget.levelId);
     if (!targetMap || !targetLevel) return;
 
-    if (targetLevel.levelNumber === 3) {
-      setRunningJourney({
-        mapId: targetMap.id,
-        levelId: targetLevel.id,
-        destinationName: targetLevel.pubName || targetLevel.name,
-      });
-      return;
-    }
-
     setActiveMapId(targetMap.id);
     setSelectedLevel(targetLevel);
     setArrivalLevelId(targetLevel.id);
@@ -271,20 +256,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     return () => window.clearTimeout(celebrationTimer);
   }, [autoAdvanceTarget]);
-
-  const finishRunningJourney = useCallback(() => {
-    if (!runningJourney) return;
-    const targetMap = allMaps.find((map) => map.id === runningJourney.mapId);
-    const targetLevel = targetMap?.levels.find((level) => level.id === runningJourney.levelId);
-    if (targetMap && targetLevel) {
-      setActiveMapId(targetMap.id);
-      setSelectedLevel(targetLevel);
-      setArrivalLevelId(targetLevel.id);
-      audioSynth.playChampionFanfare();
-      window.setTimeout(() => setArrivalLevelId(null), 2400);
-    }
-    setRunningJourney(null);
-  }, [allMaps, runningJourney]);
 
   const changeMap = (direction: -1 | 1) => {
     const nextIndex = activeMapIndex + direction;
@@ -379,12 +350,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       id="cartoon-map-main-view"
       className="game-map-shell"
     >
-      {runningJourney && (
-        <RunningToPubAnimation
-          destinationName={runningJourney.destinationName}
-          onComplete={finishRunningJourney}
-        />
-      )}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

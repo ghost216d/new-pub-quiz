@@ -32,6 +32,7 @@ import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from
 import { CartoonMapCanvas } from './CartoonMapCanvas';
 import { TavernShopModal } from './TavernShopModal';
 import { CorrectAnswerDrink } from './CorrectAnswerDrink';
+import { RunningToPubAnimation } from './RunningToPubAnimation';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -257,7 +258,7 @@ const buildUnseenFallbackQuestions = (
 
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
   // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = online custom topic
-  const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup'>('map');
+  const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup' | 'journey'>('map');
 
   // Progression & Economy state (saved in localStorage)
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
@@ -290,6 +291,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [isOutOfLivesModalOpen, setIsOutOfLivesModalOpen] = useState(false);
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
+  const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
   const [launchingLevel, setLaunchingLevel] = useState<MapLevel | null>(null);
   const [drinkCelebration, setDrinkCelebration] = useState<{ id: number; streak: number } | null>(null);
 
@@ -653,6 +655,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           : { mapId: activeMap.id, levelId: activeLevel.id };
 
       setAutoAdvanceTarget(passedStage ? nextTarget : null);
+      const targetMap = allKnownMaps.find((map) => map.id === nextTarget.mapId);
+      const targetLevel = targetMap?.levels.find((level) => level.id === nextTarget.levelId);
+      const shouldShowJourney = passedStage && targetLevel?.levelNumber === 3;
 
       if (passedStage) {
         // Show the victory moment, then travel to the newly unlocked stage.
@@ -662,7 +667,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
           setIsAnswerRevealed(false);
           setActiveLevel(null);
           setActiveMap(null);
-          setViewMode('map');
+          if (shouldShowJourney && targetLevel) {
+            setRouteJourney({ destinationName: targetLevel.pubName || targetLevel.name });
+            setViewMode('journey');
+          } else {
+            setViewMode('map');
+          }
           audioSynth.playChampionFanfare();
         }, 7000);
       }
@@ -695,6 +705,18 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   // ==========================================
   // VIEW 1: CARTOON QUEST MAP
   // ==========================================
+  if (viewMode === 'journey' && routeJourney) {
+    return (
+      <RunningToPubAnimation
+        destinationName={routeJourney.destinationName}
+        onComplete={() => {
+          setRouteJourney(null);
+          setViewMode('map');
+        }}
+      />
+    );
+  }
+
   if (viewMode === 'map') {
     return (
       <>
