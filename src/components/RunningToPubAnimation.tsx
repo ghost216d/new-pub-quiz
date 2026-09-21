@@ -12,20 +12,25 @@ const MINIMUM_COVER_MS = 2400;
 export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComplete }) => {
   const [phase, setPhase] = useState<'leaving' | 'running' | 'arriving'>('leaving');
   const [assetsReady, setAssetsReady] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
   const [loadedAssetCount, setLoadedAssetCount] = useState(0);
   const startTimeRef = useRef<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const runnerImageRef = useRef<HTMLImageElement | null>(null);
   const loadingCover = `${import.meta.env.BASE_URL}london-route-loading-cover.webp`;
   const background = `${import.meta.env.BASE_URL}london-pub-run-background.webp`;
-  const runner = useMemo(() => `${import.meta.env.BASE_URL}london-run-animated-2d.webp`, []);
+  const runnerSprite = useMemo(() => `${import.meta.env.BASE_URL}london-run-canvas-sprite.webp`, []);
+  const runnerFallback = `${import.meta.env.BASE_URL}london-run-frames/run-frame-00.webp`;
 
   useEffect(() => {
     let cancelled = false;
-    const assets = [background, runner];
+    const assets = [background, runnerSprite, runnerFallback];
     setLoadedAssetCount(0);
     const loadAssets = Promise.all(
       assets.map((src) => new Promise<void>((resolve) => {
         const image = new Image();
         const finish = () => {
+          if (src === runnerSprite) runnerImageRef.current = image;
           if (!cancelled) setLoadedAssetCount((count) => Math.min(count + 1, assets.length));
           resolve();
         };
@@ -41,16 +46,30 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
       if (!cancelled) setAssetsReady(true);
     });
     return () => { cancelled = true; };
-  }, [background, runner]);
+  }, [background, runnerSprite, runnerFallback]);
 
   useEffect(() => {
     if (!assetsReady) return;
     startTimeRef.current = null;
     audioSynth.playFunnyEntranceSfx();
     let requestId = 0;
+    let revealedCanvas = false;
     const animate = (now: number) => {
       if (startTimeRef.current === null) startTimeRef.current = now;
       const elapsed = now - startTimeRef.current;
+      const runnerImage = runnerImageRef.current;
+      const context = canvasRef.current?.getContext('2d');
+      if (runnerImage && context) {
+        const frameIndex = Math.floor(elapsed / 31.25) % 32;
+        const sourceX = (frameIndex % 8) * 314;
+        const sourceY = Math.floor(frameIndex / 8) * 314;
+        context.clearRect(0, 0, 628, 628);
+        context.drawImage(runnerImage, sourceX, sourceY, 314, 314, 0, 0, 628, 628);
+        if (!revealedCanvas) {
+          revealedCanvas = true;
+          setCanvasReady(true);
+        }
+      }
       if (elapsed >= 650 && elapsed < 7200) setPhase('running');
       if (elapsed >= 7200) setPhase('arriving');
       if (elapsed >= RUN_DURATION_MS) { onComplete(); return; }
@@ -60,7 +79,7 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
     return () => window.cancelAnimationFrame(requestId);
   }, [assetsReady, onComplete]);
 
-  const loadProgress = Math.round((loadedAssetCount / 2) * 100);
+  const loadProgress = Math.round((loadedAssetCount / 3) * 100);
 
   return (
     <div className={`pub-run-cinematic is-${phase}${assetsReady ? ' is-ready' : ' is-loading'}`} role="status" aria-live="polite">
@@ -81,7 +100,8 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
         )}
       </div>
       {assetsReady && <div className="pub-run-character" aria-hidden="true">
-        <img className="pub-run-runner" src={runner} alt="" draggable={false} />
+        <img className={`pub-run-runner-fallback${canvasReady ? ' is-hidden' : ''}`} src={runnerFallback} alt="" draggable={false} />
+        <canvas ref={canvasRef} className={`pub-run-runner${canvasReady ? ' is-ready' : ''}`} width={628} height={628} />
         <span className="pub-run-shadow" />
       </div>}
       <div className="pub-run-speed-lines" aria-hidden="true"><i /><i /><i /><i /><i /></div>

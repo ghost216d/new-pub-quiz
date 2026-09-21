@@ -7,6 +7,7 @@ interface Props {
 export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
   const [phase, setPhase] = useState<'cheers' | 'sip' | 'lovely'>('cheers');
   const [videoReady, setVideoReady] = useState(false);
+  const [videoFinished, setVideoFinished] = useState(false);
   const animationSrc = `${import.meta.env.BASE_URL}pub-host-drink-2d.mp4`;
 
   useEffect(() => {
@@ -28,13 +29,14 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
           aria-hidden="true"
         />
         <video
-          className={`correct-drink-video${videoReady ? ' is-ready' : ''}`}
+          className={`correct-drink-video${videoReady && !videoFinished ? ' is-ready' : ''}`}
           src={animationSrc}
           autoPlay
           muted
           playsInline
           preload="auto"
           onLoadedData={() => setVideoReady(true)}
+          onEnded={() => setVideoFinished(true)}
           aria-hidden="true"
         />
         <div className="correct-drink-sparkles" aria-hidden="true">
