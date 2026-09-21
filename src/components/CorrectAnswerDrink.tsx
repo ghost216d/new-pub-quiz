@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 interface Props {
   streak: number;
+  onComplete?: () => void;
 }
 
-export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
+export const CorrectAnswerDrink: React.FC<Props> = ({ streak, onComplete }) => {
   const [phase, setPhase] = useState<'cheers' | 'sip' | 'lovely'>('cheers');
   const [videoReady, setVideoReady] = useState(false);
   const [videoFinished, setVideoFinished] = useState(false);
@@ -36,7 +37,10 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
           playsInline
           preload="auto"
           onLoadedData={() => setVideoReady(true)}
-          onEnded={() => setVideoFinished(true)}
+          onEnded={() => {
+            setVideoFinished(true);
+            onComplete?.();
+          }}
           aria-hidden="true"
         />
         <div className="correct-drink-sparkles" aria-hidden="true">

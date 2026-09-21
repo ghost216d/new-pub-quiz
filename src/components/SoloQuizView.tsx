@@ -711,6 +711,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
       if (passedStage) {
         // Show the victory moment, then travel to the newly unlocked stage.
         window.setTimeout(() => {
+          setDrinkCelebration(null);
           setGameOver(false);
           setSelectedAnswer(null);
           setIsAnswerRevealed(false);
@@ -972,7 +973,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     return (
       <div className="solo-screen solo-result-screen max-w-md mx-auto bg-[#fffdf8] rounded-3xl p-4 sm:p-8 border-4 border-amber-800 shadow-[0_8px_0_#082f49] text-center text-stone-900 space-y-5 animate-in zoom-in-95 font-comic">
         {drinkCelebration && (
-          <CorrectAnswerDrink key={drinkCelebration.id} streak={drinkCelebration.streak} />
+          <CorrectAnswerDrink
+            key={drinkCelebration.id}
+            streak={drinkCelebration.streak}
+            onComplete={() => setDrinkCelebration(null)}
+          />
         )}
         <CartoonBunting className="w-full h-8 -mt-2 opacity-95" />
 
