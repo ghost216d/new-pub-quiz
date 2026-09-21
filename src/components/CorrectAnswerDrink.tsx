@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 interface Props {
   streak: number;
@@ -6,39 +6,65 @@ interface Props {
 
 export const CorrectAnswerDrink: React.FC<Props> = ({ streak }) => {
   const [phase, setPhase] = useState<'cheers' | 'sip' | 'lovely'>('cheers');
-  const [videoReady, setVideoReady] = useState(false);
-  const videoUrl = `${import.meta.env.BASE_URL}pub-host-drink-v6.mp4`;
+  const [frame, setFrame] = useState(0);
+  const [framesReady, setFramesReady] = useState(false);
+  const frames = useMemo(
+    () => Array.from(
+      { length: 16 },
+      (_, index) => `${import.meta.env.BASE_URL}drink-frames/frame-${String(index).padStart(2, '0')}.webp`,
+    ),
+    [],
+  );
 
   useEffect(() => {
-    if (!videoReady) return;
+    let cancelled = false;
+    Promise.all(
+      frames.map((src) => new Promise<void>((resolve) => {
+        const image = new Image();
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
+        image.src = src;
+      })),
+    ).then(() => {
+      if (!cancelled) setFramesReady(true);
+    });
+    return () => { cancelled = true; };
+  }, [frames]);
+
+  useEffect(() => {
+    if (!framesReady) return;
+    setFrame(0);
+    const frameTimers = frames.slice(1).map((_, index) =>
+      window.setTimeout(() => setFrame(index + 1), 500 + (index * 300)),
+    );
     const timers = [
-      window.setTimeout(() => setPhase('sip'), 1200),
-      window.setTimeout(() => setPhase('lovely'), 4400),
+      window.setTimeout(() => setPhase('sip'), 1350),
+      window.setTimeout(() => setPhase('lovely'), 4300),
     ];
-    return () => timers.forEach(window.clearTimeout);
-  }, [videoReady]);
+    return () => [...frameTimers, ...timers].forEach(window.clearTimeout);
+  }, [frames, framesReady]);
 
   return (
     <div className="correct-drink-celebration" role="status" aria-live="polite">
       <div className="correct-drink-stage">
         <div className="correct-drink-lights" aria-hidden="true" />
         <img
-          className={`correct-drink-fallback${videoReady ? ' is-hidden' : ''}`}
+          className={`correct-drink-fallback${framesReady ? ' is-hidden' : ''}`}
           src={`${import.meta.env.BASE_URL}pub-quiz-cover-host.webp`}
           alt=""
           aria-hidden="true"
         />
         <div className="correct-drink-character" aria-hidden="true">
-          <video
-            className={`correct-drink-animation${videoReady ? ' is-ready' : ''}`}
-            src={videoUrl}
-            autoPlay
-            muted
-            playsInline
-            preload="auto"
-            onLoadedData={() => setVideoReady(true)}
-            onCanPlay={() => setVideoReady(true)}
-          />
+          {frames.map((src, index) => (
+            <img
+              key={src}
+              className={`correct-drink-frame${framesReady && index === frame ? ' is-current' : ''}`}
+              src={src}
+              alt=""
+              decoding="async"
+              draggable={false}
+            />
+          ))}
         </div>
         <div className="correct-drink-sparkles" aria-hidden="true">
           <i>✦</i><i>✧</i><i>✦</i><i>✧</i>
