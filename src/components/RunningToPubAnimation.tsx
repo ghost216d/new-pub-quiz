@@ -8,9 +8,11 @@ interface Props {
 
 const FRAME_COUNT = 16;
 const RUN_DURATION_MS = 8600;
+const MINIMUM_COVER_MS = 2400;
+const FRAME_INTERVAL_MS = 74;
 
 export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComplete }) => {
-  const [framePosition, setFramePosition] = useState(0);
+  const [frame, setFrame] = useState(0);
   const [phase, setPhase] = useState<'leaving' | 'running' | 'arriving'>('leaving');
   const [assetsReady, setAssetsReady] = useState(false);
   const [loadedAssetCount, setLoadedAssetCount] = useState(0);
@@ -29,7 +31,7 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
     let cancelled = false;
     const assets = [background, ...frames];
     setLoadedAssetCount(0);
-    Promise.all(
+    const loadAssets = Promise.all(
       assets.map((src) => new Promise<void>((resolve) => {
         const image = new Image();
         const finish = () => {
@@ -40,7 +42,11 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
         image.onerror = finish;
         image.src = src;
       })),
-    ).then(() => {
+    );
+    const minimumCover = new Promise<void>((resolve) => {
+      window.setTimeout(resolve, MINIMUM_COVER_MS);
+    });
+    Promise.all([loadAssets, minimumCover]).then(() => {
       if (!cancelled) setAssetsReady(true);
     });
     return () => { cancelled = true; };
@@ -54,7 +60,8 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
     const animate = (now: number) => {
       if (startTimeRef.current === null) startTimeRef.current = now;
       const elapsed = now - startTimeRef.current;
-      setFramePosition((elapsed / 92) % FRAME_COUNT);
+      const nextFrame = Math.floor(elapsed / FRAME_INTERVAL_MS) % FRAME_COUNT;
+      setFrame((currentFrame) => currentFrame === nextFrame ? currentFrame : nextFrame);
       if (elapsed >= 650 && elapsed < 7200) setPhase('running');
       if (elapsed >= 7200) setPhase('arriving');
       if (elapsed >= RUN_DURATION_MS) { onComplete(); return; }
@@ -64,9 +71,6 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
     return () => window.cancelAnimationFrame(requestId);
   }, [assetsReady, onComplete]);
 
-  const currentFrame = Math.floor(framePosition) % FRAME_COUNT;
-  const nextFrame = (currentFrame + 1) % FRAME_COUNT;
-  const blend = framePosition - Math.floor(framePosition);
   const loadProgress = Math.round((loadedAssetCount / (FRAME_COUNT + 1)) * 100);
 
   return (
@@ -88,8 +92,7 @@ export const RunningToPubAnimation: React.FC<Props> = ({ destinationName, onComp
         )}
       </div>
       {assetsReady && <div className="pub-run-character" aria-hidden="true">
-        <img src={frames[currentFrame]} alt="" style={{ opacity: 1 - blend }} draggable={false} />
-        <img src={frames[nextFrame]} alt="" style={{ opacity: blend }} draggable={false} />
+        <img src={frames[frame]} alt="" draggable={false} />
         <span className="pub-run-shadow" />
       </div>}
       <div className="pub-run-speed-lines" aria-hidden="true"><i /><i /><i /><i /><i /></div>
