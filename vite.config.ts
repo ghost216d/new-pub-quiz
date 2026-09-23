@@ -22,6 +22,10 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
+        // The optional WebLLM runtime is loaded only when the Quiz Master
+        // selects device AI. Do not make every PWA installation cache its
+        // multi-megabyte runtime up front.
+        globIgnores: ['**/device-ai-*.js'],
       },
 
       includeAssets: [
@@ -72,6 +76,16 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
+    },
+  },
+
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'device-ai': ['@mlc-ai/web-llm'],
+        },
+      },
     },
   },
 

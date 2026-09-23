@@ -51,6 +51,7 @@ import { RoundTransitionScreen } from './RoundTransitionScreen';
 import { KnockoutWinnerScreen } from './KnockoutWinnerScreen';
 import { TEAM_AVATARS, PUB_LEGEND_TEAM_NAMES } from '../data/teamPresets';
 import { RoomJoinQR } from './RoomJoinQR';
+import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
 
 interface Props {
   roomState: RoomState;
@@ -65,6 +66,9 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   const [aiCount, setAiCount] = useState(5);
   const [aiDifficulty, setAiDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [showAISettings, setShowAISettings] = useState(false);
+  const [preferDeviceAI, setPreferDeviceAI] = useState(true);
+  const [deviceAIProgress, setDeviceAIProgress] = useState(0);
+  const [aiStatus, setAIStatus] = useState('');
   const [showScoreboardModal, setShowScoreboardModal] = useState(false);
   const [showTeamManagerModal, setShowTeamManagerModal] = useState(false);
   const [showKnockoutModal, setShowKnockoutModal] = useState(false);
@@ -166,9 +170,29 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   // Call Gemini AI questions generator
   const handleGenerateAIQuestions = async () => {
     setIsGeneratingAI(true);
+    setAIStatus('');
     const categoryToUse = customAICategory.trim() || selectedAICategory;
 
     try {
+      if (preferDeviceAI) {
+        const questions = await generateOnDeviceQuizQuestions({
+          category: categoryToUse,
+          count: aiCount,
+          difficulty: aiDifficulty,
+          roundType: currentRound?.type || 'trivia',
+          roundNumber: currentRound?.roundNumber || 1,
+          onProgress: (progress, message) => {
+            setDeviceAIProgress(progress);
+            setAIStatus(message);
+          },
+        });
+        const newRounds = [...roomState.rounds];
+        newRounds[roomState.currentRoundIndex].questions.push(...questions);
+        onHostAction({ actionType: 'load_questions', rounds: newRounds });
+        setAIStatus('Questions created privately on this phone.');
+        setShowAISettings(false);
+        return;
+      }
       const apiBase = String(import.meta.env.VITE_MULTIPLAYER_API_URL || '').trim().replace(/\/$/, '');
       const res = await fetch(`${apiBase}/api/ai/generate-questions`, {
         method: 'POST',
@@ -190,6 +214,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
       }
     } catch (err) {
       console.error('Failed to generate AI questions:', err);
+      setAIStatus(err instanceof Error ? err.message : 'Question generation failed.');
     } finally {
       setIsGeneratingAI(false);
     }
@@ -536,13 +561,42 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
             </div>
           </div>
 
+          <div className="rounded-2xl border-2 border-purple-300 bg-purple-50 p-3">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={preferDeviceAI}
+                onChange={(event) => setPreferDeviceAI(event.target.checked)}
+                className="mt-1 h-5 w-5 accent-purple-600"
+              />
+              <span>
+                <strong className="block text-sm text-purple-950">Use this phone's AI</strong>
+                <span className="text-xs font-bold text-purple-800">
+                  No API charge. The first use downloads and caches the model on this device.
+                </span>
+              </span>
+            </label>
+            {preferDeviceAI && !supportsOnDeviceQuizAI() && (
+              <p className="mt-2 text-xs font-black text-red-700">This browser has no WebGPU. Turn this option off to use the online fallback.</p>
+            )}
+            {isGeneratingAI && preferDeviceAI && (
+              <div className="mt-3" aria-live="polite">
+                <div className="h-3 overflow-hidden rounded-full bg-purple-200">
+                  <div className="h-full bg-purple-600 transition-all" style={{ width: `${deviceAIProgress}%` }} />
+                </div>
+                <p className="mt-1 text-xs font-bold text-purple-900">{deviceAIProgress}% · {aiStatus || 'Starting device AI…'}</p>
+              </div>
+            )}
+            {!isGeneratingAI && aiStatus && <p className="mt-2 text-xs font-bold text-stone-700">{aiStatus}</p>}
+          </div>
+
           <button
             id="host-run-ai-generate-btn"
             disabled={isGeneratingAI}
             onClick={handleGenerateAIQuestions}
             className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-sm shadow-[0_4px_0_#3b0764] hover:brightness-110 active:translate-y-0.5 active:shadow-none disabled:opacity-60 transition cursor-pointer"
           >
-            {isGeneratingAI ? 'Brewing Fresh Questions with A.I...' : '✨ Generate & Add Questions to Current Round'}
+            {isGeneratingAI ? 'Brewing Fresh Questions with A.I...' : preferDeviceAI ? '📱 Generate on this phone' : '✨ Generate online'}
           </button>
         </div>
       )}
