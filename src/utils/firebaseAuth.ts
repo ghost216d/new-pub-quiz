@@ -21,11 +21,11 @@ const firebaseConfig = {
 
 export const isFirebaseAuthConfigured = Object.values(firebaseConfig).every(Boolean);
 
-const app = isFirebaseAuthConfigured
+export const firebaseApp = isFirebaseAuthConfigured
   ? (getApps().length ? getApp() : initializeApp(firebaseConfig))
   : null;
 
-export const firebaseAuth = app ? getAuth(app) : null;
+export const firebaseAuth = firebaseApp ? getAuth(firebaseApp) : null;
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });

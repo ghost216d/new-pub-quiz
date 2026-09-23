@@ -14,6 +14,18 @@ import { BGMController } from './components/BGMController';
 import { getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
 import { SoloProgression } from './types';
 import { getLondonTheme } from './utils/londonTheme';
+import {
+  clearFirebaseRoomActivity,
+  createFirebaseRoom,
+  findFirebaseRoom,
+  isFirebaseMultiplayerConfigured,
+  joinFirebaseTeam,
+  leaveFirebaseTeam,
+  publishFirebaseRoom,
+  submitFirebaseAnswer,
+  subscribeFirebaseHostActivity,
+  subscribeFirebaseRoom,
+} from './utils/firebaseMultiplayer';
 
 type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
 
@@ -363,6 +375,9 @@ export default function App() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
   const shouldReconnectRef = useRef(false);
+  const firebaseRoomUnsubscribeRef = useRef<null | (() => void)>(null);
+  const firebaseHostUnsubscribeRef = useRef<null | (() => void)>(null);
+  const usingFirebaseRef = useRef(false);
 
   useEffect(() => {
     const startedAt = Date.now();
@@ -403,6 +418,17 @@ export default function App() {
 
     return () => window.clearInterval(timerId);
   }, [roomState?.isTimerRunning, roomState?.code]);
+
+  useEffect(() => {
+    if (role !== 'host' || !usingFirebaseRef.current || !roomState) return;
+    const publishTimer = window.setTimeout(() => {
+      publishFirebaseRoom(roomState).catch((error) => {
+        console.error('Unable to publish Firebase room state:', error);
+        setConnectionStatus('reconnecting');
+      });
+    }, 120);
+    return () => window.clearTimeout(publishTimer);
+  }, [role, roomState]);
 
   // Check URL parameters for direct room joining or TV mode
   useEffect(() => {
@@ -551,6 +577,85 @@ export default function App() {
     setIsLoading(false);
   };
 
+  const connectFirebaseRoom = async (
+    targetCode: string,
+    targetRole: 'host' | 'player' | 'tv',
+    teamData?: { teamId: string; name: string; avatar: string },
+  ) => {
+    firebaseRoomUnsubscribeRef.current?.();
+    firebaseHostUnsubscribeRef.current?.();
+    usingFirebaseRef.current = true;
+    setConnectionStatus('connecting');
+    try {
+      if (targetRole === 'host') {
+        firebaseHostUnsubscribeRef.current = await subscribeFirebaseHostActivity(
+          targetCode,
+          (joinedTeams) => setRoomState((current) => {
+            if (!current) return current;
+            const next = structuredClone(current);
+            Object.entries(joinedTeams).forEach(([teamId, joined]) => {
+              const existing = next.teams[teamId];
+              if (existing?.isJoinLocked && !existing.isOnline) return;
+              next.teams[teamId] = existing
+                ? { ...existing, name: joined.name || existing.name, avatar: joined.avatar || existing.avatar, isOnline: true, connectedPlayers: joined.connectedPlayers }
+                : joined;
+            });
+            (Object.values(next.teams) as Team[]).forEach((team) => {
+              if (!joinedTeams[team.id] && team.connectedPlayers) {
+                team.connectedPlayers = 0;
+                team.isOnline = false;
+              }
+            });
+            return next;
+          }),
+          (incoming) => setRoomState((current) => {
+            if (!current) return current;
+            const next = structuredClone(current);
+            const question = next.rounds[next.currentRoundIndex]?.questions[next.currentQuestionIndex];
+            const questionKey = `${next.currentRoundIndex}:${next.currentQuestionIndex}:${question?.id || ''}`;
+            incoming.filter((submission) => submission.questionKey === questionKey).forEach((submission) => {
+              const isCorrect = !!question && submission.answer.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
+              next.submissions[submission.teamId] = {
+                teamId: submission.teamId,
+                teamName: submission.teamName,
+                answer: submission.answer,
+                submittedAt: submission.submittedAt,
+                isCorrect,
+                reviewedByHost: false,
+                pointsAwarded: isCorrect ? question?.points || 10 : 0,
+              };
+            });
+            return next;
+          }),
+          (error) => setErrorMessage(error.message),
+        );
+      } else {
+        if (teamData) await joinFirebaseTeam(targetCode, teamData);
+        firebaseRoomUnsubscribeRef.current = await subscribeFirebaseRoom(
+          targetCode,
+          (state) => {
+            setRoomState(state);
+            setConnectionStatus('connected');
+            setErrorMessage(null);
+            setIsLoading(false);
+          },
+          (error) => {
+            setErrorMessage(error.message);
+            setConnectionStatus('disconnected');
+            setIsLoading(false);
+          },
+        );
+      }
+      setConnectionStatus('connected');
+      setErrorMessage(null);
+      setIsLoading(false);
+    } catch (error) {
+      setConnectionStatus('disconnected');
+      setIsLoading(false);
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to the Firebase lobby.');
+    }
+  };
+
   // Host a new game (supports choosing up to 40 teams)
   const handleHostGame = async (
     hostName: string,
@@ -559,6 +664,30 @@ export default function App() {
   ) => {
     setIsLoading(true);
     setErrorMessage(null);
+
+    if (isFirebaseMultiplayerConfigured) {
+      const seedCode = 'TEMP';
+      handleOfflineFallback(seedCode, 'host', undefined, maxTeams, prePopulateScheme);
+      const initialTeams = prePopulateScheme === 'none' ? {} : createPresetTeams(Math.min(40, maxTeams), prePopulateScheme);
+      const initial: RoomState = {
+        code: seedCode, hostName, status: 'lobby', currentRoundIndex: 0, currentQuestionIndex: 0,
+        rounds: JSON.parse(JSON.stringify(DEFAULT_ROUNDS)), teams: initialTeams,
+        timerRemaining: 30, timerTotal: 30, isTimerRunning: false, submissions: {},
+        settings: { answerMode: 'multiple_choice', showMilestoneEvery10: true, roundTimerSeconds: 30, allowSoloAI: true, maxTeams: Math.min(40, Math.max(2, maxTeams)), prePopulateScheme },
+        musicPlaying: false,
+      };
+      try {
+        const created = await createFirebaseRoom(initial);
+        setRoomCode(created.code);
+        setRoomState(created);
+        setRole('host');
+        await connectFirebaseRoom(created.code, 'host');
+      } catch (error) {
+        setIsLoading(false);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to create the Firebase lobby.');
+      }
+      return;
+    }
 
     const apiBase = multiplayerHttpBase();
     if (apiBase === null) {
@@ -592,6 +721,10 @@ export default function App() {
   };
 
   const handleFindRoom = async (code: string): Promise<RoomLobbyPreview> => {
+    if (isFirebaseMultiplayerConfigured) {
+      const state = await findFirebaseRoom(code);
+      return { teams: Object.values(state.teams).sort((a, b) => a.name.localeCompare(b.name)), maxTeams: state.settings.maxTeams || 40 };
+    }
     const apiBase = multiplayerHttpBase();
     if (apiBase === null) throw new Error('Live multiplayer is not connected on this published version yet.');
     const response = await fetch(`${apiBase}/api/rooms/${encodeURIComponent(code)}`, { cache: 'no-store' });
@@ -618,6 +751,10 @@ export default function App() {
     setMyTeamId(newTeamId);
     setRole('player');
 
+    if (isFirebaseMultiplayerConfigured) {
+      void connectFirebaseRoom(code, 'player', { teamId: newTeamId, name, avatar });
+      return;
+    }
     connectWebSocket(code, 'player', {
       teamId: newTeamId,
       name,
@@ -631,14 +768,19 @@ export default function App() {
     setErrorMessage(null);
     setRoomCode(code);
     setRole('tv');
-    connectWebSocket(code, 'tv');
+    if (isFirebaseMultiplayerConfigured) void connectFirebaseRoom(code, 'tv');
+    else connectWebSocket(code, 'tv');
   };
 
   // Player submits answer
   const handleSubmitAnswer = (answer: string) => {
     if (!roomCode || !myTeamId) return;
 
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    if (usingFirebaseRef.current && roomState) {
+      const currentQuestion = roomState.rounds[roomState.currentRoundIndex]?.questions[roomState.currentQuestionIndex];
+      const questionKey = `${roomState.currentRoundIndex}:${roomState.currentQuestionIndex}:${currentQuestion?.id || ''}`;
+      void submitFirebaseAnswer(roomCode, myTeamId, teamName || 'My Team', answer, questionKey).catch((error) => setErrorMessage(error.message));
+    } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const msg: WSMessage = {
         type: 'submit_answer',
         roomCode,
@@ -678,7 +820,12 @@ export default function App() {
   const handleHostAction = (action: HostActionPayload) => {
     if (!roomCode) return;
 
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+    if (usingFirebaseRef.current) {
+      if (['next_question', 'prev_question', 'jump_to_question', 'next_round', 'prev_round', 'start_round'].includes(action.actionType)) {
+        void clearFirebaseRoomActivity(roomCode).catch(() => undefined);
+      }
+      setRoomState((current) => current ? applyLocalHostAction(current, action) : current);
+    } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const msg: WSMessage = {
         type: 'host_action',
         roomCode,
@@ -697,6 +844,10 @@ export default function App() {
       wsRef.current.onclose = null;
       wsRef.current.close();
     }
+    firebaseRoomUnsubscribeRef.current?.();
+    firebaseHostUnsubscribeRef.current?.();
+    if (role === 'player' && usingFirebaseRef.current) void leaveFirebaseTeam(roomCode);
+    usingFirebaseRef.current = false;
     setRole('solo');
     setRoomState(null);
     setErrorMessage(null);
