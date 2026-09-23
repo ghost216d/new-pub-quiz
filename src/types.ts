@@ -52,6 +52,8 @@ export interface Team {
   color: string;
   score: number;
   isOnline: boolean;
+  connectedPlayers?: number;
+  isJoinLocked?: boolean;
   scoreHistory: TeamScoreHistoryEntry[];
   currentSubmission?: TeamAnswerSubmission;
   isEliminated?: boolean;
@@ -135,6 +137,9 @@ export type HostActionPayload =
   | { actionType: 'upload_music_picture'; questionId: string; pictureDataUrl: string }
   | { actionType: 'load_questions'; rounds: Round[] }
   | { actionType: 'add_team'; name: string; avatar?: string }
+  | { actionType: 'rename_team'; teamId: string; name: string }
+  | { actionType: 'set_team_join_locked'; teamId: string; locked: boolean }
+  | { actionType: 'merge_teams'; sourceTeamId: string; targetTeamId: string }
   | { actionType: 'remove_team'; teamId: string }
   | { actionType: 'create_preset_teams'; count: number; scheme: 'tables' | 'pub_legends' }
   | { actionType: 'clear_teams' }

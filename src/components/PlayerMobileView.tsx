@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Check, Send, Music, Clock, Sparkles, Trophy, Disc3, Radio, Skull, Flame, Crown } from 'lucide-react';
 import { RoomState, Team } from '../types';
 import { RoundTransitionScreen } from './RoundTransitionScreen';
@@ -45,6 +45,11 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
   const isKnockout = !!roomState.settings.knockoutMode;
   const isEliminated = !!team?.isEliminated;
 
+  useEffect(() => {
+    setSelectedOption(null);
+    setTypedAnswer('');
+  }, [currentQ?.id]);
+
   // Pre-game Lobby Waiting Screen for Players on Mobile
   if (roomState.status === 'lobby') {
     return (
@@ -61,7 +66,7 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
             Welcome, {team?.name || 'Player'}!
           </h2>
           <p className="text-xs text-stone-700 font-bold mt-1">
-            You are checked in and ready to play at the tavern.
+            You are checked in and ready to play at the tavern. {team?.connectedPlayers || 1} player{team?.connectedPlayers === 1 ? '' : 's'} joined this team.
           </p>
         </div>
 

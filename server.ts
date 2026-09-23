@@ -40,6 +40,14 @@ const MAX_AI_QUESTIONS = 10;
 const ROOM_CODE_ATTEMPTS = 100;
 
 app.use(express.json({ limit: '10mb' }));
+app.use((req, res, next) => {
+  const allowedOrigin = process.env.APP_ORIGIN || '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 /* ============================================================
    GEMINI AI
@@ -244,7 +252,12 @@ app.get('/api/rooms/:code', (req, res) => {
     });
   }
 
-  return res.json(room);
+  return res.json({
+    code: room.code,
+    status: room.status,
+    teams: room.teams,
+    settings: { maxTeams: room.settings.maxTeams },
+  });
 });
 
 /* ============================================================
@@ -1306,6 +1319,17 @@ function sendSocketError(
   }
 }
 
+function roomStateForRole(room: RoomState, role: ClientMeta['role']): RoomState {
+  if (role === 'host' || room.status === 'answer_reveal' || room.status === 'game_over') return room;
+  const safeRoom = structuredClone(room);
+  safeRoom.rounds.forEach((round) => round.questions.forEach((question) => {
+    question.correctAnswer = '';
+    question.acceptableAnswers = [];
+    if (question.explanation) question.explanation = undefined;
+  }));
+  return safeRoom;
+}
+
 function broadcastRoomState(
   roomCode: string
 ) {
@@ -1318,19 +1342,35 @@ function broadcastRoomState(
 
   if (!sockets) return;
 
-  const payload = JSON.stringify({
-    type: 'room_state',
-    state: room,
-  });
-
   for (const client of sockets) {
     if (
       client.readyState ===
       WebSocket.OPEN
     ) {
-      client.send(payload);
+      const role = clientMetadata.get(client)?.role || 'player';
+      client.send(JSON.stringify({
+        type: 'room_state',
+        state: roomStateForRole(room, role),
+      }));
     }
   }
+}
+
+function refreshTeamConnections(roomCode: string) {
+  const room = rooms.get(roomCode);
+  if (!room) return;
+  const counts = new Map<string, number>();
+  for (const socket of roomSockets.get(roomCode) || []) {
+    if (socket.readyState !== WebSocket.OPEN) continue;
+    const meta = clientMetadata.get(socket);
+    if (meta?.role === 'player' && meta.teamId) {
+      counts.set(meta.teamId, (counts.get(meta.teamId) || 0) + 1);
+    }
+  }
+  Object.values(room.teams).forEach((team) => {
+    team.connectedPlayers = counts.get(team.id) || 0;
+    team.isOnline = (team.connectedPlayers || 0) > 0;
+  });
 }
 
 /* ============================================================
@@ -1468,23 +1508,14 @@ wss.on(
               `team_${randomUUID()}`;
 
             if (room.teams[teamId]) {
+              if (room.teams[teamId].isJoinLocked) {
+                sendSocketError(ws, `Team "${room.teams[teamId].name}" is locked. Ask the Quiz Master to unlock it.`);
+                roomSockets.get(upperCode)?.delete(ws);
+                return;
+              }
               room.teams[
                 teamId
               ].isOnline = true;
-
-              if (team.name) {
-                room.teams[
-                  teamId
-                ].name =
-                  team.name;
-              }
-
-              if (team.avatar) {
-                room.teams[
-                  teamId
-                ].avatar =
-                  team.avatar;
-              }
             } else {
               const currentCount =
                 Object.keys(
@@ -1540,6 +1571,8 @@ wss.on(
 
                 isOnline: true,
 
+                connectedPlayers: 1,
+
                 scoreHistory: [],
               };
             }
@@ -1551,10 +1584,12 @@ wss.on(
             teamId,
           });
 
+          refreshTeamConnections(upperCode);
+
           ws.send(
             JSON.stringify({
               type: 'room_state',
-              state: room,
+              state: roomStateForRole(room, role),
             })
           );
 
@@ -1849,20 +1884,6 @@ wss.on(
       const room =
         rooms.get(roomCode);
 
-      if (
-        room &&
-        teamId &&
-        room.teams[teamId]
-      ) {
-        room.teams[
-          teamId
-        ].isOnline = false;
-
-        broadcastRoomState(
-          roomCode
-        );
-      }
-
       const socketSet =
         roomSockets.get(roomCode);
 
@@ -1876,6 +1897,11 @@ wss.on(
             roomCode
           );
         }
+      }
+
+      if (room && teamId && room.teams[teamId]) {
+        refreshTeamConnections(roomCode);
+        broadcastRoomState(roomCode);
       }
     });
   }
@@ -3056,11 +3082,46 @@ function handleHostAction(
 
         score: 0,
 
-        isOnline: true,
+        isOnline: false,
+
+        connectedPlayers: 0,
 
         scoreHistory: [],
       };
 
+      break;
+    }
+
+    case 'rename_team': {
+      const team = room.teams[action.teamId];
+      const name = action.name.trim().slice(0, 40);
+      if (team && name) team.name = name;
+      break;
+    }
+
+    case 'set_team_join_locked': {
+      const team = room.teams[action.teamId];
+      if (team) team.isJoinLocked = action.locked;
+      break;
+    }
+
+    case 'merge_teams': {
+      const source = room.teams[action.sourceTeamId];
+      const target = room.teams[action.targetTeamId];
+      if (!source || !target || source.id === target.id) break;
+      target.score += source.score;
+      target.scoreHistory.push(...source.scoreHistory);
+      const sourceSubmission = room.submissions[source.id];
+      if (sourceSubmission && !room.submissions[target.id]) {
+        room.submissions[target.id] = { ...sourceSubmission, teamId: target.id, teamName: target.name };
+      }
+      delete room.submissions[source.id];
+      delete room.teams[source.id];
+      for (const socket of roomSockets.get(room.code) || []) {
+        const meta = clientMetadata.get(socket);
+        if (meta?.teamId === source.id) meta.teamId = target.id;
+      }
+      refreshTeamConnections(room.code);
       break;
     }
 

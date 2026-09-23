@@ -281,7 +281,8 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     setIsGeneratingAiMap(true);
 
     try {
-      const response = await fetch('/api/ai/generate-map', {
+      const apiBase = String(import.meta.env.VITE_MULTIPLAYER_API_URL || '').trim().replace(/\/$/, '');
+      const response = await fetch(`${apiBase}/api/ai/generate-map`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

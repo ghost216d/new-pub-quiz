@@ -81,7 +81,8 @@ export function createPresetTeams(
       avatar,
       color,
       score: 0,
-      isOnline: true,
+      isOnline: false,
+      connectedPlayers: 0,
       scoreHistory: [],
     };
   }

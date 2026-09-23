@@ -6,6 +6,7 @@ import { RoundTransitionScreen } from './RoundTransitionScreen';
 import { KnockoutWinnerScreen } from './KnockoutWinnerScreen';
 import { audioSynth } from '../utils/audioSynth';
 import { BGMController } from './BGMController';
+import { RoomJoinQR } from './RoomJoinQR';
 
 interface Props {
   roomState: RoomState;
@@ -164,6 +165,9 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
                 {roomState.code}
               </strong>
             </p>
+            <div className="flex justify-center mb-6">
+              <RoomJoinQR roomCode={roomState.code} size={180} />
+            </div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-stone-800 text-sm font-bold border border-amber-800/40 mb-6">
               <Users className="w-4 h-4 text-amber-700" />
               <span>{teamsList.length} of {roomState.settings?.maxTeams || 40} Teams Connected • Waiting for Quiz Master to start</span>
@@ -186,6 +190,7 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
                       <div className="truncate">
                         <span className="font-extrabold text-stone-900 text-xs block truncate">{team.name}</span>
                         <span className="text-[10px] text-stone-500 font-mono">Team #{idx + 1}</span>
+                        <span className="text-[10px] text-emerald-700 font-bold block">{team.connectedPlayers || 0} player{team.connectedPlayers === 1 ? '' : 's'}</span>
                       </div>
                     </div>
                   ))}

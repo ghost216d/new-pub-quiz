@@ -11,6 +11,12 @@ import {
   CartoonTrophy,
 } from './CartoonIllustrations';
 import { TEAM_AVATARS, PUB_LEGEND_TEAM_NAMES } from '../data/teamPresets';
+import { Team } from '../types';
+
+export interface RoomLobbyPreview {
+  teams: Team[];
+  maxTeams: number;
+}
 
 interface Props {
   onHostGame: (
@@ -19,31 +25,39 @@ interface Props {
     prePopulateScheme?: 'none' | 'tables' | 'pub_legends'
   ) => void;
   onJoinGame: (code: string, teamName: string, avatar: string, selectedTeamId?: string) => void;
+  onFindRoom: (code: string) => Promise<RoomLobbyPreview>;
   onConnectTV: (code: string) => void;
   onStartSolo: () => void;
   initialMode?: 'join' | 'host' | 'tv';
   showSoloHero?: boolean;
   isLoading?: boolean;
   error?: string | null;
+  initialRoomCode?: string;
 }
 
 export const LandingView: React.FC<Props> = ({
   onHostGame,
   onJoinGame,
+  onFindRoom,
   onConnectTV,
   onStartSolo,
   initialMode = 'join',
   showSoloHero = true,
   isLoading = false,
   error = null,
+  initialRoomCode = '',
 }) => {
   const [mode, setMode] = useState<'join' | 'host' | 'tv'>(initialMode);
-  const [roomCode, setRoomCode] = useState('');
+  const [roomCode, setRoomCode] = useState(initialRoomCode);
   const [teamName, setTeamName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('🍺');
   const [hostName, setHostName] = useState('Quiz Master Dave');
   const [maxTeams, setMaxTeams] = useState(40);
   const [prePopulateScheme, setPrePopulateScheme] = useState<'none' | 'tables' | 'pub_legends'>('none');
+  const [roomPreview, setRoomPreview] = useState<RoomLobbyPreview | null>(null);
+  const [isFindingRoom, setIsFindingRoom] = useState(false);
+  const [roomLookupError, setRoomLookupError] = useState<string | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
   const handleRandomName = () => {
     const randomName = PUB_LEGEND_TEAM_NAMES[Math.floor(Math.random() * PUB_LEGEND_TEAM_NAMES.length)];
@@ -54,8 +68,37 @@ export const LandingView: React.FC<Props> = ({
 
   const handleJoinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!roomCode.trim() || !teamName.trim()) return;
-    onJoinGame(roomCode.trim().toUpperCase(), teamName.trim(), selectedAvatar);
+    const selectedTeam = roomPreview?.teams.find((team) => team.id === selectedTeamId);
+    if (!roomCode.trim() || (!selectedTeam && !teamName.trim())) return;
+    onJoinGame(
+      roomCode.trim().toUpperCase(),
+      selectedTeam?.name || teamName.trim(),
+      selectedTeam?.avatar || selectedAvatar,
+      selectedTeam?.id,
+    );
+  };
+
+  const handleFindRoom = async () => {
+    const code = roomCode.trim().toUpperCase();
+    if (!code) return;
+    setIsFindingRoom(true);
+    setRoomLookupError(null);
+    setSelectedTeamId(null);
+    try {
+      const preview = await onFindRoom(code);
+      setRoomPreview(preview);
+      try {
+        const rememberedTeamId = localStorage.getItem(`pubquiz_team_${code}`);
+        if (rememberedTeamId && preview.teams.some((team) => team.id === rememberedTeamId && !team.isJoinLocked)) {
+          setSelectedTeamId(rememberedTeamId);
+        }
+      } catch {}
+    } catch (lookupError) {
+      setRoomPreview(null);
+      setRoomLookupError(lookupError instanceof Error ? lookupError.message : 'Room could not be found.');
+    } finally {
+      setIsFindingRoom(false);
+    }
   };
 
   const handleHostSubmit = (e: React.FormEvent) => {
@@ -213,9 +256,59 @@ export const LandingView: React.FC<Props> = ({
                 />
                 <KeyRound className="w-4 h-4 text-amber-800/60 absolute right-3.5 top-3.5" />
               </div>
+              <button
+                type="button"
+                onClick={handleFindRoom}
+                disabled={isFindingRoom || !roomCode.trim()}
+                className="mt-2 w-full py-2 rounded-xl bg-sky-100 text-sky-950 border-2 border-sky-500 text-xs font-cartoon disabled:opacity-50"
+              >
+                {isFindingRoom ? 'FINDING PUB…' : 'FIND ROOM & TEAMS'}
+              </button>
+              {roomLookupError && <p className="mt-2 text-xs font-bold text-rose-700">{roomLookupError}</p>}
             </div>
 
-            <div>
+            {roomPreview && (
+              <div className="space-y-2 rounded-2xl border-2 border-sky-400 bg-sky-50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-cartoon text-sky-950">JOIN AN EXISTING TEAM</span>
+                  <span className="text-[10px] font-bold text-stone-600">{roomPreview.teams.length}/{roomPreview.maxTeams} teams</span>
+                </div>
+                {roomPreview.teams.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                    {roomPreview.teams.map((team) => (
+                      <button
+                        key={team.id}
+                        type="button"
+                        disabled={team.isJoinLocked}
+                        onClick={() => setSelectedTeamId(team.id)}
+                        className={`p-2.5 rounded-xl border-2 text-left flex items-center gap-2 ${
+                          selectedTeamId === team.id
+                            ? 'bg-emerald-100 border-emerald-600'
+                            : 'bg-white border-sky-300'
+                        } disabled:opacity-50`}
+                      >
+                        <span className="text-xl">{team.avatar}</span>
+                        <span className="min-w-0 flex-1">
+                          <strong className="block text-xs truncate">{team.name}</strong>
+                          <small className="text-[10px] text-stone-600">
+                            {team.isJoinLocked ? '🔒 Locked by host' : `${team.connectedPlayers || 0} player${team.connectedPlayers === 1 ? '' : 's'} connected`}
+                          </small>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : <p className="text-xs font-bold text-stone-600">No teams yet. Create the first one below.</p>}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTeamId(null)}
+                  className={`w-full py-2 rounded-xl border-2 text-xs font-cartoon ${selectedTeamId === null ? 'bg-amber-200 border-amber-700' : 'bg-white border-amber-300'}`}
+                >
+                  + CREATE A NEW TEAM
+                </button>
+              </div>
+            )}
+
+            {selectedTeamId === null && <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-cartoon text-amber-950 uppercase tracking-wider">
                   Team Name
@@ -239,9 +332,9 @@ export const LandingView: React.FC<Props> = ({
                 className="w-full bg-amber-50/90 border-3 border-amber-800/60 focus:border-cyan-600 focus:bg-white rounded-2xl p-2.5 text-xs sm:text-sm font-bold text-stone-900 outline-none shadow-inner placeholder:text-stone-400"
                 required
               />
-            </div>
+            </div>}
 
-            <div>
+            {selectedTeamId === null && <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-cartoon text-amber-950 uppercase tracking-wider">
                   Choose Avatar Mascot
@@ -264,12 +357,12 @@ export const LandingView: React.FC<Props> = ({
                   </button>
                 ))}
               </div>
-            </div>
+            </div>}
 
             <button
               id="join-room-submit-btn"
               type="submit"
-              disabled={isLoading || !roomCode.trim() || !teamName.trim()}
+              disabled={isLoading || !roomPreview || !roomCode.trim() || (selectedTeamId === null && !teamName.trim())}
               className="w-full py-3 sm:py-3.5 rounded-2xl cartoon-btn-cyan text-sm sm:text-base font-cartoon tracking-wider disabled:opacity-50 transition cursor-pointer flex items-center justify-center gap-2 mt-1"
             >
               <span>ENTER PUB LOBBY!</span>

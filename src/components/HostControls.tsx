@@ -38,6 +38,10 @@ import {
   Zap,
   ShieldCheck,
   AlertTriangle,
+  LockKeyhole,
+  Unlock,
+  Pencil,
+  Combine,
 } from 'lucide-react';
 import { RoomState, HostActionPayload, Team, Round } from '../types';
 import { audioSynth, PRESET_MELODIES } from '../utils/audioSynth';
@@ -46,6 +50,7 @@ import { CartoonQuizMaster, CartoonBeerStein, CartoonRecordPlayer } from './Cart
 import { RoundTransitionScreen } from './RoundTransitionScreen';
 import { KnockoutWinnerScreen } from './KnockoutWinnerScreen';
 import { TEAM_AVATARS, PUB_LEGEND_TEAM_NAMES } from '../data/teamPresets';
+import { RoomJoinQR } from './RoomJoinQR';
 
 interface Props {
   roomState: RoomState;
@@ -70,6 +75,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   const [newCustomTeamName, setNewCustomTeamName] = useState('');
   const [newCustomTeamAvatar, setNewCustomTeamAvatar] = useState('🍺');
   const [customMaxTeams, setCustomMaxTeams] = useState<number>(roomState.settings.maxTeams || 40);
+  const [mergeTargets, setMergeTargets] = useState<Record<string, string>>({});
 
   const currentRound = roomState.rounds[roomState.currentRoundIndex];
   const currentQ = currentRound?.questions[roomState.currentQuestionIndex];
@@ -77,6 +83,8 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   const aliveTeams = teamsList.filter((t) => !t.isEliminated);
   const knockedOutTeams = teamsList.filter((t) => t.isEliminated);
   const submittedCount = Object.keys(roomState.submissions).length;
+  const connectedTeamCount = teamsList.filter((team) => team.isOnline).length;
+  const connectedPlayerCount = teamsList.reduce((total, team) => total + (team.connectedPlayers || 0), 0);
   const totalQuestions = currentRound?.questions.length || 0;
   const questionProgress = totalQuestions
     ? Math.round(((roomState.currentQuestionIndex + 1) / totalQuestions) * 100)
@@ -161,7 +169,8 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
     const categoryToUse = customAICategory.trim() || selectedAICategory;
 
     try {
-      const res = await fetch('/api/ai/generate-questions', {
+      const apiBase = String(import.meta.env.VITE_MULTIPLAYER_API_URL || '').trim().replace(/\/$/, '');
+      const res = await fetch(`${apiBase}/api/ai/generate-questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -206,7 +215,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
               </span>
               <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                {teamsList.length} {teamsList.length === 1 ? 'Team' : 'Teams'} Connected
+                {connectedTeamCount} {connectedTeamCount === 1 ? 'Team' : 'Teams'} • {connectedPlayerCount} Players Connected
               </span>
             </div>
             <h2 className="text-xl md:text-2xl font-black text-amber-950 mt-0.5">
@@ -216,6 +225,10 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="hidden sm:flex items-center gap-2 rounded-2xl border-2 border-amber-800/40 bg-white p-1.5">
+            <RoomJoinQR roomCode={roomState.code} size={70} />
+            <span className="max-w-20 text-[10px] font-black leading-tight text-amber-950">SCAN TO JOIN ROOM {roomState.code}</span>
+          </div>
           <button
             id="host-knockout-modal-btn"
             onClick={() => setShowKnockoutModal(true)}
@@ -785,7 +798,15 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
               {/* Next Question Button */}
               <button
                 id="host-next-question-btn"
-                onClick={() => onHostAction({ actionType: 'next_question' })}
+                onClick={() => {
+                  const unanswered = Math.max(0, teamsList.filter((team) => !team.isEliminated).length - submittedCount);
+                  const warning = unanswered > 0
+                    ? `${unanswered} active team${unanswered === 1 ? ' has' : 's have'} not answered. Continue?`
+                    : !isAnswerRevealed
+                      ? 'The answer has not been revealed. Continue?'
+                      : '';
+                  if (!warning || window.confirm(warning)) onHostAction({ actionType: 'next_question' });
+                }}
                 className="flex items-center justify-center gap-2 py-3 px-3 rounded-2xl bg-emerald-500 text-slate-950 font-black text-xs md:text-sm shadow-[0_4px_0_#065f46] hover:brightness-105 active:translate-y-0.5 active:shadow-none transition cursor-pointer border-2 border-emerald-900"
               >
                 <span>Next Question</span>
@@ -1280,13 +1301,37 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                       <div className="flex items-center gap-2 truncate">
                         <span className="text-[11px] font-mono text-stone-500 w-5">#{idx + 1}</span>
                         <span className="text-lg">{team.avatar}</span>
-                        <span className="text-xs font-black text-stone-900 truncate max-w-[120px]">{team.name}</span>
+                        <span className="min-w-0">
+                          <span className="text-xs font-black text-stone-900 truncate max-w-[140px] block">{team.name}</span>
+                          <span className={`text-[10px] font-bold ${team.isOnline ? 'text-emerald-700' : 'text-stone-500'}`}>
+                            {team.connectedPlayers || 0} connected {team.isJoinLocked ? '• 🔒 locked' : ''}
+                          </span>
+                        </span>
                       </div>
 
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
                         <span className="text-xs font-bold text-amber-950 px-1.5 py-0.5 rounded bg-amber-100 border border-amber-800/30">
                           {team.score}p
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextName = window.prompt('Rename this team:', team.name)?.trim();
+                            if (nextName) onHostAction({ actionType: 'rename_team', teamId: team.id, name: nextName });
+                          }}
+                          className="p-1 rounded text-sky-700 hover:bg-sky-50 cursor-pointer"
+                          title="Rename team"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onHostAction({ actionType: 'set_team_join_locked', teamId: team.id, locked: !team.isJoinLocked })}
+                          className="p-1 rounded text-amber-700 hover:bg-amber-50 cursor-pointer"
+                          title={team.isJoinLocked ? 'Unlock team joining' : 'Lock team joining'}
+                        >
+                          {team.isJoinLocked ? <Unlock className="w-3.5 h-3.5" /> : <LockKeyhole className="w-3.5 h-3.5" />}
+                        </button>
                         <button
                           type="button"
                           onClick={() => onHostAction({ actionType: 'remove_team', teamId: team.id })}
@@ -1299,6 +1344,37 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                     </div>
                   ))}
                 </div>
+                {teamsList.length > 1 && (
+                  <div className="rounded-xl border border-purple-300 bg-purple-50 p-3 space-y-2">
+                    <span className="text-[10px] font-black uppercase text-purple-950 flex items-center gap-1"><Combine className="w-3.5 h-3.5" /> Merge duplicate teams</span>
+                    {teamsList.map((team) => (
+                      <div key={`merge-${team.id}`} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2 text-xs">
+                        <span className="truncate font-bold">{team.avatar} {team.name}</span>
+                        <select
+                          value={mergeTargets[team.id] || ''}
+                          onChange={(event) => setMergeTargets((current) => ({ ...current, [team.id]: event.target.value }))}
+                          className="min-w-0 rounded-lg border border-purple-300 bg-white p-1.5"
+                        >
+                          <option value="">Merge into…</option>
+                          {teamsList.filter((candidate) => candidate.id !== team.id).map((candidate) => (
+                            <option key={candidate.id} value={candidate.id}>{candidate.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          disabled={!mergeTargets[team.id]}
+                          onClick={() => {
+                            const targetTeamId = mergeTargets[team.id];
+                            if (targetTeamId && window.confirm(`Merge ${team.name} into ${roomState.teams[targetTeamId]?.name}?`)) {
+                              onHostAction({ actionType: 'merge_teams', sourceTeamId: team.id, targetTeamId });
+                            }
+                          }}
+                          className="rounded-lg bg-purple-700 px-2 py-1.5 font-black text-white disabled:opacity-40"
+                        >Merge</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

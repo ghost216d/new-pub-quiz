@@ -3,7 +3,7 @@ import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
 import { createPresetTeams, TEAM_AVATARS, TEAM_COLORS } from './data/teamPresets';
 import { Header } from './components/Header';
-import { LandingView } from './components/LandingView';
+import { LandingView, RoomLobbyPreview } from './components/LandingView';
 import { HostControls } from './components/HostControls';
 import { TVDisplay } from './components/TVDisplay';
 import { PlayerMobileView } from './components/PlayerMobileView';
@@ -16,6 +16,23 @@ import { SoloProgression } from './types';
 import { getLondonTheme } from './utils/londonTheme';
 
 type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
+
+const multiplayerHttpBase = (): string | null => {
+  const configured = String(import.meta.env.VITE_MULTIPLAYER_API_URL || '').trim().replace(/\/$/, '');
+  if (configured) return configured;
+  if (window.location.hostname.endsWith('github.io')) return null;
+  return '';
+};
+
+const multiplayerWsUrl = (): string | null => {
+  const configured = String(import.meta.env.VITE_MULTIPLAYER_WS_URL || '').trim();
+  if (configured) return configured;
+  const httpBase = multiplayerHttpBase();
+  if (httpBase === null) return null;
+  if (httpBase) return `${httpBase.replace(/^http/, 'ws')}/ws`;
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/ws`;
+};
 
 const resetQuestionState = (room: RoomState, startTimer = true) => {
   const question = room.rounds[room.currentRoundIndex]?.questions[room.currentQuestionIndex];
@@ -201,7 +218,27 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
       const count = Object.keys(room.teams).length;
       if (count < (room.settings.maxTeams || 40)) {
         const id = `team_${Date.now()}`;
-        room.teams[id] = { id, name: action.name.trim() || `Team ${count + 1}`, avatar: action.avatar || TEAM_AVATARS[count % TEAM_AVATARS.length], color: TEAM_COLORS[count % TEAM_COLORS.length], score: 0, isOnline: true, scoreHistory: [] };
+        room.teams[id] = { id, name: action.name.trim() || `Team ${count + 1}`, avatar: action.avatar || TEAM_AVATARS[count % TEAM_AVATARS.length], color: TEAM_COLORS[count % TEAM_COLORS.length], score: 0, isOnline: false, connectedPlayers: 0, scoreHistory: [] };
+      }
+      break;
+    }
+    case 'rename_team': {
+      const team = room.teams[action.teamId];
+      const name = action.name.trim().slice(0, 40);
+      if (team && name) team.name = name;
+      break;
+    }
+    case 'set_team_join_locked':
+      if (room.teams[action.teamId]) room.teams[action.teamId].isJoinLocked = action.locked;
+      break;
+    case 'merge_teams': {
+      const source = room.teams[action.sourceTeamId];
+      const target = room.teams[action.targetTeamId];
+      if (source && target && source.id !== target.id) {
+        target.score += source.score;
+        target.scoreHistory.push(...source.scoreHistory);
+        delete room.teams[source.id];
+        delete room.submissions[source.id];
       }
       break;
     }
@@ -318,10 +355,14 @@ export default function App() {
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
+  const [initialRoomCode, setInitialRoomCode] = useState('');
   const [showCover, setShowCover] = useState(true);
   const [coverProgress, setCoverProgress] = useState(6);
 
   const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
+  const shouldReconnectRef = useRef(false);
 
   useEffect(() => {
     const startedAt = Date.now();
@@ -372,8 +413,11 @@ export default function App() {
     if (codeParam) {
       const cleanCode = codeParam.toUpperCase();
       setRoomCode(cleanCode);
+      setInitialRoomCode(cleanCode);
       if (roleParam === 'tv') {
         handleConnectTV(cleanCode);
+      } else {
+        setRole('landing');
       }
     }
   }, []);
@@ -382,20 +426,30 @@ export default function App() {
   const connectWebSocket = (
     targetCode: string,
     targetRole: 'host' | 'player' | 'tv',
-    teamData?: { teamId: string; name: string; avatar: string }
+    teamData?: { teamId: string; name: string; avatar: string },
+    retryCount = 0,
   ) => {
     if (wsRef.current) {
+      wsRef.current.onclose = null;
       wsRef.current.close();
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const wsUrl = multiplayerWsUrl();
+    if (!wsUrl) {
+      setConnectionStatus('disconnected');
+      setIsLoading(false);
+      setErrorMessage('Live multiplayer is not connected yet. The Quiz Master must use the hosted multiplayer service.');
+      return;
+    }
 
     try {
+      setConnectionStatus('connecting');
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
+      shouldReconnectRef.current = true;
 
       ws.onopen = () => {
+        setConnectionStatus('connected');
         const joinMsg: WSMessage = {
           type: 'join_room',
           roomCode: targetCode,
@@ -422,15 +476,26 @@ export default function App() {
       };
 
       ws.onerror = () => {
-        // Fallback to local room state if network or WebSocket is offline
-        handleOfflineFallback(targetCode, targetRole, teamData);
+        setConnectionStatus('reconnecting');
       };
 
       ws.onclose = () => {
-        // Closed
+        if (shouldReconnectRef.current && retryCount < 5) {
+          setConnectionStatus('reconnecting');
+          reconnectTimerRef.current = window.setTimeout(
+            () => connectWebSocket(targetCode, targetRole, teamData, retryCount + 1),
+            Math.min(6000, 1000 * (retryCount + 1)),
+          );
+          return;
+        }
+        setConnectionStatus('disconnected');
+        setIsLoading(false);
+        setErrorMessage('Connection lost. Your team is remembered—find the room again to reconnect.');
       };
     } catch {
-      handleOfflineFallback(targetCode, targetRole, teamData);
+      setConnectionStatus('disconnected');
+      setIsLoading(false);
+      setErrorMessage('Unable to connect to the live quiz room.');
     }
   };
 
@@ -495,8 +560,19 @@ export default function App() {
     setIsLoading(true);
     setErrorMessage(null);
 
+    const apiBase = multiplayerHttpBase();
+    if (apiBase === null) {
+      const randomCode = 'PUB1';
+      setRoomCode(randomCode);
+      setRole('host');
+      setConnectionStatus('standalone');
+      setErrorMessage('Standalone Quiz Master mode: other phones and the TV cannot join until the multiplayer service is connected.');
+      handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
+      return;
+    }
+
     try {
-      const res = await fetch('/api/rooms', {
+      const res = await fetch(`${apiBase}/api/rooms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hostName, maxTeams, prePopulateScheme }),
@@ -515,11 +591,26 @@ export default function App() {
     }
   };
 
+  const handleFindRoom = async (code: string): Promise<RoomLobbyPreview> => {
+    const apiBase = multiplayerHttpBase();
+    if (apiBase === null) throw new Error('Live multiplayer is not connected on this published version yet.');
+    const response = await fetch(`${apiBase}/api/rooms/${encodeURIComponent(code)}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(response.status === 404 ? 'Room not found. Check the code with the Quiz Master.' : 'Unable to load this room.');
+    const state = await response.json() as RoomState;
+    return {
+      teams: Object.values(state.teams).sort((a, b) => a.name.localeCompare(b.name)),
+      maxTeams: state.settings.maxTeams || 40,
+    };
+  };
+
   // Join existing game as player (can choose from pre-set teams or create new up to 40)
   const handleJoinGame = (code: string, name: string, avatar: string, selectedTeamId?: string) => {
     setIsLoading(true);
     setErrorMessage(null);
     const newTeamId = selectedTeamId || `team_${Date.now()}`;
+    try {
+      localStorage.setItem(`pubquiz_team_${code}`, newTeamId);
+    } catch {}
 
     setRoomCode(code);
     setTeamName(name);
@@ -600,12 +691,16 @@ export default function App() {
   };
 
   const handleHomeClick = () => {
+    shouldReconnectRef.current = false;
+    if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current);
     if (wsRef.current) {
+      wsRef.current.onclose = null;
       wsRef.current.close();
     }
     setRole('solo');
     setRoomState(null);
     setErrorMessage(null);
+    setConnectionStatus('disconnected');
   };
 
   if (showCover) {
@@ -662,13 +757,21 @@ export default function App() {
           <LandingView
             onHostGame={handleHostGame}
             onJoinGame={handleJoinGame}
+            onFindRoom={handleFindRoom}
             onConnectTV={handleConnectTV}
             onStartSolo={() => setRole('solo')}
-            initialMode="host"
+            initialMode={initialRoomCode ? 'join' : 'host'}
             showSoloHero={true}
             isLoading={isLoading}
             error={errorMessage}
+            initialRoomCode={initialRoomCode}
           />
+        )}
+
+        {role !== 'solo' && role !== 'landing' && (
+          <div className={`mx-auto mb-3 w-fit rounded-full border px-3 py-1 text-[11px] font-black ${connectionStatus === 'connected' ? 'border-emerald-500 bg-emerald-100 text-emerald-900' : connectionStatus === 'standalone' ? 'border-amber-500 bg-amber-100 text-amber-950' : 'border-rose-500 bg-rose-100 text-rose-900'}`}>
+            {connectionStatus === 'connected' ? '● LIVE ROOM CONNECTED' : connectionStatus === 'standalone' ? '● STANDALONE MODE' : connectionStatus === 'reconnecting' ? '● RECONNECTING…' : '● NOT CONNECTED'}
+          </div>
         )}
 
         {role === 'tv' && roomState && (
