@@ -383,6 +383,9 @@ export default function App() {
     }
   });
   const [roomCode, setRoomCode] = useState<string>('');
+  const [activeHostCode, setActiveHostCode] = useState<string>(() => {
+    try { return localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase() || ''; } catch { return ''; }
+  });
   const [myTeamId, setMyTeamId] = useState<string>('');
   const [teamName, setTeamName] = useState<string>('');
   const [teamAvatar, setTeamAvatar] = useState<string>('🍺');
@@ -678,28 +681,32 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('room') || !isFirebaseMultiplayerConfigured) return;
-    const savedCode = localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase();
-    if (!savedCode) return;
-
-    let cancelled = false;
+  const handleResumeHostGame = async (savedCode = activeHostCode) => {
+    const cleanCode = savedCode.trim().toUpperCase();
+    if (!cleanCode || !isFirebaseMultiplayerConfigured) return;
     setIsLoading(true);
-    findFirebaseHostRoom(savedCode).then(async (savedRoom) => {
-      if (cancelled) return;
+    setErrorMessage(null);
+    try {
+      const savedRoom = await findFirebaseHostRoom(cleanCode);
       const restoredRoom = removeMusicFromRoom(savedRoom);
-      setRoomCode(savedCode);
+      setRoomCode(cleanCode);
       setRoomState(restoredRoom);
       setRole('host');
-      await connectFirebaseRoom(savedCode, 'host');
-    }).catch((error) => {
-      if (cancelled) return;
+      setActiveHostCode(cleanCode);
+      await connectFirebaseRoom(cleanCode, 'host');
+    } catch (error) {
       localStorage.removeItem(HOST_SESSION_KEY);
+      setActiveHostCode('');
       setIsLoading(false);
       setErrorMessage(error instanceof Error ? error.message : 'Unable to restore the previous Quiz Master lobby.');
-    });
-    return () => { cancelled = true; };
+      setRole('landing');
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('room') || !activeHostCode) return;
+    void handleResumeHostGame(activeHostCode);
   }, []);
 
   // Host a new game (supports choosing up to 40 teams)
@@ -728,6 +735,7 @@ export default function App() {
         setRoomState(created);
         setRole('host');
         localStorage.setItem(HOST_SESSION_KEY, created.code);
+        setActiveHostCode(created.code);
         await connectFirebaseRoom(created.code, 'host');
       } catch (error) {
         setIsLoading(false);
@@ -742,6 +750,7 @@ export default function App() {
       setRoomCode(randomCode);
       setRole('host');
       localStorage.setItem(HOST_SESSION_KEY, randomCode);
+      setActiveHostCode(randomCode);
       setConnectionStatus('standalone');
       setErrorMessage('Standalone Quiz Master mode: other phones and the TV cannot join until the multiplayer service is connected.');
       handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
@@ -759,6 +768,7 @@ export default function App() {
       setRoomCode(code);
       setRole('host');
       localStorage.setItem(HOST_SESSION_KEY, code);
+      setActiveHostCode(code);
       connectWebSocket(code, 'host');
     } catch {
       // Local fallback
@@ -766,6 +776,7 @@ export default function App() {
       setRoomCode(randomCode);
       setRole('host');
       localStorage.setItem(HOST_SESSION_KEY, randomCode);
+      setActiveHostCode(randomCode);
       handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
     }
   };
@@ -964,6 +975,17 @@ export default function App() {
 
       {/* Main App Content Router */}
       <main className={role === 'solo' ? 'app-content flex-1 w-full max-w-full min-w-0 min-h-[100dvh] overflow-x-hidden' : 'app-content flex-1 w-full max-w-full min-w-0 overflow-x-hidden px-2.5 py-3 sm:px-4 md:px-6 md:py-6 flex flex-col justify-start'}>
+        {(role === 'solo' || role === 'landing') && activeHostCode && (
+          <button
+            id="resume-live-quiz-btn"
+            onClick={() => void handleResumeHostGame()}
+            disabled={isLoading}
+            className="fixed z-50 top-safe left-3 mt-3 flex items-center gap-2 rounded-2xl border-2 border-emerald-800 bg-emerald-500 px-4 py-3 text-sm font-cartoon text-emerald-950 shadow-[0_4px_0_#065f46] transition hover:bg-emerald-400 active:translate-y-0.5 disabled:opacity-60"
+          >
+            <span aria-hidden="true">↩️</span>
+            <span>{isLoading ? 'RESTORING QUIZ…' : `RESUME LIVE QUIZ · ${activeHostCode}`}</span>
+          </button>
+        )}
         {role === 'landing' && (
           <LandingView
             onHostGame={handleHostGame}
