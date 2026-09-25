@@ -17,7 +17,7 @@ import {
 } from './src/types';
 
 import { DEFAULT_ROUNDS } from './src/data/defaultQuestions';
-import { hasFourValidOptions, questionHasBeenUsed } from './src/utils/questionQuality';
+import { hasFourValidOptions, questionHasBeenUsed, randomizeQuestionOptions } from './src/utils/questionQuality';
 
 import {
   createPresetTeams,
@@ -137,9 +137,15 @@ function createInitialRoom(
     Math.max(2, Number(maxTeams) || MAX_TEAMS)
   );
 
-  const initialRounds = JSON.parse(
-    JSON.stringify(DEFAULT_ROUNDS)
-  ) as Round[];
+  const initialRounds = DEFAULT_ROUNDS.filter((round) => round.type !== 'music').map((round, index) => ({
+    ...round,
+    roundNumber: index + 1,
+    questions: round.questions.map((question) => ({
+      ...randomizeQuestionOptions(question),
+      roundNumber: index + 1,
+      musicData: undefined,
+    })),
+  })) as Round[];
 
   const initialTeams: Record<string, Team> =
     prePopulateScheme !== 'none'
@@ -285,7 +291,7 @@ function getFallbackQuestions(
 ): Question[] {
   const allQuestions: Question[] = [];
 
-  DEFAULT_ROUNDS.forEach((round) => {
+  DEFAULT_ROUNDS.filter((round) => round.type !== 'music').forEach((round) => {
     allQuestions.push(...round.questions);
   });
 
@@ -323,7 +329,7 @@ function getFallbackQuestions(
 
   return shuffleArray(playable)
     .slice(0, count)
-    .map((question) => ({
+    .map((question) => randomizeQuestionOptions({
       ...question,
 
       id: `vault_${randomUUID()}`,
