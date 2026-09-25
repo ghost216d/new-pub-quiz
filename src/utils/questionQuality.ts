@@ -48,3 +48,12 @@ export const hasFourValidOptions = (question: Partial<Question>): boolean => {
     && options.includes(correctAnswer),
   );
 };
+
+export const randomizeQuestionOptions = (question: Question): Question => {
+  const options = [...question.options];
+  for (let index = options.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [options[index], options[randomIndex]] = [options[randomIndex], options[index]];
+  }
+  return { ...question, options };
+};
