@@ -1,4 +1,5 @@
 import type { Question, QuizDifficulty, RoundType } from '../types';
+import { hasFourValidOptions, questionHasBeenUsed } from './questionQuality';
 
 const MODEL_ID = 'SmolLM2-360M-Instruct-q4f16_1-MLC';
 const SEEN_KEY = 'pubquiz_device_ai_seen_v1';
@@ -43,14 +44,13 @@ const seenPrompts = (): string[] => {
   }
 };
 
-const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-
 export const generateOnDeviceQuizQuestions = async ({
   category,
   count,
   difficulty,
   roundType,
   roundNumber,
+  excludedPrompts = [],
   onProgress,
 }: {
   category: string;
@@ -58,11 +58,12 @@ export const generateOnDeviceQuizQuestions = async ({
   difficulty: QuizDifficulty;
   roundType: RoundType;
   roundNumber: number;
+  excludedPrompts?: string[];
   onProgress: ProgressCallback;
 }): Promise<Question[]> => {
   const engine = await getEngine(onProgress);
   onProgress(100, 'Device AI is creating questions…');
-  const previous = seenPrompts();
+  const previous = [...seenPrompts(), ...excludedPrompts];
   const response = await engine.chat.completions.create({
     messages: [
       {
@@ -84,7 +85,7 @@ Do not repeat these recent questions: ${previous.slice(-40).join(' | ') || 'none
   const parsed = extractJson(response.choices[0]?.message?.content || '') as unknown;
   if (!Array.isArray(parsed)) throw new Error('Device AI did not return a question list.');
 
-  const used = new Set(previous.map(normalize));
+  const used = [...previous];
   const questions: Question[] = [];
   for (const candidate of parsed) {
     if (!candidate || typeof candidate !== 'object') continue;
@@ -94,8 +95,9 @@ Do not repeat these recent questions: ${previous.slice(-40).join(' | ') || 'none
       ? [...new Set(item.options.map((option) => String(option).trim()).filter(Boolean))]
       : [];
     const correctAnswer = String(item.correctAnswer || '').trim();
-    if (!prompt || used.has(normalize(prompt)) || options.length !== 4 || !options.includes(correctAnswer)) continue;
-    used.add(normalize(prompt));
+    const draft: Partial<Question> = { prompt, options, correctAnswer };
+    if (questionHasBeenUsed(prompt, used) || !hasFourValidOptions(draft)) continue;
+    used.push(prompt);
     questions.push({
       id: `device_ai_${Date.now()}_${questions.length}`,
       roundNumber,
@@ -113,6 +115,6 @@ Do not repeat these recent questions: ${previous.slice(-40).join(' | ') || 'none
     if (questions.length === count) break;
   }
   if (questions.length < count) throw new Error('Device AI could not create enough valid questions.');
-  localStorage.setItem(SEEN_KEY, JSON.stringify([...previous, ...questions.map((q) => q.prompt)].slice(-500)));
+  localStorage.setItem(SEEN_KEY, JSON.stringify([...seenPrompts(), ...questions.map((q) => q.prompt)].slice(-1000)));
   return questions;
 };
