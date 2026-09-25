@@ -63,6 +63,7 @@ export const createFirebaseRoom = async (initial: RoomState): Promise<RoomState>
     const room = { ...initial, code };
     await setDoc(target, {
       state: publicRoomState(room),
+      hostState: clean(room),
       hostUid: user.uid,
       updatedAt: serverTimestamp(),
       expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
@@ -73,12 +74,29 @@ export const createFirebaseRoom = async (initial: RoomState): Promise<RoomState>
 };
 
 export const publishFirebaseRoom = async (room: RoomState): Promise<void> => {
-  await ensureUser();
+  const user = await ensureUser();
+  const existing = await getDoc(roomRef(room.code));
+  if (existing.exists() && existing.data().hostUid !== user.uid) {
+    throw new Error('Only the original Quiz Master can update this lobby.');
+  }
   await setDoc(roomRef(room.code), {
     state: publicRoomState(room),
+    hostState: clean(room),
+    hostUid: user.uid,
     updatedAt: serverTimestamp(),
     expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
   }, { merge: true });
+};
+
+export const findFirebaseHostRoom = async (code: string): Promise<RoomState> => {
+  const user = await ensureUser();
+  const snapshot = await getDoc(roomRef(code));
+  if (!snapshot.exists()) throw new Error('Your previous lobby has expired.');
+  const data = snapshot.data();
+  if (data.hostUid !== user.uid) throw new Error('This lobby belongs to another Quiz Master.');
+  const room = (data.hostState || data.state) as RoomState | undefined;
+  if (!room) throw new Error('The Quiz Master room could not be restored.');
+  return room;
 };
 
 export const findFirebaseRoom = async (code: string): Promise<RoomState> => {
