@@ -12,7 +12,6 @@ import {
   Plus,
   Minus,
   Sparkles,
-  Upload,
   Radio,
   Tv,
   Users,
@@ -43,7 +42,7 @@ import {
   Pencil,
   Combine,
 } from 'lucide-react';
-import { RoomState, HostActionPayload, Team, Round } from '../types';
+import { RoomState, HostActionPayload, Team, Round, Question } from '../types';
 import { audioSynth, PRESET_MELODIES } from '../utils/audioSynth';
 import { CATEGORY_VAULT } from '../data/defaultQuestions';
 import { CartoonQuizMaster, CartoonBeerStein, CartoonRecordPlayer } from './CartoonIllustrations';
@@ -52,6 +51,7 @@ import { KnockoutWinnerScreen } from './KnockoutWinnerScreen';
 import { TEAM_AVATARS, PUB_LEGEND_TEAM_NAMES } from '../data/teamPresets';
 import { RoomJoinQR } from './RoomJoinQR';
 import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
+import { questionHasBeenUsed } from '../utils/questionQuality';
 
 interface Props {
   roomState: RoomState;
@@ -148,30 +148,27 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
     }
   };
 
-  // Upload picture clue for music or picture round
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, questionId: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        onHostAction({
-          actionType: 'upload_music_picture',
-          questionId,
-          pictureDataUrl: dataUrl,
-        });
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
   // Call Gemini AI questions generator
   const handleGenerateAIQuestions = async () => {
     setIsGeneratingAI(true);
     setAIStatus('');
     const categoryToUse = customAICategory.trim() || selectedAICategory;
+    const existingPrompts = roomState.rounds.flatMap((round) => round.questions.map((question) => question.prompt));
+
+    const appendUniqueQuestions = (questions: Question[]) => {
+      const comparisonHistory = [...existingPrompts];
+      const uniqueQuestions = questions.filter((question) => {
+        if (questionHasBeenUsed(question.prompt, comparisonHistory)) return false;
+        comparisonHistory.push(question.prompt);
+        return true;
+      });
+      if (uniqueQuestions.length === 0) throw new Error('No new questions were returned. Please try another topic.');
+      const newRounds = roomState.rounds.map((round, index) => index === roomState.currentRoundIndex
+        ? { ...round, questions: [...round.questions, ...uniqueQuestions] }
+        : round);
+      onHostAction({ actionType: 'load_questions', rounds: newRounds });
+      return uniqueQuestions.length;
+    };
 
     try {
       if (preferDeviceAI) {
@@ -181,15 +178,14 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
           difficulty: aiDifficulty,
           roundType: currentRound?.type || 'trivia',
           roundNumber: currentRound?.roundNumber || 1,
+          excludedPrompts: existingPrompts,
           onProgress: (progress, message) => {
             setDeviceAIProgress(progress);
             setAIStatus(message);
           },
         });
-        const newRounds = [...roomState.rounds];
-        newRounds[roomState.currentRoundIndex].questions.push(...questions);
-        onHostAction({ actionType: 'load_questions', rounds: newRounds });
-        setAIStatus('Questions created privately on this phone.');
+        const added = appendUniqueQuestions(questions);
+        setAIStatus(`${added} fresh question${added === 1 ? '' : 's'} created privately on this phone.`);
         setShowAISettings(false);
         return;
       }
@@ -202,15 +198,17 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
           count: aiCount,
           difficulty: aiDifficulty,
           roundType: currentRound?.type || 'trivia',
+          excludedPrompts: existingPrompts,
         }),
       });
+      if (!res.ok) throw new Error('The online question service is unavailable.');
       const data = await res.json();
       if (data.questions && data.questions.length > 0) {
-        const newRounds = [...roomState.rounds];
-        // Append generated questions to current round
-        newRounds[roomState.currentRoundIndex].questions.push(...data.questions);
-        onHostAction({ actionType: 'load_questions', rounds: newRounds });
+        const added = appendUniqueQuestions(data.questions);
+        setAIStatus(`${added} fresh question${added === 1 ? '' : 's'} added.`);
         setShowAISettings(false);
+      } else {
+        throw new Error('No valid questions were returned. Please try again.');
       }
     } catch (err) {
       console.error('Failed to generate AI questions:', err);
@@ -721,24 +719,6 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                   </div>
                 </div>
 
-                {/* Picture Upload Clues for Music Round */}
-                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-rose-200">
-                  <span className="text-xs text-stone-600 font-bold">Picture Clues:</span>
-                  {currentQ?.musicData?.cluePictures?.map((pic, i) => (
-                    <img key={i} src={pic} alt="clue" className="w-10 h-10 object-cover rounded-xl border-2 border-rose-400 shadow" />
-                  ))}
-
-                  <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-800/40 text-xs font-bold text-stone-800 hover:text-stone-950 cursor-pointer">
-                    <Upload className="w-3.5 h-3.5 text-rose-600" />
-                    <span>Upload Picture Clue</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => currentQ && handleFileUpload(e, currentQ.id)}
-                    />
-                  </label>
-                </div>
               </div>
             )}
 
