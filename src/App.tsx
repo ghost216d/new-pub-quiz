@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
+import { randomizeQuestionOptions } from './utils/questionQuality';
 import { createPresetTeams, TEAM_AVATARS, TEAM_COLORS } from './data/teamPresets';
 import { Header } from './components/Header';
 import { LandingView, RoomLobbyPreview } from './components/LandingView';
@@ -17,6 +18,7 @@ import { getLondonTheme } from './utils/londonTheme';
 import {
   clearFirebaseRoomActivity,
   createFirebaseRoom,
+  findFirebaseHostRoom,
   findFirebaseRoom,
   isFirebaseMultiplayerConfigured,
   joinFirebaseTeam,
@@ -28,6 +30,34 @@ import {
 } from './utils/firebaseMultiplayer';
 
 type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
+const HOST_SESSION_KEY = 'pubquiz_active_host_room_v1';
+
+const quizMasterRounds = () => DEFAULT_ROUNDS
+  .filter((round) => round.type !== 'music')
+  .map((round, index) => ({
+    ...round,
+    roundNumber: index + 1,
+    questions: round.questions.map((question) => ({
+      ...randomizeQuestionOptions(question),
+      roundNumber: index + 1,
+      musicData: undefined,
+    })),
+  }));
+
+const removeMusicFromRoom = (source: RoomState): RoomState => {
+  const room = structuredClone(source);
+  room.rounds = room.rounds
+    .filter((round) => round.type !== 'music')
+    .map((round, index) => ({
+      ...round,
+      roundNumber: index + 1,
+      questions: round.questions.map((question) => ({ ...question, roundNumber: index + 1, musicData: undefined })),
+    }));
+  room.currentRoundIndex = Math.min(room.currentRoundIndex, Math.max(0, room.rounds.length - 1));
+  room.musicPlaying = false;
+  room.activeMusicTrack = undefined;
+  return room;
+};
 
 const multiplayerHttpBase = (): string | null => {
   const configured = String(import.meta.env.VITE_MULTIPLAYER_API_URL || '').trim().replace(/\/$/, '');
@@ -548,7 +578,7 @@ export default function App() {
         status: 'lobby',
         currentRoundIndex: 0,
         currentQuestionIndex: 0,
-        rounds: JSON.parse(JSON.stringify(DEFAULT_ROUNDS)),
+        rounds: quizMasterRounds(),
         teams: initialTeams,
         timerRemaining: 30,
         timerTotal: 30,
@@ -648,6 +678,30 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('room') || !isFirebaseMultiplayerConfigured) return;
+    const savedCode = localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase();
+    if (!savedCode) return;
+
+    let cancelled = false;
+    setIsLoading(true);
+    findFirebaseHostRoom(savedCode).then(async (savedRoom) => {
+      if (cancelled) return;
+      const restoredRoom = removeMusicFromRoom(savedRoom);
+      setRoomCode(savedCode);
+      setRoomState(restoredRoom);
+      setRole('host');
+      await connectFirebaseRoom(savedCode, 'host');
+    }).catch((error) => {
+      if (cancelled) return;
+      localStorage.removeItem(HOST_SESSION_KEY);
+      setIsLoading(false);
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to restore the previous Quiz Master lobby.');
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   // Host a new game (supports choosing up to 40 teams)
   const handleHostGame = async (
     hostName: string,
@@ -663,7 +717,7 @@ export default function App() {
       const initialTeams = prePopulateScheme === 'none' ? {} : createPresetTeams(Math.min(40, maxTeams), prePopulateScheme);
       const initial: RoomState = {
         code: seedCode, hostName, status: 'lobby', currentRoundIndex: 0, currentQuestionIndex: 0,
-        rounds: JSON.parse(JSON.stringify(DEFAULT_ROUNDS)), teams: initialTeams,
+        rounds: quizMasterRounds(), teams: initialTeams,
         timerRemaining: 30, timerTotal: 30, isTimerRunning: false, submissions: {},
         settings: { answerMode: 'multiple_choice', showMilestoneEvery10: true, roundTimerSeconds: 30, allowSoloAI: true, maxTeams: Math.min(40, Math.max(2, maxTeams)), prePopulateScheme },
         musicPlaying: false,
@@ -673,6 +727,7 @@ export default function App() {
         setRoomCode(created.code);
         setRoomState(created);
         setRole('host');
+        localStorage.setItem(HOST_SESSION_KEY, created.code);
         await connectFirebaseRoom(created.code, 'host');
       } catch (error) {
         setIsLoading(false);
@@ -686,6 +741,7 @@ export default function App() {
       const randomCode = 'PUB1';
       setRoomCode(randomCode);
       setRole('host');
+      localStorage.setItem(HOST_SESSION_KEY, randomCode);
       setConnectionStatus('standalone');
       setErrorMessage('Standalone Quiz Master mode: other phones and the TV cannot join until the multiplayer service is connected.');
       handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
@@ -702,12 +758,14 @@ export default function App() {
       const code = data.roomCode;
       setRoomCode(code);
       setRole('host');
+      localStorage.setItem(HOST_SESSION_KEY, code);
       connectWebSocket(code, 'host');
     } catch {
       // Local fallback
       const randomCode = 'PUB1';
       setRoomCode(randomCode);
       setRole('host');
+      localStorage.setItem(HOST_SESSION_KEY, randomCode);
       handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
     }
   };
@@ -816,7 +874,17 @@ export default function App() {
       if (['next_question', 'prev_question', 'jump_to_question', 'next_round', 'prev_round', 'start_round'].includes(action.actionType)) {
         void clearFirebaseRoomActivity(roomCode).catch(() => undefined);
       }
-      setRoomState((current) => current ? applyLocalHostAction(current, action) : current);
+      setRoomState((current) => {
+        if (!current) return current;
+        const next = applyLocalHostAction(current, action);
+        if (['reveal_answer', 'grade_answer', 'adjust_score'].includes(action.actionType)) {
+          void publishFirebaseRoom(next).catch((error) => {
+            console.error('Unable to save the updated scores:', error);
+            setConnectionStatus('reconnecting');
+          });
+        }
+        return next;
+      });
     } else if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const msg: WSMessage = {
         type: 'host_action',
