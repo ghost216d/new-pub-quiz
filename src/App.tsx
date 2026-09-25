@@ -211,14 +211,6 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
         maxTeams: Math.min(40, Math.max(2, action.settings.maxTeams ?? room.settings.maxTeams)),
       };
       break;
-    case 'upload_music_picture':
-      room.rounds.forEach((round) => round.questions.forEach((question) => {
-        if (question.id !== action.questionId) return;
-        question.musicData ||= { songTitle: 'Custom Song', artist: 'Custom Artist', decadeOrGenre: 'Music Round', cluePictures: [] };
-        question.musicData.cluePictures ||= [];
-        question.musicData.cluePictures.push(action.pictureDataUrl);
-      }));
-      break;
     case 'load_questions':
       room.rounds = action.rounds;
       room.currentRoundIndex = 0;
