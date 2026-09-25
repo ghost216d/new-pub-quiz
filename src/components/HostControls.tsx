@@ -51,7 +51,7 @@ import { KnockoutWinnerScreen } from './KnockoutWinnerScreen';
 import { TEAM_AVATARS, PUB_LEGEND_TEAM_NAMES } from '../data/teamPresets';
 import { RoomJoinQR } from './RoomJoinQR';
 import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
-import { questionHasBeenUsed } from '../utils/questionQuality';
+import { questionHasBeenUsed, randomizeQuestionOptions } from '../utils/questionQuality';
 
 interface Props {
   roomState: RoomState;
@@ -161,7 +161,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
         if (questionHasBeenUsed(question.prompt, comparisonHistory)) return false;
         comparisonHistory.push(question.prompt);
         return true;
-      });
+      }).map(randomizeQuestionOptions);
       if (uniqueQuestions.length === 0) throw new Error('No new questions were returned. Please try another topic.');
       const newRounds = roomState.rounds.map((round, index) => index === roomState.currentRoundIndex
         ? { ...round, questions: [...round.questions, ...uniqueQuestions] }
