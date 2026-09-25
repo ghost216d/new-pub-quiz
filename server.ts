@@ -17,6 +17,7 @@ import {
 } from './src/types';
 
 import { DEFAULT_ROUNDS } from './src/data/defaultQuestions';
+import { hasFourValidOptions, questionHasBeenUsed } from './src/utils/questionQuality';
 
 import {
   createPresetTeams,
@@ -279,7 +280,8 @@ function shuffleArray<T>(items: T[]): T[] {
 function getFallbackQuestions(
   category: string = '',
   count: number = 5,
-  difficulty: string = 'medium'
+  difficulty: string = 'medium',
+  excludedPrompts: string[] = []
 ): Question[] {
   const allQuestions: Question[] = [];
 
@@ -316,7 +318,10 @@ function getFallbackQuestions(
     }
   }
 
-  return shuffleArray(filtered)
+  const unseen = filtered.filter((question) => !questionHasBeenUsed(question.prompt, excludedPrompts));
+  const playable = unseen.length >= Math.min(count, filtered.length) ? unseen : filtered;
+
+  return shuffleArray(playable)
     .slice(0, count)
     .map((question) => ({
       ...question,
@@ -339,7 +344,12 @@ app.post('/api/ai/generate-questions', async (req, res) => {
     count = 5,
     difficulty = 'medium',
     roundType = 'trivia',
+    excludedPrompts = [],
   } = req.body ?? {};
+
+  const safeExcludedPrompts = Array.isArray(excludedPrompts)
+    ? excludedPrompts.filter((prompt): prompt is string => typeof prompt === 'string').slice(-1000)
+    : [];
 
   const parsedCount = Number.parseInt(String(count), 10);
 
@@ -364,7 +374,8 @@ app.post('/api/ai/generate-questions', async (req, res) => {
         questions: getFallbackQuestions(
           String(category),
           safeCount,
-          String(difficulty)
+          String(difficulty),
+          safeExcludedPrompts
         ),
       });
     }
@@ -429,6 +440,11 @@ Every question MUST contain:
 
 Do not create ambiguous questions.
 Do not create multiple correct answers.
+Do not use trick wording, disputed facts, or facts that are likely to change.
+Make every wrong option plausible and from the same kind of thing as the correct answer.
+Vary the wording and subject within the category; do not create near-duplicate questions.
+Do not repeat or closely reword any of these existing questions:
+${safeExcludedPrompts.slice(-150).join(' | ') || 'None'}
 `;
 
     const candidateModels = [
@@ -540,11 +556,19 @@ Do not create multiple correct answers.
       throw new Error('AI returned an invalid question format.');
     }
 
+    const comparisonHistory = [...safeExcludedPrompts];
     const formattedQuestions: Question[] =
       parsedQuestions
+        .filter((question) => {
+          if (!hasFourValidOptions(question)) return false;
+          const prompt = String(question.prompt).trim();
+          if (questionHasBeenUsed(prompt, comparisonHistory)) return false;
+          comparisonHistory.push(prompt);
+          return true;
+        })
         .slice(0, safeCount)
         .map((question) => {
-          let options = Array.isArray(question.options)
+          const options = Array.isArray(question.options)
             ? question.options
                 .filter(
                   (option): option is string =>
@@ -554,18 +578,10 @@ Do not create multiple correct answers.
                 .slice(0, 4)
             : [];
 
-          while (options.length < 4) {
-            options.push(`Option ${options.length + 1}`);
-          }
-
-          let correctAnswer =
+          const correctAnswer =
             typeof question.correctAnswer === 'string'
               ? question.correctAnswer.trim()
               : '';
-
-          if (!options.includes(correctAnswer)) {
-            correctAnswer = options[0];
-          }
 
           return {
             id: `ai_${randomUUID()}`,
@@ -613,6 +629,10 @@ Do not create multiple correct answers.
           };
         });
 
+    if (formattedQuestions.length === 0) {
+      throw new Error('AI did not return any valid, unseen questions.');
+    }
+
     return res.json({
       success: true,
       fallback: false,
@@ -635,7 +655,8 @@ Do not create multiple correct answers.
       questions: getFallbackQuestions(
         String(category),
         safeCount,
-        String(difficulty)
+        String(difficulty),
+        safeExcludedPrompts
       ),
     });
   }
@@ -2940,63 +2961,6 @@ function handleHostAction(
           )
         ),
       };
-
-      break;
-    }
-
-    /* --------------------------------------------------------
-       MUSIC PICTURE
-    -------------------------------------------------------- */
-
-    case 'upload_music_picture': {
-      const {
-        questionId,
-        pictureDataUrl,
-      } = action;
-
-      for (
-        const round of
-        room.rounds
-      ) {
-        for (
-          const question of
-          round.questions
-        ) {
-          if (
-            question.id ===
-            questionId
-          ) {
-            if (
-              !question.musicData
-            ) {
-              question.musicData = {
-                songTitle:
-                  'Custom Song',
-
-                artist:
-                  'Custom Artist',
-
-                decadeOrGenre:
-                  'Music Round',
-
-                cluePictures: [],
-              };
-            }
-
-            if (
-              !question.musicData
-                .cluePictures
-            ) {
-              question.musicData.cluePictures =
-                [];
-            }
-
-            question.musicData.cluePictures.push(
-              pictureDataUrl
-            );
-          }
-        }
-      }
 
       break;
     }
