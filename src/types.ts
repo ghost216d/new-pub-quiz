@@ -21,9 +21,9 @@ export interface Question {
     songTitle: string;
     artist: string;
     decadeOrGenre: string;
-    cluePictures?: string[]; // Multiple pictures uploaded/associated
+    cluePictures?: string[]; // Built-in picture clues associated with the track
     melodyId?: string; // Built-in synthesizer tune key
-    audioUrl?: string; // Custom audio upload or data url
+    audioUrl?: string; // Optional audio source
   };
 }
 
@@ -134,7 +134,6 @@ export type HostActionPayload =
   | { actionType: 'adjust_score'; teamId: string; delta: number }
   | { actionType: 'toggle_music'; isPlaying: boolean }
   | { actionType: 'update_settings'; settings: Partial<QuizSettings> }
-  | { actionType: 'upload_music_picture'; questionId: string; pictureDataUrl: string }
   | { actionType: 'load_questions'; rounds: Round[] }
   | { actionType: 'add_team'; name: string; avatar?: string }
   | { actionType: 'rename_team'; teamId: string; name: string }
