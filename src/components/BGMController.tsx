@@ -39,8 +39,6 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
     audioSynth.playCoinFx();
   };
 
-  const isActuallyAudible = status.isPlaying && !status.isMuted && status.volume > 0;
-
   return (
     <div className={`bgm-control relative inline-flex items-center ${isMenuOpen ? 'is-open' : ''} ${className}`}>
       {/* One-tap sound control; music settings stay separate. */}
