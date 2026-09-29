@@ -5425,3 +5425,246 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
   text-align: center;
 }
 .role-solo .game-title > div { text-align: center; }
+
+
+/* Keep mobile Quiz Master setup focused and keep profile editing reachable. */
+@media (max-width: 639px) {
+  .landing-shell.is-host-setup .landing-pub-sign,
+  .landing-shell.is-host-setup .landing-live-caption {
+    display: none !important;
+  }
+
+  .landing-shell.is-host-setup .landing-host-intro {
+    gap: 0.5rem !important;
+    padding: 0.55rem !important;
+  }
+
+  .landing-shell.is-host-setup .landing-host-intro > svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .landing-shell.is-host-setup .landing-mode-panel {
+    padding: 0.65rem !important;
+  }
+
+  .landing-shell.is-host-setup .landing-mode-panel form.space-y-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.65rem !important;
+  }
+}
+
+
+/* One soft, light palette across every app screen, regardless of day/night. */
+:root {
+  --app-pub-wine: #f0d4d8;
+  --app-pub-wine-dark: #ead6c4;
+  --app-pub-gold: #191919;
+  --app-pub-cream: #fffaf0;
+  --app-pub-ink: #202020;
+  --app-pub-outline: #191919;
+  --app-pastel-butter: #fff1c9;
+  --app-pastel-rose: #f8e2e5;
+  --app-pastel-blue: #e3eff5;
+  --app-pastel-mint: #e5f0e5;
+  --app-pastel-lilac: #eee8f4;
+  --app-pastel-neutral: #f2eee8;
+}
+
+body,
+.bg-pub-wood,
+.app-shell,
+.tv-display-shell {
+  color: #202020 !important;
+  background-color: #fffaf0 !important;
+  background-image:
+    radial-gradient(circle at 10% 8%, #ffffff 0, transparent 34%),
+    linear-gradient(180deg, #fffaf0 0%, #f7f1e9 100%) !important;
+}
+
+html[data-time-theme="night"] .app-shell,
+html[data-time-theme="night"] .tv-display-shell {
+  color: #202020 !important;
+  background-color: #fffaf0 !important;
+  background-image:
+    radial-gradient(circle at 10% 8%, #ffffff 0, transparent 34%),
+    linear-gradient(180deg, #fffaf0 0%, #f7f1e9 100%) !important;
+}
+
+/* Convert utility-color surfaces into coordinated pale tints. */
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-slate-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-stone-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-neutral-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-zinc-"] {
+  background-color: var(--app-pastel-neutral) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-amber-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-yellow-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-orange-"] {
+  background-color: var(--app-pastel-butter) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-red-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-rose-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-pink-"] {
+  background-color: var(--app-pastel-rose) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-sky-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-blue-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-cyan-"] {
+  background-color: var(--app-pastel-blue) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-emerald-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-green-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-teal-"] {
+  background-color: var(--app-pastel-mint) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-purple-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-violet-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-fuchsia-"] {
+  background-color: var(--app-pastel-lilac) !important;
+}
+
+/* Soft pastel gradients for buttons and cards, with readable dark text. */
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-amber-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-yellow-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-orange-"] {
+  background-image: linear-gradient(145deg, #fff6dc, #f5e5bb) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-red-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-rose-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-pink-"] {
+  background-image: linear-gradient(145deg, #fff0f1, #f3dce1) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-sky-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-blue-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-cyan-"] {
+  background-image: linear-gradient(145deg, #f1f8fb, #dfeaf0) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-emerald-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-green-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-teal-"] {
+  background-image: linear-gradient(145deg, #f1f8f1, #dfeade) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-purple-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-violet-"],
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="bg-gradient"][class*="from-fuchsia-"] {
+  background-image: linear-gradient(145deg, #f8f4fb, #e9e1f0) !important;
+}
+
+/* Draw every outlined panel and control with the same crisp black edge. */
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class*="border-"] {
+  border-color: var(--app-pub-outline) !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) :is(button, input, select, textarea) {
+  border-color: var(--app-pub-outline) !important;
+  color: #202020 !important;
+}
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) [class~="text-white"] {
+  color: #202020 !important;
+}
+
+/* Shared headers and navigation use soft rose and butter accents. */
+.app-main-header {
+  color: #202020 !important;
+  border: 2px solid var(--app-pub-outline) !important;
+  background: linear-gradient(180deg, #f8e5e8, #eedadd) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18) !important;
+}
+.app-main-header h1,
+.app-main-header #header-brand-home-btn > div:last-child span {
+  color: #202020 !important;
+  text-shadow: none !important;
+}
+.app-main-header .header-home-button {
+  color: #202020 !important;
+  border: 2px solid var(--app-pub-outline) !important;
+  background: #fff1c9 !important;
+}
+.app-bottom-nav {
+  border: 2px solid var(--app-pub-outline) !important;
+  border-bottom: 0 !important;
+  background: linear-gradient(180deg, #f8e5e8, #ead6da) !important;
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.12) !important;
+}
+.app-bottom-nav button {
+  color: #202020 !important;
+  text-shadow: none !important;
+  border-color: rgba(25, 25, 25, 0.28) !important;
+}
+.app-bottom-nav button.is-active {
+  color: #202020 !important;
+  border: 2px solid var(--app-pub-outline) !important;
+  background: #fff1c9 !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Map artwork stays vivid; the map chrome follows the light app palette. */
+.role-solo {
+  background: #fffaf0 !important;
+  color: #202020 !important;
+}
+.role-solo .game-top-bar,
+.role-solo .game-realm-card,
+.role-solo .game-bottom-nav,
+.role-solo .game-side-panel,
+.role-solo .solo-setup-screen,
+.role-solo .solo-result-screen,
+.role-solo .solo-question-card {
+  color: #202020 !important;
+  border-color: var(--app-pub-outline) !important;
+  background: linear-gradient(145deg, #fffaf0, #f1e9df) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18) !important;
+}
+.role-solo .game-bottom-nav button,
+.role-solo .game-top-bar button,
+.role-solo .game-realm-card button {
+  color: #202020 !important;
+  text-shadow: none !important;
+  border-color: var(--app-pub-outline) !important;
+}
+.role-solo .game-bottom-nav button.is-active {
+  color: #202020 !important;
+  border-color: var(--app-pub-outline) !important;
+  background: #f8e2e5 !important;
+}
+.role-solo .game-level-node,
+.role-solo .game-map-arrow,
+.role-solo .game-realm-toggle {
+  border-color: var(--app-pub-outline) !important;
+  color: #202020 !important;
+}
+
+/* Host, player, shop and profile panels keep their own soft semantic tints. */
+:is(.role-landing, .role-host, .role-player, .tv-display-shell) :is(.landing-pub-sign, .landing-mode-tabs, .landing-mode-panel, .host-console-shell > div, .host-console-shell section, .player-mobile-view, .tv-display-shell > header, .tv-display-shell > main, .tv-display-shell > footer, #tavern-shop-modal-container > div) {
+  color: #202020;
+  border-color: var(--app-pub-outline) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16) !important;
+}
+:is(.role-landing, .role-host, .role-player, .tv-display-shell) .landing-mode-tabs button[aria-pressed="true"],
+:is(.role-landing, .role-host, .role-player, .tv-display-shell) .landing-mode-tabs button.is-active {
+  color: #202020 !important;
+  background: #fff1c9 !important;
+}
+:is(.role-host, .role-player) .host-console-shell :is(button, input, select, textarea),
+:is(.role-host, .role-player) .app-content :is(button, input, select, textarea) {
+  color: #202020 !important;
+}
+
+
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) :is(.cartoon-btn-amber, .cartoon-btn-cyan, .cartoon-btn-pink, .cartoon-btn-emerald, .cartoon-btn-purple) {
+  color: #202020 !important;
+  border-color: var(--app-pub-outline) !important;
+  background: #fff1c9 !important;
+  background-image: none !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16) !important;
+  text-shadow: none !important;
+}
+
+.role-solo .game-nav-icon {
+  color: #202020 !important;
+  border: 1px solid var(--app-pub-outline) !important;
+  background: #f8e2e5 !important;
+  box-shadow: none !important;
+}
+.role-solo .game-bottom-nav button.is-active .game-nav-icon {
+  background: #fff1c9 !important;
+}

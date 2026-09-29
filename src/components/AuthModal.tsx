@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserProfile, SoloProgression } from '../types';
 import { audioSynth } from '../utils/audioSynth';
 import {
@@ -9,6 +9,7 @@ import {
   signInWithEmail,
   signInWithGoogle,
   signOutFromFirebase,
+  updateCurrentUserProfile,
 } from '../utils/firebaseAuth';
 import {
   CheckCircle2,
@@ -42,12 +43,21 @@ export const AuthModal: React.FC<Props> = ({
   const currentProfile = progression.userProfile;
   const [nameInput, setNameInput] = useState(currentProfile?.name || 'Quiz Master');
   const [selectedAvatar, setSelectedAvatar] = useState(currentProfile?.avatar || '🍺');
-  const [authBusy, setAuthBusy] = useState<'google' | 'email' | 'reset' | 'signout' | null>(null);
+  const [authBusy, setAuthBusy] = useState<'google' | 'email' | 'reset' | 'signout' | 'profile' | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState(currentProfile?.email || '');
   const [passwordInput, setPasswordInput] = useState('');
   const [emailMode, setEmailMode] = useState<'signin' | 'create'>('signin');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setNameInput(currentProfile?.name || 'Quiz Master');
+    setSelectedAvatar(currentProfile?.avatar || '🍺');
+    setEmailInput(currentProfile?.email || '');
+    setAuthError(null);
+    setAuthNotice(null);
+  }, [isOpen, currentProfile?.id, currentProfile?.name, currentProfile?.avatar, currentProfile?.email]);
 
   if (!isOpen) return null;
 
@@ -136,6 +146,37 @@ export const AuthModal: React.FC<Props> = ({
     onClose();
   };
 
+  const handleSaveProfile = async () => {
+    const name = nameInput.trim();
+    if (!name) {
+      setAuthError('Enter a nickname before saving your profile.');
+      return;
+    }
+    if (!currentProfile) {
+      handlePlayAsGuest();
+      return;
+    }
+
+    setAuthBusy('profile');
+    setAuthError(null);
+    setAuthNotice(null);
+    try {
+      if (currentProfile.provider !== 'guest') {
+        await updateCurrentUserProfile(name);
+      }
+      onUpdateProgression({
+        ...progression,
+        userProfile: { ...currentProfile, name, avatar: selectedAvatar },
+      });
+      audioSynth.playPurchaseFx();
+      onClose();
+    } catch (error) {
+      setAuthError(friendlyAuthError(error));
+    } finally {
+      setAuthBusy(null);
+    }
+  };
+
   const handleSignOut = async () => {
     setAuthBusy('signout');
     setAuthError(null);
@@ -152,7 +193,7 @@ export const AuthModal: React.FC<Props> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-amber-950/25 backdrop-blur-[1px] animate-in fade-in">
-      <div className="max-w-md w-full bg-[#fffdf8] rounded-3xl p-5 sm:p-6 border-4 border-amber-800 shadow-[0_12px_0_#082f49] text-stone-900 space-y-4">
+      <div className="max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain bg-[#fffdf8] rounded-3xl p-4 sm:p-6 border-4 border-amber-800 shadow-[0_12px_0_#082f49] text-stone-900 space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-amber-800/30 pb-3">
           <div className="flex items-center gap-2.5">
@@ -251,6 +292,18 @@ export const AuthModal: React.FC<Props> = ({
             ))}
           </div>
         </div>
+
+        {currentProfile && (
+          <button
+            id="save-profile-btn"
+            type="button"
+            onClick={() => void handleSaveProfile()}
+            disabled={authBusy !== null || !nameInput.trim()}
+            className="w-full min-h-[44px] rounded-xl border-2 border-amber-950 bg-amber-700 px-4 py-2.5 text-sm font-black text-white shadow-[0_3px_0_#451a03] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {authBusy === 'profile' ? 'Saving profile…' : 'Save nickname & character'}
+          </button>
+        )}
 
         {/* PRIMARY AUTH OPTIONS: GOOGLE, EMAIL & GUEST */}
         <div className="space-y-2.5 pt-1">
