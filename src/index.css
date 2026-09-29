@@ -5648,3 +5648,23 @@ html[data-time-theme="night"] .tv-display-shell {
 :is(.role-host, .role-player) .app-content :is(button, input, select, textarea) {
   color: #202020 !important;
 }
+
+
+:is(.app-shell, .tv-display-shell, #tavern-shop-modal-container) :is(.cartoon-btn-amber, .cartoon-btn-cyan, .cartoon-btn-pink, .cartoon-btn-emerald, .cartoon-btn-purple) {
+  color: #202020 !important;
+  border-color: var(--app-pub-outline) !important;
+  background: #fff1c9 !important;
+  background-image: none !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16) !important;
+  text-shadow: none !important;
+}
+
+.role-solo .game-nav-icon {
+  color: #202020 !important;
+  border: 1px solid var(--app-pub-outline) !important;
+  background: #f8e2e5 !important;
+  box-shadow: none !important;
+}
+.role-solo .game-bottom-nav button.is-active .game-nav-icon {
+  background: #fff1c9 !important;
+}
