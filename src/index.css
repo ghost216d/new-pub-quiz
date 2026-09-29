@@ -5830,3 +5830,148 @@ html[data-time-theme] .role-solo .game-title p {
   font-weight: 900;
   text-align: right;
 }
+
+/* Keep the app's pastel interface stable when Android or Samsung Internet is
+   using a dark appearance. Seasonal map artwork can still change separately. */
+html,
+body,
+#root,
+#root .app-shell,
+#root .tv-display-shell {
+  color-scheme: only light !important;
+}
+
+:root,
+#root .app-shell,
+#root .tv-display-shell {
+  --app-pub-outline: #191919;
+  --pub-edge: #191919;
+}
+
+#root .app-shell,
+#root .tv-display-shell {
+  color: #202020 !important;
+  background: linear-gradient(160deg, #f8f7f3 0%, #e9f2f4 54%, #f8e9eb 100%) !important;
+}
+
+#root .app-main-header,
+#root .role-solo .game-top-bar {
+  color: #202020 !important;
+  border: 2px solid #191919 !important;
+  background: linear-gradient(180deg, #fff8f3, #f3e6e4) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16) !important;
+}
+
+#root .role-solo .game-top-bar h1,
+#root .role-solo .game-top-bar p {
+  color: #202020 !important;
+  text-shadow: none !important;
+}
+
+#root .role-solo .game-resource {
+  color: #202020 !important;
+  border: 2px solid #191919 !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16) !important;
+}
+
+#root .role-solo .game-resource-lives {
+  background: #f8e5e8 !important;
+}
+
+#root .role-solo .game-resource-coins {
+  background: #fff1c9 !important;
+}
+
+#root .role-solo .game-resource-stars {
+  background: #f2edcf !important;
+}
+
+#root .role-solo .resume-host-quiz-btn {
+  right: max(8px, env(safe-area-inset-right, 0px)) !important;
+  left: auto !important;
+  border: 2px solid #191919 !important;
+  color: #202020 !important;
+  background: #e4f4eb !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16) !important;
+}
+
+#root .role-solo .game-regen {
+  color: #202020 !important;
+  border: 2px solid #191919 !important;
+  background: #f8e5e8 !important;
+}
+
+#root .role-solo .game-realm-card,
+#root .role-solo .game-level-card,
+#root .role-solo .game-actions-toggle,
+#root .role-solo .game-action {
+  color: #202020 !important;
+  border-color: #191919 !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16) !important;
+}
+
+#root .role-solo .game-realm-card,
+#root .role-solo .game-level-card {
+  background: rgba(255, 250, 245, 0.97) !important;
+}
+
+#root .role-solo .game-actions-toggle {
+  background: #e3eff5 !important;
+}
+
+#root .role-solo .game-action {
+  background: #fff1c9 !important;
+}
+
+#root .app-bottom-nav,
+#root .role-solo .game-bottom-nav {
+  border: 2px solid #191919 !important;
+  background: linear-gradient(180deg, #fff8f3, #f3e6e4) !important;
+  box-shadow: 0 -3px 0 rgba(0, 0, 0, 0.14) !important;
+  color: #202020 !important;
+}
+
+#root .app-bottom-nav button,
+#root .role-solo .game-bottom-nav button {
+  color: #202020 !important;
+  text-shadow: none !important;
+}
+
+#root .app-bottom-nav button.is-active,
+#root .role-solo .game-bottom-nav button.is-active {
+  border: 2px solid #191919 !important;
+  background: #fff1c9 !important;
+  color: #202020 !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16) !important;
+}
+
+@media (max-width: 899px) {
+  #root .role-solo .resume-host-quiz-btn {
+    top: max(158px, calc(env(safe-area-inset-top, 0px) + 152px)) !important;
+  }
+
+  #root .role-solo .game-top-bar {
+    min-height: 64px;
+    padding-right: 124px !important;
+  }
+
+  #root .role-solo .game-title {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  #root .role-solo .game-title-icon {
+    font-size: 22px;
+    filter: none;
+  }
+
+  #root .role-solo .game-title h1 {
+    font-size: clamp(15px, 4.4vw, 20px) !important;
+    letter-spacing: 0.01em;
+  }
+
+  #root .role-solo .game-title p {
+    font-size: clamp(8px, 2.4vw, 10px) !important;
+    letter-spacing: 0.035em;
+  }
+}
