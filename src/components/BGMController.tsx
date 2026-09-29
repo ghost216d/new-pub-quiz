@@ -58,7 +58,7 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
         }`}
       >
         {status.isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-        {!compact && <span className="bgm-mute-label">{status.isMuted ? 'MUTED' : 'SOUND'}</span>}
+        {!compact && <span className="bgm-mute-label">{status.isMuted ? 'OFF' : 'ON'}</span>}
       </button>
 
       <button
