@@ -2879,10 +2879,14 @@ body,
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+@media (max-aspect-ratio: 4 / 5) {
+  .correct-drink-still { object-fit: cover; }
 }
 
 @media (prefers-reduced-motion: reduce) {
