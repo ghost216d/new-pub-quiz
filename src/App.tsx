@@ -1047,7 +1047,7 @@ export default function App() {
     if (role === 'player' && usingFirebaseRef.current) void leaveFirebaseTeam(roomCode);
     usingFirebaseRef.current = false;
     const returningFromHost = role === 'host';
-    setRole('solo');
+    setRole('landing');
     if (!returningFromHost) setRoomState(null);
     setErrorMessage(null);
     setConnectionStatus('disconnected');
@@ -1119,7 +1119,7 @@ export default function App() {
             title={`Return to ${activeHostMode} Quiz Master game`}
             className={`resume-host-quiz-btn fixed z-50 top-safe left-2 mt-2 flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
           >
-            <span aria-hidden="true">↩</span>
+            <span className="resume-host-quiz-icon" aria-hidden="true">↩</span>
             <span>{isLoading ? 'OPENING…' : `RESUME ${activeHostMode.toUpperCase()} QUIZ`}</span>
           </button>
         )}
