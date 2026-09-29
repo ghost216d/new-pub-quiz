@@ -107,7 +107,7 @@ export const LandingView: React.FC<Props> = ({
   };
 
   return (
-    <div className="landing-shell w-full max-w-xl mx-auto space-y-2.5 sm:space-y-3.5 select-none animate-pop-in pb-4 px-1 sm:px-0">
+    <div className={`landing-shell w-full max-w-xl mx-auto space-y-2.5 sm:space-y-3.5 select-none animate-pop-in pb-4 px-1 sm:px-0 ${mode === 'host' ? 'is-host-setup' : ''}`}>
       {error && (
         <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-rose-100 border-3 border-rose-600 text-rose-950 text-xs font-black shadow-[0_3px_0_#4c0519] animate-shake">
           <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
@@ -148,7 +148,7 @@ export const LandingView: React.FC<Props> = ({
 
       {/* 3. MULTIPLAYER LOBBY SECTION - DIVIDER & MODE TABS */}
       <div className="space-y-1.5 sm:space-y-2">
-        <div className="flex items-center justify-center gap-2 text-[10px] sm:text-[11px] font-cartoon text-amber-950 uppercase tracking-widest bg-amber-200/70 py-0.5 px-3 rounded-full border border-amber-800/40 w-fit mx-auto shadow-sm">
+        <div className="landing-live-caption flex items-center justify-center gap-2 text-[10px] sm:text-[11px] font-cartoon text-amber-950 uppercase tracking-widest bg-amber-200/70 py-0.5 px-3 rounded-full border border-amber-800/40 w-fit mx-auto shadow-sm">
           <span>OR PLAY LIVE WITH MATES AT THE PUB (UP TO 40 TEAMS)</span>
         </div>
 
@@ -336,12 +336,12 @@ export const LandingView: React.FC<Props> = ({
 
         {mode === 'host' && (
           <form onSubmit={handleHostSubmit} className="space-y-3">
-            <div className="flex items-center gap-2.5 p-2.5 bg-gradient-to-r from-amber-100 to-amber-50 rounded-2xl border-2 border-amber-800/60 shadow-sm text-stone-900">
+            <div className="landing-host-intro flex items-center gap-2.5 p-2.5 bg-gradient-to-r from-amber-100 to-amber-50 rounded-2xl border-2 border-amber-800/60 shadow-sm text-stone-900">
               <CartoonQuizMaster size={42} className="shrink-0 animate-wobble" />
               <div>
-                <span className="text-[11px] font-cartoon text-amber-950 uppercase tracking-wide block">Be The Quiz Master</span>
+                <span className="text-[11px] font-cartoon text-amber-950 uppercase tracking-wide block">Host a Pub Quiz</span>
                 <p className="text-[11px] text-stone-700 font-bold leading-tight">
-                  Control pacing, live leaderboards, and audio rounds for up to 40 pub tables!
+                  Set up your lobby, then run the quiz from your phone.
                 </p>
               </div>
             </div>
