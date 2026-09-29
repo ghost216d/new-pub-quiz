@@ -4943,3 +4943,166 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
     font-size: 9px !important;
   }
 }
+
+
+/* Clearer one-tap sound and map navigation controls. */
+.game-map-arrow-label { display: none; }
+.bgm-control {
+  gap: 5px;
+}
+
+.global-music-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bgm-mute-trigger,
+.bgm-settings-trigger {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 2px solid #fbbf24;
+  border-radius: 14px;
+  color: #78350f;
+  background: linear-gradient(180deg, #fffbeb, #fde68a);
+  box-shadow: 0 3px 0 #b45309, 0 7px 16px rgba(69, 26, 3, 0.2);
+}
+
+.bgm-mute-trigger {
+  min-width: 66px;
+}
+
+.bgm-mute-trigger.is-muted {
+  border-color: #fb7185;
+  color: #9f1239;
+  background: linear-gradient(180deg, #fff1f2, #fecdd3);
+  box-shadow: 0 3px 0 #be123c, 0 7px 16px rgba(69, 26, 3, 0.2);
+}
+
+.bgm-mute-trigger.is-unmuted {
+  border-color: #34d399;
+  color: #065f46;
+  background: linear-gradient(180deg, #ecfdf5, #a7f3d0);
+  box-shadow: 0 3px 0 #047857, 0 7px 16px rgba(69, 26, 3, 0.2);
+}
+
+.bgm-control.is-compact .bgm-mute-label {
+  font-size: 8px;
+}
+
+.bgm-mute-label {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.bgm-settings-trigger {
+  min-width: 42px;
+  padding: 0 7px;
+}
+
+.bgm-settings-trigger.is-open {
+  background: linear-gradient(180deg, #fef3c7, #fcd34d);
+}
+
+@media (max-width: 899px) {
+  .global-music-control {
+    right: 10px;
+    gap: 4px;
+  }
+
+  .global-music-control .bgm-mute-trigger {
+    width: 62px;
+    min-width: 62px;
+    height: 44px;
+    padding: 0 5px;
+  }
+
+  .global-music-control .bgm-settings-trigger {
+    width: 42px;
+    min-width: 42px;
+    height: 44px;
+  }
+
+  .global-music-control .bgm-settings-trigger > svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .app-main-header,
+  .game-top-bar {
+    padding-right: 124px;
+  }
+
+  .game-realm-card.is-collapsed {
+    z-index: 41;
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    padding: 6px;
+  }
+
+  .game-realm-card.is-collapsed .game-realm-heading {
+    grid-template-columns: 62px 54px 62px;
+    gap: 5px;
+  }
+
+  .game-realm-card.is-collapsed .game-map-arrow {
+    width: 62px;
+    height: 52px;
+    min-height: 48px;
+    flex-direction: column;
+    gap: 0;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  .game-realm-card.is-collapsed .game-map-arrow-label {
+    display: block;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+  }
+
+  .game-realm-card.is-collapsed .game-realm-toggle {
+    width: 54px;
+    height: 52px;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .game-realm-card.is-collapsed .game-realm-collapsed-label {
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 370px) {
+  .global-music-control {
+    right: 8px;
+    gap: 3px;
+  }
+
+  .global-music-control .bgm-mute-trigger {
+    width: 56px;
+    min-width: 56px;
+  }
+
+  .game-realm-card.is-collapsed .game-realm-heading {
+    grid-template-columns: 56px 50px 56px;
+  }
+
+  .game-realm-card.is-collapsed .game-map-arrow {
+    width: 56px;
+  }
+
+  .game-realm-card.is-collapsed .game-realm-toggle {
+    width: 50px;
+  }
+}

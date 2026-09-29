@@ -522,9 +522,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             onClick={() => changeMap(-1)}
             disabled={activeMapIndex <= 0}
             className="game-map-arrow"
-            aria-label="Previous realm"
+            aria-label="Previous world area" title={activeMapIndex > 0 ? `Previous: ${visibleMaps[activeMapIndex - 1].name}` : "No previous area"}
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" aria-hidden="true" /><span className="game-map-arrow-label">PREV</span>
           </button>
 
           <button
@@ -544,7 +544,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                 <ChevronDown aria-hidden="true" />
               </>
             ) : (
-              <ChevronUp aria-hidden="true" />
+              <><span className="game-realm-collapsed-label">MAP</span><ChevronUp aria-hidden="true" /></>
             )}
           </button>
 
@@ -554,9 +554,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
               activeMapIndex >= visibleMaps.length - 1
             }
             className="game-map-arrow"
-            aria-label="Next realm"
+            aria-label="Next world area" title={activeMapIndex < visibleMaps.length - 1 ? `Next: ${visibleMaps[activeMapIndex + 1].name}` : "No next area"}
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" aria-hidden="true" /><span className="game-map-arrow-label">NEXT</span>
           </button>
         </div>
 
