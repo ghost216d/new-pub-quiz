@@ -1,5 +1,5 @@
 import React from 'react';
-import { Beer, Home, Tv, Users, LogOut, Copy, Check } from 'lucide-react';
+import { Home, Tv, Copy, Check } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface Props {
@@ -45,7 +45,7 @@ export const Header: React.FC<Props> = ({
               THE PUB QUIZ
             </h1>
             <span className="text-[10px] sm:text-[11px] font-cartoon text-amber-700 uppercase tracking-wider block">
-              TAVERN TRIVIA LIVE 🍻
+              {role === 'host' ? 'QUIZ MASTER • LIVE' : role === 'player' ? 'PLAYER GAME' : role === 'landing' ? 'MAIN MENU' : 'TAVERN TRIVIA LIVE 🍻'}
             </span>
           </div>
         </button>
@@ -80,10 +80,12 @@ export const Header: React.FC<Props> = ({
             <button
               id="header-leave-game-btn"
               onClick={onHomeClick}
-              className="p-2 sm:p-2.5 rounded-2xl bg-amber-100/90 hover:bg-white border-2 border-amber-900 text-amber-950 cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center transition shadow-[0_2px_0_#78350f]"
-              title="Return to Main Menu"
+              className="header-home-button rounded-2xl bg-amber-100/90 hover:bg-white border-2 border-amber-900 text-amber-950 cursor-pointer min-h-[40px] min-w-[40px] px-2 flex items-center justify-center gap-1.5 transition shadow-[0_2px_0_#78350f]"
+              title="Go to home"
+              aria-label="Go to home"
             >
-              <LogOut className="w-4 h-4 stroke-[2.5]" />
+              <Home className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>HOME</span>
             </button>
           )}
 
