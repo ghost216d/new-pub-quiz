@@ -124,20 +124,23 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   );
   const londonTheme = getLondonTheme();
   const londonSeason = { id: londonTheme.season, ...SEASON_DETAILS[londonTheme.season] };
-  const activeArtwork = activeMap.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time]
-    || activeMap.mapArtwork
-    || 'thames-game-map.png';
-  const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
+  const userProfile = progression.userProfile || {
+    id: 'guest_local',
+    name: 'Player',
+    avatar: '🍺',
+    provider: 'guest',
+    createdAt: Date.now(),
+  };
 
   // Preload the active and newly unlocked map artwork. Some mobile browsers
   // otherwise leave the reused image element blank until another navigation
   // forces a repaint.
   useEffect(() => {
     const artworkNames = visibleMaps.flatMap((map) => {
-      const themedArtwork =
-        map.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time];
-      return [themedArtwork || map.mapArtwork].filter(
+      return map.levels.flatMap((level) => [level.mapArtwork, level.coverArtwork]).filter(
         (artwork): artwork is string => Boolean(artwork)
+      ).concat(
+        map.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time] || map.mapArtwork || ''
       );
     });
 
@@ -150,14 +153,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     londonTheme.time,
     visibleMaps.map((map) => map.id).join('|'),
   ]);
-
-  const userProfile = progression.userProfile || {
-    id: 'guest_local',
-    name: 'Player',
-    avatar: '🍺',
-    provider: 'guest',
-    createdAt: Date.now(),
-  };
 
   const isLevelUnlocked = useCallback(
     (level: MapLevel) => {
@@ -197,6 +192,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     return 1;
   })();
+  const activeArtwork = selectedLevel?.mapArtwork
+    || activeMap.levels.find((level) => level.levelNumber === currentLevelNumber)?.mapArtwork
+    || activeMap.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time]
+    || activeMap.mapArtwork
+    || 'thames-game-map.png';
+  const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
   useEffect(() => {
     const timer = window.setInterval(() => {
       const result = checkAndReplenishLives(progression);

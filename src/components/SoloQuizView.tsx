@@ -785,13 +785,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         />
 
         {launchingLevel && (
-          <div className="solo-pub-launch" role="status" aria-live="polite">
-            <div className="solo-pub-launch-card">
-              <span className="solo-pub-launch-icon">{launchingLevel.icon || '🍺'}</span>
-              <strong>Entering {launchingLevel.pubName || launchingLevel.name}</strong>
-              <small>Brewing your questions…</small>
-              <span className="solo-pub-launch-dots" aria-hidden="true"><i /><i /><i /></span>
-            </div>
+          <div className="solo-pub-launch" role="status" aria-live="polite" aria-label={`Loading ${launchingLevel.name}`}>
+            <img
+              className="solo-pub-launch-art"
+              src={`${import.meta.env.BASE_URL}${launchingLevel.coverArtwork || 'pub-quiz-cover-host.webp'}`}
+              alt={`The Pub Quiz level cover for ${launchingLevel.name}`}
+              fetchPriority="high"
+            />
           </div>
         )}
 

@@ -180,6 +180,9 @@ export interface MapLevel {
   distanceMiles?: number;
   funFact?: string;
   recommendedPint?: string;
+  /** Per-level illustrated London map and loading cover. */
+  mapArtwork?: string;
+  coverArtwork?: string;
 }
 
 export interface CartoonMap {
