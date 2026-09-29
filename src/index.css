@@ -50,7 +50,6 @@
   overflow: hidden;
   background: #3b0b0b;
   color: #fff7d6;
-  isolation: isolate;
 }
 
 .pub-quiz-cover-art,
@@ -62,7 +61,7 @@
 }
 
 .pub-quiz-cover-art {
-  z-index: 0;
+  z-index: 1;
   object-fit: cover;
   object-position: center center;
   transform: scale(1.015);
