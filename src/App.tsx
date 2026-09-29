@@ -395,8 +395,6 @@ export default function App() {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
   const [initialRoomCode, setInitialRoomCode] = useState('');
   const [showCover, setShowCover] = useState(true);
-  const [coverProgress, setCoverProgress] = useState(6);
-  const [coverImageLoaded, setCoverImageLoaded] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -404,33 +402,6 @@ export default function App() {
   const firebaseRoomUnsubscribeRef = useRef<null | (() => void)>(null);
   const firebaseHostUnsubscribeRef = useRef<null | (() => void)>(null);
   const usingFirebaseRef = useRef(false);
-
-  useEffect(() => {
-    const coverImage = new Image();
-    let isActive = true;
-    const finishLoading = () => {
-      if (isActive) setCoverImageLoaded(true);
-    };
-    coverImage.onload = finishLoading;
-    coverImage.onerror = finishLoading;
-    coverImage.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
-    if (coverImage.complete) finishLoading();
-    return () => { isActive = false; };
-  }, []);
-
-  useEffect(() => {
-    if (!coverImageLoaded) return;
-    const startedAt = Date.now();
-    const progressTimer = window.setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      setCoverProgress(Math.min(100, 6 + Math.round((elapsed / 3000) * 94)));
-    }, 80);
-    const coverTimer = window.setTimeout(() => setShowCover(false), 5000);
-    return () => {
-      window.clearInterval(progressTimer);
-      window.clearTimeout(coverTimer);
-    };
-  }, [coverImageLoaded]);
 
   useEffect(() => {
     const refreshTheme = () => setLondonTheme(getLondonTheme());
@@ -942,34 +913,20 @@ export default function App() {
 
   if (showCover) {
     return (
-      <section className="pub-quiz-cover" aria-label="The Pub Quiz is loading">
-        <div
+      <section className="pub-quiz-cover" aria-label="The Pub Quiz welcome screen">
+        <img
           className="pub-quiz-cover-art"
-          role="img"
-          aria-label="Friends playing a pub quiz in a cozy London pub"
-          style={{ backgroundImage: `url(${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp)` }}
+          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`}
+          alt="Friends playing a pub quiz in a cozy London pub"
         />
-        <div className="pub-quiz-cover-shade" aria-hidden="true" />
         <div className="pub-quiz-cover-brand">
           <span className="pub-quiz-cover-kicker">🍺 TAVERN TRIVIA ADVENTURE 🍺</span>
           <h1>THE PUB QUIZ</h1>
           <p>Play together. Prove your knowledge.</p>
         </div>
-        <div className="pub-quiz-cover-loading" role="status" aria-live="polite">
-          <div className="pub-quiz-cover-loading-label">
-            <span>Getting the quiz ready</span>
-            <span>{coverProgress}%</span>
-          </div>
-          <div
-            className="pub-quiz-cover-track"
-            role="progressbar"
-            aria-label="Loading the quiz"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={coverProgress}
-          >
-            <span style={{ width: `${coverProgress}%` }} />
-          </div>
+        <div className="pub-quiz-cover-start">
+          <p>Grab your team and see what you know.</p>
+          <button type="button" onClick={() => setShowCover(false)}>START PLAYING</button>
         </div>
       </section>
     );
