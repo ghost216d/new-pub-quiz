@@ -5425,3 +5425,38 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
   text-align: center;
 }
 .role-solo .game-title > div { text-align: center; }
+
+
+/* Keep mobile Quiz Master setup focused and keep profile editing reachable. */
+@media (max-width: 639px) {
+  .landing-shell.is-host-setup .landing-pub-sign,
+  .landing-shell.is-host-setup .landing-live-caption {
+    display: none !important;
+  }
+
+  .landing-shell.is-host-setup .landing-host-intro {
+    gap: 0.5rem !important;
+    padding: 0.55rem !important;
+  }
+
+  .landing-shell.is-host-setup .landing-host-intro > svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .landing-shell.is-host-setup .landing-mode-panel {
+    padding: 0.65rem !important;
+  }
+
+  .landing-shell.is-host-setup .landing-mode-panel form {
+    gap: 0.65rem !important;
+  }
+
+  .landing-shell.is-host-setup .landing-mode-panel form > div:has(> label) {
+    margin-top: 0;
+  }
+
+  .landing-shell.is-host-setup .landing-mode-panel form > div:has(> .landing-host-intro) {
+    margin: 0;
+  }
+}
