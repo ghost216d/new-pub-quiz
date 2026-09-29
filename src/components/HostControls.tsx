@@ -223,9 +223,9 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   const isRoundTransition = roomState.status === 'round_transition';
 
   return (
-    <div className="space-y-6 text-stone-900 font-comic">
+    <div className="host-console-shell space-y-6 text-stone-900 font-comic">
       {/* Top Banner with Quiz Master Avatar, Room Code and TV Launcher */}
-      <div className="bg-[#fffdf8] rounded-3xl p-4 md:p-6 border-4 border-amber-800 shadow-[0_6px_0_#451a03] flex flex-wrap items-center justify-between gap-4 text-stone-900">
+      <div className="host-console-header bg-[#fffdf8] rounded-3xl p-4 md:p-6 border-4 border-amber-800 shadow-[0_6px_0_#451a03] flex flex-wrap items-center justify-between gap-4 text-stone-900">
         <div className="flex items-center gap-3">
           <CartoonQuizMaster size={56} className="shrink-0" />
           <div>
@@ -247,7 +247,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="host-console-actions flex items-center gap-2.5 flex-wrap">
           <div className="hidden sm:flex items-center gap-2 rounded-2xl border-2 border-amber-800/40 bg-white p-1.5">
             <RoomJoinQR roomCode={roomState.code} size={70} />
             <span className="max-w-20 text-[10px] font-black leading-tight text-amber-950">SCAN TO JOIN ROOM {roomState.code}</span>
