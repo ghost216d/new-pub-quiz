@@ -31,6 +31,7 @@ import {
 
 type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
 const HOST_SESSION_KEY = 'pubquiz_active_host_room_v1';
+const HOST_SESSION_MODE_KEY = 'pubquiz_active_host_mode_v1';
 
 const quizMasterRounds = () => DEFAULT_ROUNDS
   .filter((round) => round.type !== 'music')
@@ -386,6 +387,13 @@ export default function App() {
   const [activeHostCode, setActiveHostCode] = useState<string>(() => {
     try { return localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase() || ''; } catch { return ''; }
   });
+  const [activeHostMode, setActiveHostMode] = useState<'live' | 'offline'>(() => {
+    try {
+      const savedMode = localStorage.getItem(HOST_SESSION_MODE_KEY);
+      if (savedMode === 'live' || savedMode === 'offline') return savedMode;
+      return localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase() === 'PUB1' ? 'offline' : 'live';
+    } catch { return 'offline'; }
+  });
   const [myTeamId, setMyTeamId] = useState<string>('');
   const [teamName, setTeamName] = useState<string>('');
   const [teamAvatar, setTeamAvatar] = useState<string>('🍺');
@@ -394,7 +402,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
   const [initialRoomCode, setInitialRoomCode] = useState('');
-  const [showCover, setShowCover] = useState(true);
+  const [showCover, setShowCover] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -669,9 +677,43 @@ export default function App() {
 
   const handleResumeHostGame = async (savedCode = activeHostCode) => {
     const cleanCode = savedCode.trim().toUpperCase();
-    if (!cleanCode || !isFirebaseMultiplayerConfigured) return;
+    if (!cleanCode) return;
     setIsLoading(true);
     setErrorMessage(null);
+
+    // Keep the current host state in memory while Solo is open so an offline
+    // Quiz Master session can be resumed without losing its teams or scores.
+    if (roomState?.code === cleanCode) {
+      setRoomCode(cleanCode);
+      setRole('host');
+      setIsLoading(false);
+      if (activeHostMode === 'offline') {
+        setConnectionStatus('standalone');
+      } else if (isFirebaseMultiplayerConfigured) {
+        await connectFirebaseRoom(cleanCode, 'host');
+      } else {
+        connectWebSocket(cleanCode, 'host');
+      }
+      return;
+    }
+
+    // Offline sessions cannot be restored after a full page reload because
+    // they have no server copy. Send the player to the Quiz Master entry screen.
+    if (activeHostMode === 'offline') {
+      setIsLoading(false);
+      setRoomState(null);
+      setRole('landing');
+      setErrorMessage('This offline quiz session ended when the page was closed. Start a new Quiz Master game to continue.');
+      return;
+    }
+
+    if (!isFirebaseMultiplayerConfigured) {
+      setIsLoading(false);
+      setRole('landing');
+      setErrorMessage('The previous live Quiz Master session could not be restored.');
+      return;
+    }
+
     try {
       const savedRoom = await findFirebaseHostRoom(cleanCode);
       const restoredRoom = removeMusicFromRoom(savedRoom);
@@ -679,21 +721,19 @@ export default function App() {
       setRoomState(restoredRoom);
       setRole('host');
       setActiveHostCode(cleanCode);
+      setActiveHostMode('live');
+      localStorage.setItem(HOST_SESSION_MODE_KEY, 'live');
       await connectFirebaseRoom(cleanCode, 'host');
     } catch (error) {
       localStorage.removeItem(HOST_SESSION_KEY);
+      localStorage.removeItem(HOST_SESSION_MODE_KEY);
       setActiveHostCode('');
+      setActiveHostMode('offline');
       setIsLoading(false);
       setErrorMessage(error instanceof Error ? error.message : 'Unable to restore the previous Quiz Master lobby.');
       setRole('landing');
     }
   };
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('room') || !activeHostCode) return;
-    void handleResumeHostGame(activeHostCode);
-  }, []);
 
   // Host a new game (supports choosing up to 40 teams)
   const handleHostGame = async (
@@ -722,6 +762,8 @@ export default function App() {
         setRole('host');
         localStorage.setItem(HOST_SESSION_KEY, created.code);
         setActiveHostCode(created.code);
+        setActiveHostMode('live');
+        localStorage.setItem(HOST_SESSION_MODE_KEY, 'live');
         await connectFirebaseRoom(created.code, 'host');
       } catch (error) {
         setIsLoading(false);
@@ -737,6 +779,8 @@ export default function App() {
       setRole('host');
       localStorage.setItem(HOST_SESSION_KEY, randomCode);
       setActiveHostCode(randomCode);
+      setActiveHostMode('offline');
+      localStorage.setItem(HOST_SESSION_MODE_KEY, 'offline');
       setConnectionStatus('standalone');
       setErrorMessage('Standalone Quiz Master mode: other phones and the TV cannot join until the multiplayer service is connected.');
       handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
@@ -755,6 +799,8 @@ export default function App() {
       setRole('host');
       localStorage.setItem(HOST_SESSION_KEY, code);
       setActiveHostCode(code);
+      setActiveHostMode('live');
+      localStorage.setItem(HOST_SESSION_MODE_KEY, 'live');
       connectWebSocket(code, 'host');
     } catch {
       // Local fallback
@@ -763,6 +809,8 @@ export default function App() {
       setRole('host');
       localStorage.setItem(HOST_SESSION_KEY, randomCode);
       setActiveHostCode(randomCode);
+      setActiveHostMode('offline');
+      localStorage.setItem(HOST_SESSION_MODE_KEY, 'offline');
       handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
     }
   };
@@ -905,8 +953,9 @@ export default function App() {
     firebaseHostUnsubscribeRef.current?.();
     if (role === 'player' && usingFirebaseRef.current) void leaveFirebaseTeam(roomCode);
     usingFirebaseRef.current = false;
+    const returningFromHost = role === 'host';
     setRole('solo');
-    setRoomState(null);
+    if (!returningFromHost) setRoomState(null);
     setErrorMessage(null);
     setConnectionStatus('disconnected');
   };
@@ -958,10 +1007,12 @@ export default function App() {
             id="resume-live-quiz-btn"
             onClick={() => void handleResumeHostGame()}
             disabled={isLoading}
-            className="fixed z-50 top-safe left-3 mt-3 flex items-center gap-2 rounded-2xl border-2 border-emerald-800 bg-emerald-500 px-4 py-3 text-sm font-cartoon text-emerald-950 shadow-[0_4px_0_#065f46] transition hover:bg-emerald-400 active:translate-y-0.5 disabled:opacity-60"
+            aria-label={`Return to ${activeHostMode} Quiz Master game`}
+            title={`Return to ${activeHostMode} Quiz Master game`}
+            className={`resume-host-quiz-btn fixed z-50 top-safe left-2 mt-2 flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
           >
-            <span aria-hidden="true">↩️</span>
-            <span>{isLoading ? 'RESTORING QUIZ…' : `RESUME LIVE QUIZ · ${activeHostCode}`}</span>
+            <span aria-hidden="true">↩</span>
+            <span>{isLoading ? 'OPENING…' : `QUIZ MASTER · ${activeHostMode.toUpperCase()}`}</span>
           </button>
         )}
         {role === 'landing' && (
