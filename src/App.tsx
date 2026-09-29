@@ -412,7 +412,7 @@ export default function App() {
       const elapsed = Date.now() - startedAt;
       setCoverProgress(Math.min(100, 6 + Math.round((elapsed / 3000) * 94)));
     }, 80);
-    const coverTimer = window.setTimeout(() => setShowCover(false), 3200);
+    const coverTimer = window.setTimeout(() => setShowCover(false), 5000);
     return () => {
       window.clearInterval(progressTimer);
       window.clearTimeout(coverTimer);
