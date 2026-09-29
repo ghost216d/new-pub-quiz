@@ -4990,6 +4990,10 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
   box-shadow: 0 3px 0 #047857, 0 7px 16px rgba(69, 26, 3, 0.2);
 }
 
+.bgm-control.is-compact .bgm-mute-label {
+  font-size: 8px;
+}
+
 .bgm-mute-label {
   font-size: 9px;
   font-weight: 900;
