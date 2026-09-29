@@ -396,7 +396,6 @@ export default function App() {
   const [initialRoomCode, setInitialRoomCode] = useState('');
   const [showCover, setShowCover] = useState(true);
   const [coverProgress, setCoverProgress] = useState(6);
-  const [coverImageLoaded, setCoverImageLoaded] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -406,7 +405,6 @@ export default function App() {
   const usingFirebaseRef = useRef(false);
 
   useEffect(() => {
-    if (!coverImageLoaded) return;
     const startedAt = Date.now();
     const progressTimer = window.setInterval(() => {
       const elapsed = Date.now() - startedAt;
@@ -417,7 +415,7 @@ export default function App() {
       window.clearInterval(progressTimer);
       window.clearTimeout(coverTimer);
     };
-  }, [coverImageLoaded]);
+  }, []);
 
   useEffect(() => {
     const refreshTheme = () => setLondonTheme(getLondonTheme());
@@ -930,12 +928,11 @@ export default function App() {
   if (showCover) {
     return (
       <section className="pub-quiz-cover" aria-label="The Pub Quiz is loading">
-        <img
+        <div
           className="pub-quiz-cover-art"
-          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`}
-          alt="Friends playing a pub quiz in a cozy London pub"
-          onLoad={() => setCoverImageLoaded(true)}
-          onError={() => setCoverImageLoaded(true)}
+          role="img"
+          aria-label="Friends playing a pub quiz in a cozy London pub"
+          style={{ backgroundImage: `url(${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp)` }}
         />
         <div className="pub-quiz-cover-shade" aria-hidden="true" />
         <div className="pub-quiz-cover-brand">
