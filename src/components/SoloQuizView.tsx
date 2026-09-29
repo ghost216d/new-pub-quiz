@@ -38,6 +38,7 @@ import confetti from 'canvas-confetti';
 interface Props {
   onBackToHome: () => void;
   onOpenQuizMaster: () => void;
+  navigationRequest?: { target: 'map' | 'shop' | 'quiz'; id: number } | null;
 }
 
 const DIFFICULTY_OPTIONS: {
@@ -303,7 +304,7 @@ const buildUnseenFallbackQuestions = (
   });
 };
 
-export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }) => {
+export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, navigationRequest }) => {
   // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = online custom topic
   const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup' | 'journey'>('map');
 
@@ -311,6 +312,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [shopTab, setShopTab] = useState<'lives' | 'bundles' | 'free'>('bundles');
+
+  useEffect(() => {
+    if (!navigationRequest) return;
+    setViewMode(navigationRequest.target === 'quiz' ? 'custom_setup' : 'map');
+    setShopTab('bundles');
+    setIsShopOpen(navigationRequest.target === 'shop');
+  }, [navigationRequest]);
 
   // Active Map Level context (if playing a map level)
   const [activeLevel, setActiveLevel] = useState<MapLevel | null>(null);
@@ -789,8 +797,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
             setShopTab(tab || 'bundles');
             setIsShopOpen(true);
           }}
-          onCustomSoloMode={() => setViewMode('custom_setup')}
-          onBackToHome={onBackToHome}
           onOpenQuizMaster={onOpenQuizMaster}
           autoAdvanceTarget={autoAdvanceTarget}
         />

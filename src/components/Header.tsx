@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Tv, Copy, Check } from 'lucide-react';
+import { Tv, Copy, Check } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface Props {
@@ -7,7 +7,6 @@ interface Props {
   roomCode?: string;
   teamName?: string;
   teamAvatar?: string;
-  onHomeClick: () => void;
   onOpenTV?: () => void;
 }
 
@@ -16,7 +15,6 @@ export const Header: React.FC<Props> = ({
   roomCode,
   teamName,
   teamAvatar,
-  onHomeClick,
   onOpenTV,
 }) => {
   const [copied, setCopied] = React.useState(false);
@@ -32,10 +30,9 @@ export const Header: React.FC<Props> = ({
     <header className="app-main-header sticky top-0 z-40 bg-gradient-to-r from-sky-50 via-white to-amber-50 border-b-2 border-sky-300 px-3 sm:px-4 py-2 sm:py-2.5 pt-safe shadow-md">
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
         {/* Brand Logo & Name */}
-        <button
+        <div
           id="header-brand-home-btn"
-          onClick={onHomeClick}
-          className="flex items-center gap-2 sm:gap-2.5 text-left cursor-pointer hover:opacity-95 transition min-h-[44px]"
+          className="flex items-center gap-2 sm:gap-2.5 text-left min-h-[44px]"
         >
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-500 text-slate-950 flex items-center justify-center font-black text-xl sm:text-2xl border-3 border-amber-950 shadow-[0_3px_0_#78350f] shrink-0 animate-boing">
             🍺
@@ -48,7 +45,7 @@ export const Header: React.FC<Props> = ({
               {role === 'host' ? 'QUIZ MASTER • LIVE' : role === 'player' ? 'PLAYER GAME' : role === 'landing' ? 'MAIN MENU' : 'TAVERN TRIVIA LIVE 🍻'}
             </span>
           </div>
-        </button>
+        </div>
 
         {/* Dynamic Controls & Badges */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 font-comic">
@@ -72,20 +69,6 @@ export const Header: React.FC<Props> = ({
             >
               <Tv className="w-4 h-4 stroke-[2.5]" />
               <span>TV DISPLAY</span>
-            </button>
-          )}
-
-          {/* Leave/Home button if inside a game */}
-          {role !== 'landing' && (
-            <button
-              id="header-leave-game-btn"
-              onClick={onHomeClick}
-              className="header-home-button rounded-2xl bg-amber-100/90 hover:bg-white border-2 border-amber-900 text-amber-950 cursor-pointer min-h-[40px] min-w-[40px] px-2 flex items-center justify-center gap-1.5 transition shadow-[0_2px_0_#78350f]"
-              title="Go to home"
-              aria-label="Go to home"
-            >
-              <Home className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>HOME</span>
             </button>
           )}
 
