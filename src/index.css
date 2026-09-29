@@ -5715,6 +5715,10 @@ html[data-time-theme] .role-solo .game-top-bar {
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18) !important;
 }
 
+html[data-time-theme] .app-shell.role-solo .game-top-bar {
+  border-color: #191919 !important;
+}
+
 html[data-time-theme] .role-solo .game-title h1,
 html[data-time-theme] .role-solo .game-title p {
   color: #202020 !important;
