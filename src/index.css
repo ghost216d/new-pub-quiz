@@ -5715,8 +5715,37 @@ html[data-time-theme] .role-solo .game-top-bar {
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18) !important;
 }
 
-html[data-time-theme] .app-shell.role-solo .game-top-bar {
+html[data-time-theme] #root .app-shell.role-solo .game-top-bar {
   border-color: #191919 !important;
+}
+
+/* Larger, matching speaker controls that are easier to tap on a phone. */
+#root .global-music-control .bgm-mute-trigger,
+#root .global-music-control .bgm-settings-trigger {
+  height: 48px;
+  min-height: 48px;
+  border: 2px solid #191919 !important;
+  border-radius: 14px;
+  color: #202020 !important;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18) !important;
+}
+
+#root .global-music-control .bgm-mute-trigger {
+  width: 68px;
+  min-width: 68px;
+  padding: 0 6px;
+  background: linear-gradient(180deg, #e4f4eb, #d4ebdf) !important;
+}
+
+#root .global-music-control .bgm-mute-trigger.is-muted {
+  background: linear-gradient(180deg, #f8e5e8, #eedadd) !important;
+}
+
+#root .global-music-control .bgm-settings-trigger {
+  width: 48px;
+  min-width: 48px;
+  padding: 0 7px;
+  background: linear-gradient(180deg, #fff1c9, #f4e6bc) !important;
 }
 
 html[data-time-theme] .role-solo .game-title h1,
