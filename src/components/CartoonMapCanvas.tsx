@@ -203,6 +203,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     || activeMap.mapArtwork
     || 'thames-game-map.png';
   const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
+  const highestCompletedLevelIndex = activeMap.levels.reduce((highest, level, index) => (
+    progression.completedLevels[level.id]?.passed ? index : highest
+  ), -1);
+  const colourRevealTop = highestCompletedLevelIndex < 0
+    ? 100
+    : LEVEL_COORDS[highestCompletedLevelIndex]?.y ?? 50;
   useEffect(() => {
     const timer = window.setInterval(() => {
       const result = checkAndReplenishLives(progression);
@@ -556,7 +562,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       >
         <img
           key={`${activeMap.id}-${activeArtwork}`}
-          className="game-map-artwork"
+          className="game-map-artwork is-grayscale"
           src={activeArtworkUrl}
           alt=""
           aria-hidden="true"
@@ -564,6 +570,17 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           loading="eager"
           decoding="sync"
           fetchPriority="high"
+        />
+        <img
+          key={`${activeMap.id}-${activeArtwork}-colour`}
+          className="game-map-artwork is-colour-reveal"
+          src={activeArtworkUrl}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          loading="eager"
+          decoding="sync"
+          style={{ clipPath: `inset(${colourRevealTop}% 0 0 0)` }}
         />
         <svg
           className="game-map-path"

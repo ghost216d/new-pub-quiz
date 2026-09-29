@@ -209,14 +209,15 @@ export const AuthModal: React.FC<Props> = ({
               </p>
             </div>
           </div>
-          {!isFirstTime && (
-            <button
-              onClick={onClose}
-              className="text-stone-500 hover:text-stone-900 p-1 rounded-lg hover:bg-amber-100 transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close profile"
+            title="Close profile"
+            className="shrink-0 text-stone-500 hover:text-stone-900 p-1 rounded-lg hover:bg-amber-100 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Current Status Pill if signed in */}
