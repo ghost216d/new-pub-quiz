@@ -5448,15 +5448,7 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
     padding: 0.65rem !important;
   }
 
-  .landing-shell.is-host-setup .landing-mode-panel form {
-    gap: 0.65rem !important;
-  }
-
-  .landing-shell.is-host-setup .landing-mode-panel form > div:has(> label) {
-    margin-top: 0;
-  }
-
-  .landing-shell.is-host-setup .landing-mode-panel form > div:has(> .landing-host-intro) {
-    margin: 0;
+  .landing-shell.is-host-setup .landing-mode-panel form.space-y-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.65rem !important;
   }
 }
