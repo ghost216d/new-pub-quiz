@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Home, ShoppingBag, Map, Zap, UserRound } from 'lucide-react';
 import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
 import { randomizeQuestionOptions } from './utils/questionQuality';
@@ -32,6 +33,7 @@ import {
 type AppRole = 'landing' | 'host' | 'player' | 'tv' | 'solo';
 const HOST_SESSION_KEY = 'pubquiz_active_host_room_v1';
 const HOST_SESSION_MODE_KEY = 'pubquiz_active_host_mode_v1';
+type SoloNavigationTarget = 'map' | 'shop' | 'quiz';
 
 const quizMasterRounds = () => DEFAULT_ROUNDS
   .filter((round) => round.type !== 'music')
@@ -373,6 +375,7 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
 export default function App() {
   const [londonTheme, setLondonTheme] = useState(getLondonTheme);
   const [role, setRole] = useState<AppRole>('solo');
+  const [soloNavigationRequest, setSoloNavigationRequest] = useState<{ target: SoloNavigationTarget; id: number } | null>(null);
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
   const [showFirstTimeAuth, setShowFirstTimeAuth] = useState<boolean>(() => {
     try {
@@ -1048,9 +1051,15 @@ export default function App() {
     usingFirebaseRef.current = false;
     const returningFromHost = role === 'host';
     setRole('landing');
-    if (!returningFromHost) setRoomState(null);
+    if (!returningFromHost && !activeHostCode) setRoomState(null);
     setErrorMessage(null);
     setConnectionStatus('disconnected');
+  };
+
+  const navigateSolo = (target: SoloNavigationTarget) => {
+    if (role !== 'solo') handleHomeClick();
+    setSoloNavigationRequest((current) => ({ target, id: (current?.id || 0) + 1 }));
+    setRole('solo');
   };
 
   if (showCover) {
@@ -1103,7 +1112,6 @@ export default function App() {
           roomCode={roomCode}
           teamName={teamName}
           teamAvatar={teamAvatar}
-          onHomeClick={handleHomeClick}
           onOpenTV={() => handleConnectTV(roomCode)}
         />
       )}
@@ -1129,9 +1137,7 @@ export default function App() {
             onJoinGame={handleJoinGame}
             onFindRoom={handleFindRoom}
             onConnectTV={handleConnectTV}
-            onStartSolo={() => setRole('solo')}
             initialMode={initialRoomCode ? 'join' : 'host'}
-            showSoloHero={true}
             isLoading={isLoading}
             error={errorMessage}
             initialRoomCode={initialRoomCode}
@@ -1170,9 +1176,30 @@ export default function App() {
           <SoloQuizView
             onBackToHome={() => setRole('landing')}
             onOpenQuizMaster={() => setRole('landing')}
+            navigationRequest={soloNavigationRequest}
           />
         )}
       </main>
+
+      {role !== 'tv' && (
+        <nav className="app-bottom-nav" aria-label="Main navigation">
+          <button className={role === 'landing' ? 'is-active' : ''} aria-current={role === 'landing' ? 'page' : undefined} onClick={handleHomeClick}>
+            <Home aria-hidden="true" /><strong>Home</strong>
+          </button>
+          <button className={role === 'solo' && soloNavigationRequest?.target === 'shop' ? 'is-active' : ''} aria-current={role === 'solo' && soloNavigationRequest?.target === 'shop' ? 'page' : undefined} onClick={() => navigateSolo('shop')}>
+            <ShoppingBag aria-hidden="true" /><strong>Shop</strong>
+          </button>
+          <button className={role === 'solo' && (!soloNavigationRequest || soloNavigationRequest.target === 'map') ? 'is-active' : ''} aria-current={role === 'solo' && (!soloNavigationRequest || soloNavigationRequest.target === 'map') ? 'page' : undefined} onClick={() => navigateSolo('map')}>
+            <Map aria-hidden="true" /><strong>World</strong>
+          </button>
+          <button className={role === 'solo' && soloNavigationRequest?.target === 'quiz' ? 'is-active' : ''} aria-current={role === 'solo' && soloNavigationRequest?.target === 'quiz' ? 'page' : undefined} onClick={() => navigateSolo('quiz')}>
+            <Zap aria-hidden="true" /><strong>Quiz</strong>
+          </button>
+          <button className={showFirstTimeAuth ? 'is-active' : ''} aria-current={showFirstTimeAuth ? 'page' : undefined} onClick={() => setShowFirstTimeAuth(true)}>
+            <UserRound aria-hidden="true" /><strong>Profile</strong>
+          </button>
+        </nav>
+      )}
 
       {/* Music stays available on every screen, including Solo and quiz rounds. */}
       <BGMController compact className="global-music-control" />
@@ -1194,7 +1221,7 @@ export default function App() {
           localStorage.setItem('cartoon_pubquiz_auth_prompted_v2', 'true');
           setShowFirstTimeAuth(false);
         }}
-        isFirstTime={true}
+        isFirstTime={!progression.userProfile}
       />
     </div>
   );

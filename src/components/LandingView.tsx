@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Tv, Users, Sparkles, ArrowRight, ShieldAlert, KeyRound, Dices, Flame, Target } from 'lucide-react';
+import { Play, Tv, Users, ArrowRight, ShieldAlert, KeyRound, Dices } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 import {
   CartoonBeerStein,
@@ -7,8 +7,6 @@ import {
   CartoonDartboard,
   CartoonQuizMaster,
   CartoonBunting,
-  CartoonPopBurst,
-  CartoonTrophy,
 } from './CartoonIllustrations';
 import { TEAM_AVATARS, PUB_LEGEND_TEAM_NAMES } from '../data/teamPresets';
 import { Team } from '../types';
@@ -27,9 +25,7 @@ interface Props {
   onJoinGame: (code: string, teamName: string, avatar: string, selectedTeamId?: string) => void;
   onFindRoom: (code: string) => Promise<RoomLobbyPreview>;
   onConnectTV: (code: string) => void;
-  onStartSolo: () => void;
   initialMode?: 'join' | 'host' | 'tv';
-  showSoloHero?: boolean;
   isLoading?: boolean;
   error?: string | null;
   initialRoomCode?: string;
@@ -40,9 +36,7 @@ export const LandingView: React.FC<Props> = ({
   onJoinGame,
   onFindRoom,
   onConnectTV,
-  onStartSolo,
   initialMode = 'join',
-  showSoloHero = true,
   isLoading = false,
   error = null,
   initialRoomCode = '',
@@ -114,37 +108,6 @@ export const LandingView: React.FC<Props> = ({
 
   return (
     <div className="landing-shell w-full max-w-xl mx-auto space-y-2.5 sm:space-y-3.5 select-none animate-pop-in pb-4 px-1 sm:px-0">
-      {/* 1. SOLO PLAYER OPTION - PROMINENTLY AT THE VERY TOP OF THE PAGE */}
-      {showSoloHero && <div className="landing-solo-hero relative overflow-hidden bg-gradient-to-r from-sky-100 via-white to-amber-100 rounded-3xl p-3 sm:p-3.5 border-[3px] border-sky-500 shadow-[0_5px_0_#0369a1] transition hover:scale-[1.01] animate-rubberband">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-300 to-amber-500 text-slate-950 flex items-center justify-center font-black text-2xl sm:text-3xl shadow-md border-3 border-amber-950 shrink-0 animate-boing">
-              🗺️
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="text-sm sm:text-base font-cartoon text-amber-950 leading-tight">
-                  SOLO PUB QUEST
-                </h3>
-                <CartoonPopBurst text="INSTANT PLAY!" color="yellow" className="text-[9px] sm:text-[10px] py-0.5 px-1.5" />
-              </div>
-              <p className="text-[10px] sm:text-xs text-stone-700 font-bold truncate sm:whitespace-normal">
-                5 Cartoon Realms, 3 Lives ❤️, Pub Bucks 🪙 & Boss Trivia!
-              </p>
-            </div>
-          </div>
-
-          <button
-            id="play-solo-top-btn"
-            onClick={onStartSolo}
-          className="landing-play-solo shrink-0 px-3 py-2 sm:px-5 sm:py-2.5 rounded-2xl bg-gradient-to-b from-sky-300 to-cyan-500 text-sky-950 border-2 border-sky-700 text-xs sm:text-sm font-cartoon tracking-wider flex items-center justify-center gap-1 cursor-pointer shadow-[0_3px_0_#0369a1] min-h-[42px] hover:scale-105 active:scale-95 transition-transform"
-          >
-            <span>PLAY SOLO!</span>
-            <span className="text-sm sm:text-base animate-bounce">➔</span>
-          </button>
-        </div>
-      </div>}
-
       {error && (
         <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-rose-100 border-3 border-rose-600 text-rose-950 text-xs font-black shadow-[0_3px_0_#4c0519] animate-shake">
           <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />

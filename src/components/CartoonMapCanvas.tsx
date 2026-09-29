@@ -15,10 +15,8 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
-  User,
   Menu,
   X,
-  Zap,
 } from 'lucide-react';
 import {
   CartoonMap,
@@ -32,7 +30,6 @@ import {
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
 import { getLondonTheme } from '../utils/londonTheme';
-import { AuthModal } from './AuthModal';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -40,8 +37,6 @@ interface Props {
   onUpdateProgression: (progression: SoloProgression) => void;
   onSelectLevel: (level: MapLevel, map: CartoonMap) => void;
   onOpenShop: (tab?: 'lives' | 'bundles' | 'free') => void;
-  onCustomSoloMode: () => void;
-  onBackToHome: () => void;
   onOpenQuizMaster: () => void;
   autoAdvanceTarget?: { mapId: string; levelId: string } | null;
   initialEntranceAnim?: boolean;
@@ -81,8 +76,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   onUpdateProgression,
   onSelectLevel,
   onOpenShop,
-  onCustomSoloMode,
-  onBackToHome,
   onOpenQuizMaster,
   autoAdvanceTarget,
 }) => {
@@ -97,8 +90,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const [selectedLevel, setSelectedLevel] =
     useState<MapLevel | null>(null);
 
-  const [isAuthModalOpen, setIsAuthModalOpen] =
-    useState(false);
 
   const [isGeneratingAiMap, setIsGeneratingAiMap] =
     useState(false);
@@ -367,24 +358,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       id="cartoon-map-main-view"
       className="game-map-shell"
     >
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        progression={progression}
-        onUpdateProgression={onUpdateProgression}
-      />
 
       {/* Top navigation */}
       <header className="game-top-bar">
-        <button
-          onClick={onBackToHome}
-          className="game-icon-button game-return-button"
-          aria-label="Return to main menu"
-          title="Return to main menu"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
         <div className="game-title">
           <span className="game-title-icon" aria-hidden="true">🍺</span>
 
@@ -394,13 +370,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           </div>
         </div>
 
-        <button
-          onClick={() => setIsAuthModalOpen(true)}
-          className="game-avatar-button"
-          aria-label="Open player profile"
-        >
-          <span>{userProfile.avatar}</span>
-        </button>
       </header>
 
       {/* Player currencies */}
@@ -469,16 +438,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           <strong>{isActionsOpen ? 'Close' : 'Options'}</strong>
         </button>
 
-        {isActionsOpen && <button
-          onClick={onCustomSoloMode}
-          className="game-action game-action-purple"
-        >
-          <Zap className="w-5 h-5" />
-          <span>
-            <strong>Custom Quiz</strong>
-            <small>Choose any topic</small>
-          </span>
-        </button>}
 
         {isActionsOpen && <button
           onClick={generateAiMap}
@@ -824,47 +783,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         </section>
       )}
 
-      {/* Bottom navigation */}
-      <nav className="game-bottom-nav" aria-label="Solo game navigation">
-        <button onClick={onBackToHome} aria-label="Home">
-          <span className="game-nav-icon" aria-hidden="true">🏠</span>
-          <strong>Home</strong>
-        </button>
-
-        <button onClick={() => onOpenShop('bundles')} aria-label="Shop">
-          <span className="game-nav-icon" aria-hidden="true">
-            <ShoppingBag />
-          </span>
-          <strong>Shop</strong>
-        </button>
-
-        <button
-          className="is-active"
-          onClick={() => setSelectedLevel(null)}
-          aria-label="World map"
-          aria-current="page"
-        >
-          <span className="game-nav-icon" aria-hidden="true">🗺️</span>
-          <strong>World</strong>
-        </button>
-
-        <button onClick={onCustomSoloMode} aria-label="Quiz">
-          <span className="game-nav-icon" aria-hidden="true">
-            <Zap />
-          </span>
-          <strong>Quiz</strong>
-        </button>
-
-        <button
-          onClick={() => setIsAuthModalOpen(true)}
-          aria-label="Profile"
-        >
-          <span className="game-nav-icon" aria-hidden="true">
-            <User />
-          </span>
-          <strong>Profile</strong>
-        </button>
-      </nav>
     </main>
   );
 };
