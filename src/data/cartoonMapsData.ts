@@ -550,21 +550,10 @@ const LONDON_MAPS: CartoonMap[] = [
   EAST_LONDON_STAGE,
 ];
 
-// The 20 level maps and matching loading covers run in the same order as the
-// four five-stop London routes above.
-export const CARTOON_MAPS: CartoonMap[] = LONDON_MAPS.map((map, mapIndex) => ({
-  ...map,
-  levels: map.levels.map((level, levelIndex) => {
-    const artworkNumber = mapIndex * 5 + levelIndex + 1;
-    const artworkId = String(artworkNumber).padStart(2, '0');
-
-    return {
-      ...level,
-      mapArtwork: `level-${artworkId}-map.webp`,
-      coverArtwork: `level-${artworkId}-cover.webp`,
-    };
-  }),
-}));
+// Keep each route's own matching scenic and seasonal artwork. The generated
+// level posters already contain their own route labels and numbered markers;
+// using them as a live route background conflicts with saved pub progression.
+export const CARTOON_MAPS: CartoonMap[] = LONDON_MAPS;
 
 // Default shop bundles for buying fake money and lives
 export const SHOP_BUNDLES: ShopBundle[] = [
