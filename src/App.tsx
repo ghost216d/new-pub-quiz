@@ -505,7 +505,9 @@ export default function App() {
 
   useEffect(() => {
     const refreshTheme = () => setLondonTheme(getLondonTheme());
-    document.documentElement.dataset.timeTheme = londonTheme.time;
+    // Keep interface colours fixed to the user's light pastel theme. Map
+    // artwork still follows London day/night and seasonal variants below.
+    document.documentElement.dataset.timeTheme = 'day';
     document.documentElement.dataset.season = londonTheme.season;
     const themeTimer = window.setInterval(refreshTheme, 60_000);
     return () => window.clearInterval(themeTimer);
