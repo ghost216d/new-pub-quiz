@@ -21,7 +21,7 @@ export const CorrectAnswerDrink: React.FC<Props> = ({ streak, onComplete }) => {
       <div className="correct-drink-stage">
         <img
           className="correct-drink-still"
-          src={`${import.meta.env.BASE_URL}level-complete-celebration.webp`}
+          src={`${import.meta.env.BASE_URL}level-complete-celebration-v2.webp`}
           alt="Well done! Friends celebrate with a toast in a pub quiz."
           draggable={false}
         />

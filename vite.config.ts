@@ -39,6 +39,7 @@ export default defineConfig({
         'london-pub-run-background.webp',
         'london-route-loading-cover.webp',
         'pub-quiz-cover-host.webp',
+        'level-complete-celebration-v2.webp',
       ],
 
       manifest: {
