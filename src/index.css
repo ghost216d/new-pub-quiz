@@ -2856,129 +2856,38 @@ body,
   }
 }
 
-/* A short, fully posed pub-host performance after each correct Solo answer. */
+/* Stable portrait reward shown after every completed Solo level. */
 .correct-drink-celebration {
   position: fixed;
   z-index: 90;
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 18px;
+  padding: 0;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 222, 92, .38), rgba(65, 8, 20, .22) 60%, transparent 80%);
-  animation: correct-drink-backdrop .45s ease-out both;
-}
-
-.correct-drink-celebration.is-dismissed {
-  display: none;
+  overflow: hidden;
+  background: #180c0a;
 }
 
 .correct-drink-stage {
-  position: relative;
-  width: min(94vw, 460px);
-  aspect-ratio: 1 / 1;
+  width: 100vw;
+  height: 100dvh;
   overflow: hidden;
-  border: 5px solid #ffc928;
-  border-radius: 36px;
-  background: #762033;
-  box-shadow: 0 10px 0 #7f360c, 0 24px 55px rgba(32, 0, 8, .42), inset 0 3px 0 rgba(255,255,255,.52);
-  animation: correct-drink-stage-pop .7s cubic-bezier(.2,.9,.25,1) both;
 }
 
-.correct-drink-lights {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at 20% 15%, rgba(255,245,176,.46), transparent 25%), radial-gradient(circle at 80% 12%, rgba(255,211,112,.4), transparent 27%);
-  animation: correct-drink-lights 1s ease-in-out infinite alternate;
-}
-
-.correct-drink-video {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
+.correct-drink-still {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0;
-  transition: opacity .12s linear;
-  will-change: opacity;
+  object-position: center;
   user-select: none;
-}
-.correct-drink-video.is-ready { opacity: 1; }
-
-.correct-drink-fallback {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 38%;
-  filter: saturate(1.12) brightness(1.12);
-  opacity: 1;
-  transition: opacity .12s ease-out;
-}
-.correct-drink-fallback.is-hidden { opacity: 0; }
-
-.correct-drink-sparkles { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
-.correct-drink-sparkles i { position: absolute; color: #fff4a5; font-size: 28px; font-style: normal; text-shadow: 0 0 9px #ff9800; animation: correct-drink-sparkle 1.1s ease-in-out infinite; }
-.correct-drink-sparkles i:nth-child(1) { left: 8%; top: 19%; }
-.correct-drink-sparkles i:nth-child(2) { right: 9%; top: 12%; animation-delay: .25s; }
-.correct-drink-sparkles i:nth-child(3) { right: 12%; top: 48%; animation-delay: .5s; }
-.correct-drink-sparkles i:nth-child(4) { left: 13%; top: 52%; animation-delay: .75s; }
-
-.correct-drink-copy {
-  position: absolute;
-  z-index: 8;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-  padding: 10px 12px;
-  border: 3px solid #ffc928;
-  border-radius: 18px;
-  color: #fff8d8;
-  text-align: center;
-  background: rgba(151, 8, 47, .88);
-  box-shadow: 0 4px 0 #5f2108;
-}
-.correct-drink-copy strong {
-  font-family: var(--font-cartoon, ui-rounded, system-ui, sans-serif);
-  font-size: 25px;
-  line-height: 1;
-  text-shadow: 0 2px 0 #5d1907;
-}
-.correct-drink-copy span { color: #ffe783; font-size: 14px; font-weight: 950; }
-
-@keyframes correct-drink-stage-pop {
-  0% { opacity: 0; transform: translateY(45px) scale(.72) rotate(-5deg); }
-  65% { opacity: 1; transform: translateY(0) scale(1.04) rotate(1deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0); }
-}
-@keyframes correct-drink-backdrop {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes correct-drink-lights { to { filter: brightness(1.35) saturate(1.2); } }
-@keyframes correct-drink-character-bob { from { transform: translateY(2px) scale(1.002); } to { transform: translateY(-4px) scale(1.008); } }
-@keyframes correct-drink-sparkle { 0%, 100% { opacity: .2; transform: scale(.6) rotate(0); } 50% { opacity: 1; transform: scale(1.25) rotate(25deg); } }
-
-@media (max-height: 620px) {
-  .correct-drink-stage { width: min(72vh, 380px); }
+  -webkit-user-drag: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .correct-drink-celebration,
-  .correct-drink-stage,
-  .correct-drink-lights,
-  .correct-drink-video,
-  .correct-drink-sparkles i { animation: none !important; }
-  .correct-drink-celebration,
-  .correct-drink-stage { opacity: 1; transform: none; }
+  .correct-drink-stage { animation: none !important; }
 }
 
 /* Last Orders Dash — a short, touch-friendly reward between solo stages. */

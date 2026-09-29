@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 interface Props {
   streak: number;
@@ -6,62 +6,25 @@ interface Props {
 }
 
 export const CorrectAnswerDrink: React.FC<Props> = ({ streak, onComplete }) => {
-  const [phase, setPhase] = useState<'cheers' | 'sip' | 'lovely'>('cheers');
-  const [videoReady, setVideoReady] = useState(false);
-  const [videoFinished, setVideoFinished] = useState(false);
-  const animationSrc = `${import.meta.env.BASE_URL}pub-host-drink-2d.mp4`;
-
-  const finishVideo = (video: HTMLVideoElement) => {
-    if (videoFinished) return;
-    setVideoFinished(true);
-    // Android browsers can leave a decoded video frame in a hardware overlay
-    // after React removes the element. Stop decoding and clear the source,
-    // then wait for two paints before unmounting the celebration.
-    video.pause();
-    video.removeAttribute('src');
-    video.load();
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => onComplete?.());
-    });
-  };
-
   useEffect(() => {
-    const timers = [
-      window.setTimeout(() => setPhase('sip'), 1350),
-      window.setTimeout(() => setPhase('lovely'), 4300),
-    ];
-    return () => timers.forEach(window.clearTimeout);
-  }, []);
+    const timer = window.setTimeout(() => onComplete?.(), 7000);
+    return () => window.clearTimeout(timer);
+  }, [onComplete]);
 
   return (
-    <div className={`correct-drink-celebration${videoFinished ? ' is-dismissed' : ''}`} role="status" aria-live="polite">
+    <div
+      className="correct-drink-celebration"
+      role="status"
+      aria-live="polite"
+      aria-label={`Level complete. ${streak} correct answers in a row.`}
+    >
       <div className="correct-drink-stage">
-        <div className="correct-drink-lights" aria-hidden="true" />
         <img
-          className={`correct-drink-fallback${videoReady ? ' is-hidden' : ''}`}
-          src={`${import.meta.env.BASE_URL}pub-quiz-cover-host.webp`}
-          alt=""
-          aria-hidden="true"
+          className="correct-drink-still"
+          src={`${import.meta.env.BASE_URL}level-complete-celebration.webp`}
+          alt="Well done! Friends celebrate with a toast in a pub quiz."
+          draggable={false}
         />
-        <video
-          className={`correct-drink-video${videoReady && !videoFinished ? ' is-ready' : ''}`}
-          src={animationSrc}
-          autoPlay
-          muted
-          playsInline
-          preload="auto"
-          onLoadedData={() => setVideoReady(true)}
-          onEnded={(event) => finishVideo(event.currentTarget)}
-          onError={(event) => finishVideo(event.currentTarget)}
-          aria-hidden="true"
-        />
-        <div className="correct-drink-sparkles" aria-hidden="true">
-          <i>✦</i><i>✧</i><i>✦</i><i>✧</i>
-        </div>
-        <div className="correct-drink-copy">
-          <strong>{phase === 'sip' ? 'Sip, sip…' : phase === 'lovely' ? 'Lovely!' : 'Correct! Cheers!'}</strong>
-          <span>{streak > 1 ? `🔥 ${streak} correct in a row` : '🍺 A well-earned drink'}</span>
-        </div>
       </div>
     </div>
   );
