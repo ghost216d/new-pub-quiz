@@ -5029,8 +5029,9 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
     height: 17px;
   }
 
+  .app-main-header,
   .game-top-bar {
-    padding-right: 112px;
+    padding-right: 124px;
   }
 
   .game-realm-card.is-collapsed {
