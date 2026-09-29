@@ -339,7 +339,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
   const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
-  const [launchingLevel, setLaunchingLevel] = useState<MapLevel | null>(null);
+  const [launchingLevel, setLaunchingLevel] = useState<{ level: MapLevel; artwork: string; stageName: string } | null>(null);
   const [drinkCelebration, setDrinkCelebration] = useState<{ id: number; streak: number } | null>(null);
 
   // Helper to persist progression state updates
@@ -399,7 +399,16 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setDifficulty('medium');
     setCustomTopic('');
     setUseAI(true); // Enable the online topic field, with an unseen offline fallback
-    setLaunchingLevel(level);
+    // A route is a stage with five pub stops. Show its own level cover once
+    // when entering the stage; moving between pubs within it stays immediate.
+    if (level.levelNumber === 1) {
+      const mapIndex = getAllMaps().findIndex((knownMap) => knownMap.id === map.id);
+      const stageAssetNumber = Math.max(1, mapIndex * 5 + 1);
+      const stageCover = `level-${String(stageAssetNumber).padStart(2, '0')}-cover.webp`;
+      setLaunchingLevel({ level, artwork: stageCover, stageName: map.name });
+    } else {
+      setLaunchingLevel(null);
+    }
     handleStartGameWithLevel(level, map);
   };
 
@@ -785,11 +794,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
         />
 
         {launchingLevel && (
-          <div className="solo-pub-launch" role="status" aria-live="polite" aria-label={`Loading ${launchingLevel.name}`}>
+          <div className="solo-pub-launch" role="status" aria-live="polite" aria-label={`Loading ${launchingLevel.stageName}`}>
             <img
               className="solo-pub-launch-art"
-              src={`${import.meta.env.BASE_URL}${launchingLevel.coverArtwork || 'pub-quiz-cover-host.webp'}`}
-              alt={`The Pub Quiz level cover for ${launchingLevel.name}`}
+              src={`${import.meta.env.BASE_URL}${launchingLevel.artwork}`}
+              alt={`The Pub Quiz loading screen for ${launchingLevel.stageName}`}
               fetchPriority="high"
             />
           </div>

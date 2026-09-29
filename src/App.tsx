@@ -385,15 +385,15 @@ export default function App() {
   });
   const [roomCode, setRoomCode] = useState<string>('');
   const [activeHostCode, setActiveHostCode] = useState<string>(() => {
-    try { return localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase() || ''; } catch { return ''; }
-  });
-  const [activeHostMode, setActiveHostMode] = useState<'live' | 'offline'>(() => {
     try {
       const savedMode = localStorage.getItem(HOST_SESSION_MODE_KEY);
-      if (savedMode === 'live' || savedMode === 'offline') return savedMode;
-      return localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase() === 'PUB1' ? 'offline' : 'live';
-    } catch { return 'offline'; }
+      return savedMode === 'live' ? localStorage.getItem(HOST_SESSION_KEY)?.trim().toUpperCase() || '' : '';
+    } catch { return ''; }
   });
+  const [activeHostMode, setActiveHostMode] = useState<'live' | 'offline'>(() => {
+    try { return localStorage.getItem(HOST_SESSION_MODE_KEY) === 'live' ? 'live' : 'offline'; } catch { return 'offline'; }
+  });
+  const [hostSessionValidated, setHostSessionValidated] = useState(false);
   const [myTeamId, setMyTeamId] = useState<string>('');
   const [teamName, setTeamName] = useState<string>('');
   const [teamAvatar, setTeamAvatar] = useState<string>('🍺');
@@ -402,7 +402,8 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
   const [initialRoomCode, setInitialRoomCode] = useState('');
-  const [showCover, setShowCover] = useState(false);
+  const [showCover, setShowCover] = useState(true);
+  const [coverProgress, setCoverProgress] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -410,6 +411,45 @@ export default function App() {
   const firebaseRoomUnsubscribeRef = useRef<null | (() => void)>(null);
   const firebaseHostUnsubscribeRef = useRef<null | (() => void)>(null);
   const usingFirebaseRef = useRef(false);
+
+  useEffect(() => {
+    if (!activeHostCode) {
+      setHostSessionValidated(false);
+      try {
+        if (localStorage.getItem(HOST_SESSION_MODE_KEY) !== 'live') {
+          localStorage.removeItem(HOST_SESSION_KEY);
+          localStorage.removeItem(HOST_SESSION_MODE_KEY);
+        }
+      } catch { /* Storage may be unavailable in private browsing. */ }
+      return;
+    }
+
+    if (roomState?.code === activeHostCode) {
+      setHostSessionValidated(true);
+      return;
+    }
+
+    if (activeHostMode !== 'live' || !isFirebaseMultiplayerConfigured) {
+      setHostSessionValidated(false);
+      return;
+    }
+
+    let cancelled = false;
+    setHostSessionValidated(false);
+    findFirebaseHostRoom(activeHostCode)
+      .then((room) => {
+        if (!cancelled) setHostSessionValidated(room.code === activeHostCode);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        localStorage.removeItem(HOST_SESSION_KEY);
+        localStorage.removeItem(HOST_SESSION_MODE_KEY);
+        setActiveHostCode('');
+        setActiveHostMode('offline');
+        setHostSessionValidated(false);
+      });
+    return () => { cancelled = true; };
+  }, [activeHostCode, activeHostMode, roomState?.code]);
 
   useEffect(() => {
     const refreshTheme = () => setLondonTheme(getLondonTheme());
@@ -700,6 +740,10 @@ export default function App() {
     // Offline sessions cannot be restored after a full page reload because
     // they have no server copy. Send the player to the Quiz Master entry screen.
     if (activeHostMode === 'offline') {
+      localStorage.removeItem(HOST_SESSION_KEY);
+      localStorage.removeItem(HOST_SESSION_MODE_KEY);
+      setActiveHostCode('');
+      setHostSessionValidated(false);
       setIsLoading(false);
       setRoomState(null);
       setRole('landing');
@@ -965,12 +1009,14 @@ export default function App() {
       <section className="pub-quiz-cover" aria-label="The Pub Quiz welcome screen">
         <img
           className="pub-quiz-cover-art"
-          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=813dd0b`}
+          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=cover-loading-bar`}
           alt="Friends playing a pub quiz in a cozy London pub"
+          onLoad={() => setCoverProgress(100)}
           onError={(event) => {
             const image = event.currentTarget;
             image.onerror = null;
-            image.src = `${import.meta.env.BASE_URL}pub-quiz-cover-host.webp?release=813dd0b`;
+            image.src = `${import.meta.env.BASE_URL}pub-quiz-cover-host.webp?release=cover-loading-bar`;
+            setCoverProgress(100);
           }}
         />
         <div className="pub-quiz-cover-brand">
@@ -979,6 +1025,22 @@ export default function App() {
           <p>Play together. Prove your knowledge.</p>
         </div>
         <div className="pub-quiz-cover-start">
+          <div className="pub-quiz-cover-loading" aria-label={coverProgress === 100 ? 'Game ready' : 'Loading game'}>
+            <div className="pub-quiz-cover-loading-label">
+              <span>{coverProgress === 100 ? 'READY TO PLAY' : 'LOADING THE TAVERN'}</span>
+              <span>{coverProgress}%</span>
+            </div>
+            <div
+              className="pub-quiz-cover-track"
+              role="progressbar"
+              aria-label="Loading the pub quiz"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={coverProgress}
+            >
+              <span style={{ width: `${coverProgress}%` }} />
+            </div>
+          </div>
           <p>Grab your team and see what you know.</p>
           <button type="button" onClick={() => setShowCover(false)}>START PLAYING</button>
         </div>
@@ -1002,7 +1064,7 @@ export default function App() {
 
       {/* Main App Content Router */}
       <main className={role === 'solo' ? 'app-content flex-1 w-full max-w-full min-w-0 min-h-[100dvh] overflow-x-hidden' : 'app-content flex-1 w-full max-w-full min-w-0 overflow-x-hidden px-2.5 py-3 sm:px-4 md:px-6 md:py-6 flex flex-col justify-start'}>
-        {(role === 'solo' || role === 'landing') && activeHostCode && (
+        {(role === 'solo' || role === 'landing') && activeHostCode && hostSessionValidated && (
           <button
             id="resume-live-quiz-btn"
             onClick={() => void handleResumeHostGame()}
@@ -1012,7 +1074,7 @@ export default function App() {
             className={`resume-host-quiz-btn fixed z-50 top-safe left-2 mt-2 flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
           >
             <span aria-hidden="true">↩</span>
-            <span>{isLoading ? 'OPENING…' : `QUIZ MASTER · ${activeHostMode.toUpperCase()}`}</span>
+            <span>{isLoading ? 'OPENING…' : `RESUME ${activeHostMode.toUpperCase()} QUIZ`}</span>
           </button>
         )}
         {role === 'landing' && (
