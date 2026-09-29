@@ -402,7 +402,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
   const [initialRoomCode, setInitialRoomCode] = useState('');
-  const [showCover, setShowCover] = useState(true);
+  const [showCover, setShowCover] = useState(() => !new URLSearchParams(window.location.search).has('room'));
   const [coverProgress, setCoverProgress] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);

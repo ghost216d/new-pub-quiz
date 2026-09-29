@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles,
   Trophy,
@@ -340,6 +340,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
   const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
   const [launchingLevel, setLaunchingLevel] = useState<{ level: MapLevel; artwork: string; stageName: string } | null>(null);
+  const loadedStageIdsRef = useRef<Set<string>>(new Set());
   const [drinkCelebration, setDrinkCelebration] = useState<{ id: number; streak: number } | null>(null);
 
   // Helper to persist progression state updates
@@ -401,10 +402,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     setUseAI(true); // Enable the online topic field, with an unseen offline fallback
     // A route is a stage with five pub stops. Show its own level cover once
     // when entering the stage; moving between pubs within it stays immediate.
-    if (level.levelNumber === 1) {
+    if (!loadedStageIdsRef.current.has(map.id)) {
       const mapIndex = getAllMaps().findIndex((knownMap) => knownMap.id === map.id);
       const stageAssetNumber = Math.max(1, mapIndex * 5 + 1);
       const stageCover = `level-${String(stageAssetNumber).padStart(2, '0')}-cover.webp`;
+      loadedStageIdsRef.current.add(map.id);
       setLaunchingLevel({ level, artwork: stageCover, stageName: map.name });
     } else {
       setLaunchingLevel(null);
