@@ -916,8 +916,13 @@ export default function App() {
       <section className="pub-quiz-cover" aria-label="The Pub Quiz welcome screen">
         <img
           className="pub-quiz-cover-art"
-          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`}
+          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=813dd0b`}
           alt="Friends playing a pub quiz in a cozy London pub"
+          onError={(event) => {
+            const image = event.currentTarget;
+            image.onerror = null;
+            image.src = `${import.meta.env.BASE_URL}pub-quiz-cover-host.webp?release=813dd0b`;
+          }}
         />
         <div className="pub-quiz-cover-brand">
           <span className="pub-quiz-cover-kicker">🍺 TAVERN TRIVIA ADVENTURE 🍺</span>
