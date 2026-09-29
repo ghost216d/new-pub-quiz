@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
   type AuthProvider,
   type User,
 } from 'firebase/auth';
@@ -60,6 +61,14 @@ export async function resetEmailPassword(email: string) {
 
 export async function signOutFromFirebase() {
   await signOut(requireAuth());
+}
+
+export async function updateCurrentUserProfile(displayName: string): Promise<void> {
+  const user = requireAuth().currentUser;
+  if (!user) {
+    throw new Error('Your sign-in session is still loading. Please try again.');
+  }
+  await updateProfile(user, { displayName });
 }
 
 export function friendlyAuthError(error: unknown): string {
