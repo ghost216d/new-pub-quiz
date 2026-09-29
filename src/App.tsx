@@ -413,6 +413,47 @@ export default function App() {
   const usingFirebaseRef = useRef(false);
 
   useEffect(() => {
+    if (!showCover) return;
+
+    let cancelled = false;
+    let finishTimer: number | undefined;
+    let completedAssets = 0;
+    const assets = [
+      `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=auto-loading`,
+      `${import.meta.env.BASE_URL}map-backgrounds/thames_riverside_crawl.webp?release=auto-loading`,
+      `${import.meta.env.BASE_URL}level-01-cover.webp?release=auto-loading`,
+    ];
+    const images: HTMLImageElement[] = [];
+    setCoverProgress(0);
+
+    const loadAsset = (src: string) => new Promise<void>((resolve) => {
+      const image = new Image();
+      images.push(image);
+      const finish = () => {
+        completedAssets += 1;
+        if (!cancelled) setCoverProgress(Math.round((completedAssets / assets.length) * 100));
+        resolve();
+      };
+      image.onload = finish;
+      image.onerror = finish;
+      image.src = src;
+    });
+
+    Promise.all(assets.map(loadAsset)).then(() => {
+      if (!cancelled) finishTimer = window.setTimeout(() => setShowCover(false), 180);
+    });
+
+    return () => {
+      cancelled = true;
+      if (finishTimer !== undefined) window.clearTimeout(finishTimer);
+      images.forEach((image) => {
+        image.onload = null;
+        image.onerror = null;
+      });
+    };
+  }, [showCover]);
+
+  useEffect(() => {
     if (!activeHostCode) {
       setHostSessionValidated(false);
       try {
@@ -1011,12 +1052,10 @@ export default function App() {
           className="pub-quiz-cover-art"
           src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=cover-loading-bar`}
           alt="Friends playing a pub quiz in a cozy London pub"
-          onLoad={() => setCoverProgress(100)}
           onError={(event) => {
             const image = event.currentTarget;
             image.onerror = null;
             image.src = `${import.meta.env.BASE_URL}pub-quiz-cover-host.webp?release=cover-loading-bar`;
-            setCoverProgress(100);
           }}
         />
         <div className="pub-quiz-cover-brand">
@@ -1025,9 +1064,9 @@ export default function App() {
           <p>Play together. Prove your knowledge.</p>
         </div>
         <div className="pub-quiz-cover-start">
-          <div className="pub-quiz-cover-loading" aria-label={coverProgress === 100 ? 'Game ready' : 'Loading game'}>
+          <div className="pub-quiz-cover-loading" aria-label="Loading the game">
             <div className="pub-quiz-cover-loading-label">
-              <span>{coverProgress === 100 ? 'READY TO PLAY' : 'LOADING THE TAVERN'}</span>
+              <span>LOADING THE GAME</span>
               <span>{coverProgress}%</span>
             </div>
             <div
@@ -1041,8 +1080,7 @@ export default function App() {
               <span style={{ width: `${coverProgress}%` }} />
             </div>
           </div>
-          <p>Grab your team and see what you know.</p>
-          <button type="button" onClick={() => setShowCover(false)}>START PLAYING</button>
+          <p>Preparing your first London stage…</p>
         </div>
       </section>
     );
