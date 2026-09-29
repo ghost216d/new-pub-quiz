@@ -47,6 +47,20 @@ interface Props {
   initialEntranceAnim?: boolean;
 }
 
+const MAP_AREA_LABELS: Record<string, string> = {
+  thames_riverside_crawl: 'Thames Riverside',
+  west_london_crawl: 'West London',
+  north_london_crawl: 'North London',
+  east_london_crawl: 'East London',
+};
+
+const MAP_ROUTE_LABELS: Record<string, string> = {
+  thames_riverside_crawl: 'Borough → Greenwich',
+  west_london_crawl: 'Kensington → Hammersmith',
+  north_london_crawl: 'King’s Cross → Hampstead',
+  east_london_crawl: 'Spitalfields → Isle of Dogs',
+};
+
 const LEVEL_COORDS = [
   { x: 17, y: 83 },
   { x: 43, y: 67 },
@@ -364,18 +378,19 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       <header className="game-top-bar">
         <button
           onClick={onBackToHome}
-          className="game-icon-button"
+          className="game-icon-button game-return-button"
           aria-label="Return to main menu"
+          title="Return to main menu"
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
 
         <div className="game-title">
-          <span className="game-title-icon">🍺</span>
+          <span className="game-title-icon" aria-hidden="true">🍺</span>
 
           <div>
-            <h1>The Pub Quiz</h1>
-            <p>Tavern Trivia Adventure</p>
+            <h1>{MAP_AREA_LABELS[activeMap.id] || activeMap.name}</h1>
+            <p>{MAP_ROUTE_LABELS[activeMap.id] || activeMap.crawlRouteName}</p>
           </div>
         </div>
 
@@ -578,10 +593,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         className={`game-map-board season-${londonSeason.id} time-${londonTheme.time}`}
         style={{
           backgroundColor: activeMap.themeColor || '#7c2d12',
-          backgroundImage: `url("${activeArtworkUrl}")`,
-          backgroundPosition: 'center top',
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
         }}
       >
         <img
@@ -595,7 +606,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           decoding="sync"
           fetchPriority="high"
         />
-        <div className="game-season-overlay" aria-hidden="true" />
         <svg
           className="game-map-path"
           viewBox="0 0 100 100"

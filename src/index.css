@@ -4701,3 +4701,65 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
     font-size: 27px;
   }
 }
+
+
+/* Compact area header controls and keep route artwork unchanged by device themes. */
+.role-solo .game-top-bar {
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  color-scheme: only light !important;
+}
+
+.role-solo .game-top-bar .game-return-button {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+.role-solo .game-title-icon {
+  font-size: 24px;
+}
+
+.role-solo .game-title h1 {
+  font-size: clamp(15px, 4vw, 21px) !important;
+  letter-spacing: 0.02em;
+}
+
+.role-solo .game-title p {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(8px, 1.8vw, 10px);
+  letter-spacing: 0.035em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-solo .game-map-board {
+  color-scheme: only light !important;
+  forced-color-adjust: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
+  box-shadow: none !important;
+}
+
+.role-solo .game-map-artwork {
+  color-scheme: only light !important;
+  forced-color-adjust: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+.role-solo .game-map-board::before,
+.role-solo .game-map-board::after,
+.role-solo .game-season-overlay {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+}
