@@ -5106,3 +5106,233 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
     width: 50px;
   }
 }
+
+
+/* Shared pub palette and clearer page-to-page navigation. */
+:root {
+  --app-pub-wine: #74172b;
+  --app-pub-wine-dark: #4b0d1b;
+  --app-pub-gold: #f6c453;
+  --app-pub-cream: #fff8e8;
+  --app-pub-ink: #451a03;
+}
+
+.app-main-header {
+  color: #fff8e8 !important;
+  border-color: var(--app-pub-gold) !important;
+  background: linear-gradient(180deg, #8f1d2c 0%, var(--app-pub-wine) 60%, var(--app-pub-wine-dark) 100%) !important;
+  box-shadow: 0 4px 0 #8a3b12, 0 9px 22px rgba(63, 7, 16, 0.28) !important;
+}
+
+.app-main-header h1 {
+  color: #fff8e8 !important;
+  text-shadow: 0 2px 0 var(--app-pub-wine-dark);
+}
+
+.app-main-header #header-brand-home-btn > div:last-child span {
+  color: #ffd976 !important;
+}
+
+.header-home-button {
+  min-width: 58px;
+  padding: 0 8px;
+  color: var(--app-pub-ink) !important;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.header-home-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.resume-host-quiz-btn {
+  gap: 5px !important;
+  padding: 5px 9px !important;
+  font-size: 10px !important;
+}
+
+.resume-host-quiz-icon {
+  width: 12px;
+  height: 12px;
+  display: inline-flex;
+  flex: 0 0 12px;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  line-height: 1;
+}
+
+.role-host .app-content,
+.role-player .app-content,
+.role-landing .app-content {
+  color: var(--app-pub-ink);
+}
+
+.role-host .host-console-shell {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  color: var(--app-pub-ink);
+}
+
+.role-host .host-console-header {
+  border-color: var(--app-pub-gold) !important;
+  background: linear-gradient(180deg, #fffaf0, #ffedbd) !important;
+  box-shadow: 0 5px 0 #7f1d1d, 0 12px 24px rgba(63, 7, 16, 0.15) !important;
+}
+
+.role-host .host-console-header h2 {
+  color: var(--app-pub-ink) !important;
+}
+
+.role-host .host-console-header :is(button, input, select, textarea),
+.role-host .host-console-shell :is(button, input, select, textarea) {
+  touch-action: manipulation;
+}
+
+.role-host [aria-label="Quiz status overview"] > div {
+  border-color: #d6a342 !important;
+  background: linear-gradient(180deg, #fffaf0, #fff0c8) !important;
+  box-shadow: 0 3px 0 #9a5b13 !important;
+}
+
+.role-host #host-open-tv-btn {
+  border-color: #5c1021 !important;
+  color: #fff8e8 !important;
+  background: linear-gradient(180deg, #8f1d2c, #5f0f18) !important;
+  box-shadow: 0 3px 0 #3f0710 !important;
+}
+
+.role-host #host-ai-generator-toggle-btn {
+  border-color: #ad7511 !important;
+  color: #451a03 !important;
+  background: linear-gradient(180deg, #ffe28a, #f5b82e) !important;
+  box-shadow: 0 3px 0 #8a3b12 !important;
+}
+
+@media (max-width: 639px) {
+  .app-main-header {
+    padding: 6px 8px;
+  }
+
+  .app-main-header > div {
+    gap: 6px;
+  }
+
+  .app-main-header #header-brand-home-btn {
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .app-main-header #header-brand-home-btn > div:first-child {
+    width: 36px;
+    height: 36px;
+  }
+
+  .app-main-header h1 {
+    font-size: 13px !important;
+  }
+
+  .app-main-header #header-brand-home-btn span {
+    font-size: 9px !important;
+  }
+
+  .header-home-button {
+    min-width: 52px;
+    min-height: 40px;
+    padding: 0 6px;
+    gap: 3px;
+    border-radius: 12px;
+  }
+
+  .header-home-button svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .header-home-button span {
+    color: #451a03 !important;
+    font-size: 8px;
+  }
+
+  .role-host .app-content {
+    padding: 10px 8px 16px !important;
+  }
+
+  .role-host .host-console-shell {
+    font-size: 0.94rem;
+  }
+
+  .role-host .host-console-shell > * + * {
+    margin-top: 12px !important;
+  }
+
+  .role-host .host-console-header {
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px !important;
+    border-width: 2px !important;
+    border-radius: 18px !important;
+  }
+
+  .role-host .host-console-header > div:first-child {
+    min-width: 0;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .role-host .host-console-header > div:first-child > svg {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .role-host .host-console-header h2 {
+    font-size: 17px !important;
+  }
+
+  .role-host .host-console-header > div:nth-child(2) {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .role-host .host-console-header > div:nth-child(2) > button {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 6px !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .role-host .host-console-header > div:nth-child(2) > button span {
+    min-width: 0;
+    text-align: center;
+  }
+
+  .role-host [aria-label="Quiz status overview"] {
+    gap: 8px !important;
+  }
+
+  .role-host [aria-label="Quiz status overview"] > div {
+    min-width: 0;
+    padding: 10px !important;
+    border-width: 2px !important;
+    border-radius: 15px !important;
+  }
+
+  .role-host [aria-label="Quiz status overview"] strong {
+    font-size: 15px !important;
+  }
+
+  .role-host .host-console-shell :is(button, input, select, textarea) {
+    max-width: 100%;
+  }
+}
