@@ -418,6 +418,7 @@ export default function App() {
     let cancelled = false;
     let finishTimer: number | undefined;
     let completedAssets = 0;
+    const loadStartedAt = performance.now();
     const assets = [
       `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=auto-loading`,
       `${import.meta.env.BASE_URL}map-backgrounds/thames_riverside_crawl.webp?release=auto-loading`,
@@ -431,7 +432,7 @@ export default function App() {
       images.push(image);
       const finish = () => {
         completedAssets += 1;
-        if (!cancelled) setCoverProgress(Math.round((completedAssets / assets.length) * 100));
+        if (!cancelled) setCoverProgress(Math.min(90, Math.round((completedAssets / assets.length) * 90)));
         resolve();
       };
       image.onload = finish;
@@ -440,7 +441,14 @@ export default function App() {
     });
 
     Promise.all(assets.map(loadAsset)).then(() => {
-      if (!cancelled) finishTimer = window.setTimeout(() => setShowCover(false), 180);
+      if (cancelled) return;
+      const minimumCoverTime = 1800;
+      const remaining = Math.max(0, minimumCoverTime - (performance.now() - loadStartedAt));
+      finishTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        setCoverProgress(100);
+        finishTimer = window.setTimeout(() => setShowCover(false), 300);
+      }, remaining);
     });
 
     return () => {

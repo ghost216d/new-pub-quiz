@@ -403,7 +403,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster }
     // A route is a stage with five pub stops. Show its own level cover once
     // when entering the stage; moving between pubs within it stays immediate.
     if (!loadedStageIdsRef.current.has(map.id)) {
-      const mapIndex = getAllMaps().findIndex((knownMap) => knownMap.id === map.id);
+      const mapIndex = getAllMaps(progression).findIndex((knownMap) => knownMap.id === map.id);
       const stageAssetNumber = Math.max(1, mapIndex * 5 + 1);
       const stageCover = `level-${String(stageAssetNumber).padStart(2, '0')}-cover.webp`;
       loadedStageIdsRef.current.add(map.id);
