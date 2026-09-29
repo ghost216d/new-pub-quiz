@@ -5426,6 +5426,45 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
 }
 .role-solo .game-title > div { text-align: center; }
 
+/* Keep the Solo area name clear of the fixed sound controls on narrow phones. */
+@media (max-width: 899px) {
+  .role-solo .game-top-bar {
+    right: 8px !important;
+    left: 8px !important;
+    padding-right: 124px !important;
+    min-height: 62px;
+  }
+
+  .role-solo .game-title {
+    justify-content: flex-start;
+    text-align: left;
+    gap: 7px;
+  }
+
+  .role-solo .game-title-icon { font-size: 22px; }
+  .role-solo .game-title h1 {
+    font-size: clamp(15px, 4vw, 21px) !important;
+    letter-spacing: 0.015em;
+  }
+  .role-solo .game-title p {
+    font-size: clamp(8px, 2vw, 10px) !important;
+    letter-spacing: 0.025em;
+  }
+}
+
+/* Solo progress map: muted artwork becomes colourful from the latest cleared pub down. */
+.role-solo img.game-map-artwork.is-grayscale {
+  filter: grayscale(1) !important;
+  -webkit-filter: grayscale(1) !important;
+}
+
+.role-solo img.game-map-artwork.is-colour-reveal {
+  filter: none !important;
+  -webkit-filter: none !important;
+  transition: clip-path 700ms ease;
+  will-change: clip-path;
+}
+
 
 /* Keep mobile Quiz Master setup focused and keep profile editing reachable. */
 @media (max-width: 639px) {
