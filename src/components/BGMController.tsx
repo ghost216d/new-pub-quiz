@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Music, ChevronDown, Sparkles, Volume1 } from 'lucide-react';
+import { Volume2, VolumeX, Music, ChevronDown, Sparkles } from 'lucide-react';
 import { bgmEngine, BGM_TRACKS, BGMTrackId } from '../utils/bgmSynth';
 import { audioSynth } from '../utils/audioSynth';
 
@@ -43,27 +43,46 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
 
   return (
     <div className={`bgm-control relative inline-flex items-center ${isMenuOpen ? 'is-open' : ''} ${className}`}>
-      {/* One simple trigger; all music actions live inside the expanded menu. */}
+      {/* One-tap sound control; music settings stay separate. */}
       <button
-        id="bgm-settings-dropdown-btn"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-        title="Open music options"
-        aria-label={isMenuOpen ? 'Close music options' : 'Open music options'}
-        aria-expanded={isMenuOpen}
-        className={`bgm-trigger flex items-center justify-center gap-2 rounded-2xl border-2 font-cartoon transition cursor-pointer ${
-          isActuallyAudible
-            ? 'bg-sky-100 text-sky-900 border-sky-500'
-            : 'bg-white text-stone-700 border-sky-300'
+        id="bgm-mute-toggle"
+        type="button"
+        onClick={handleToggleMute}
+        title={status.isMuted ? 'Turn pub music on' : 'Mute pub music'}
+        aria-label={status.isMuted ? 'Turn pub music on' : 'Mute pub music'}
+        aria-pressed={status.isMuted}
+        className={`bgm-mute-trigger rounded-2xl border-2 font-cartoon transition cursor-pointer ${
+          status.isMuted
+            ? 'is-muted bg-white text-stone-700 border-rose-400'
+            : 'is-unmuted bg-emerald-50 text-emerald-950 border-emerald-500'
         }`}
       >
-        {isActuallyAudible ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
-        {!compact && <span className="hidden sm:inline">MUSIC</span>}
-        <ChevronDown className={`bgm-trigger-chevron w-4 h-4 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+        {status.isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        {!compact && <span className="bgm-mute-label">{status.isMuted ? 'MUTED' : 'SOUND'}</span>}
+      </button>
+
+      <button
+        id="bgm-settings-dropdown-btn"
+        type="button"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        title="Open music settings"
+        aria-label={isMenuOpen ? 'Close music settings' : 'Open music settings'}
+        aria-expanded={isMenuOpen}
+        aria-controls="bgm-settings-menu"
+        className={`bgm-settings-trigger rounded-2xl border-2 transition cursor-pointer ${
+          isMenuOpen ? 'is-open' : ''
+        }`}
+      >
+        <Music className="w-5 h-5" aria-hidden="true" />
+        <ChevronDown className={`bgm-trigger-chevron w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Menu for Track Selection & Volume */}
       {isMenuOpen && (
         <div
+          id="bgm-settings-menu"
+          role="region"
+          aria-label="Pub music settings"
           className="bgm-menu absolute right-0 top-full mt-2 w-72 p-3.5 bg-white border-3 border-sky-500 text-stone-900 rounded-3xl shadow-[0_8px_0_#0369a1] z-50 space-y-3 animate-pop-in"
           onClick={(e) => e.stopPropagation()}
         >
@@ -145,27 +164,6 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
             </div>
           </div>
 
-          {/* Quick Mute Action */}
-          <button
-            onClick={handleToggleMute}
-            className={`w-full py-2 rounded-xl text-xs font-cartoon transition cursor-pointer flex items-center justify-center gap-2 ${
-              status.isMuted
-                ? 'cartoon-btn-amber text-stone-950 font-black'
-                : 'bg-stone-200 hover:bg-stone-300 text-stone-800 border-2 border-stone-400'
-            }`}
-          >
-            {status.isMuted ? (
-              <>
-                <Volume2 className="w-3.5 h-3.5" />
-                <span>UNMUTE PUB TUNES</span>
-              </>
-            ) : (
-              <>
-                <VolumeX className="w-3.5 h-3.5 text-rose-600" />
-                <span>MUTE MUSIC</span>
-              </>
-            )}
-          </button>
         </div>
       )}
     </div>
