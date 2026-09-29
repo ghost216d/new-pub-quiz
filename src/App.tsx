@@ -930,7 +930,7 @@ export default function App() {
       <section className="pub-quiz-cover" aria-label="The Pub Quiz is loading">
         <img
           className="pub-quiz-cover-art"
-          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover.webp`}
+          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`}
           alt="Friends playing a pub quiz in a cozy London pub"
         />
         <div className="pub-quiz-cover-shade" aria-hidden="true" />
