@@ -151,7 +151,7 @@ export const AuthModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-amber-950/60 backdrop-blur-sm animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-amber-950/25 backdrop-blur-[1px] animate-in fade-in">
       <div className="max-w-md w-full bg-[#fffdf8] rounded-3xl p-5 sm:p-6 border-4 border-amber-800 shadow-[0_12px_0_#082f49] text-stone-900 space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-amber-800/30 pb-3">

@@ -395,7 +395,6 @@ export default function App() {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
   const [initialRoomCode, setInitialRoomCode] = useState('');
   const [showCover, setShowCover] = useState(true);
-  const [coverProgress, setCoverProgress] = useState(6);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -405,16 +404,8 @@ export default function App() {
   const usingFirebaseRef = useRef(false);
 
   useEffect(() => {
-    const startedAt = Date.now();
-    const progressTimer = window.setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      setCoverProgress(Math.min(100, 6 + Math.round((elapsed / 3000) * 94)));
-    }, 80);
     const coverTimer = window.setTimeout(() => setShowCover(false), 3200);
-    return () => {
-      window.clearInterval(progressTimer);
-      window.clearTimeout(coverTimer);
-    };
+    return () => window.clearTimeout(coverTimer);
   }, []);
 
   useEffect(() => {
@@ -927,34 +918,12 @@ export default function App() {
 
   if (showCover) {
     return (
-      <section className="pub-quiz-cover" aria-label="The Pub Quiz is loading">
+      <section className="pub-quiz-cover" aria-label="Level 1 Waterloo is loading">
         <img
           className="pub-quiz-cover-art"
-          src={`${import.meta.env.BASE_URL}pub-quiz-cover-host.webp`}
-          alt="Cartoon portrait of the pub quiz host welcoming players"
+          src={`${import.meta.env.BASE_URL}level-01-cover.webp`}
+          alt="The Pub Quiz Level 1 Waterloo loading cover"
         />
-        <div className="pub-quiz-cover-shade" aria-hidden="true" />
-        <div className="pub-quiz-cover-brand">
-          <span className="pub-quiz-cover-kicker">🍺 TAVERN TRIVIA ADVENTURE 🍺</span>
-          <h1>THE PUB QUIZ</h1>
-          <p>Test your knowledge across London</p>
-        </div>
-        <div className="pub-quiz-cover-loading" role="status" aria-live="polite">
-          <div className="pub-quiz-cover-loading-label">
-            <span>Preparing tonight’s questions</span>
-            <span>{coverProgress}%</span>
-          </div>
-          <div
-            className="pub-quiz-cover-track"
-            role="progressbar"
-            aria-label="Loading The Pub Quiz"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={coverProgress}
-          >
-            <span style={{ width: `${coverProgress}%` }} />
-          </div>
-        </div>
       </section>
     );
   }

@@ -592,7 +592,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           aria-hidden="true"
           draggable={false}
           loading="eager"
-          decoding="async"
+          decoding="sync"
           fetchPriority="high"
         />
         <div className="game-season-overlay" aria-hidden="true" />
