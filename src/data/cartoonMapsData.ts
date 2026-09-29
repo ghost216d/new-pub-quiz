@@ -19,12 +19,12 @@ const LEGACY_CARTOON_MAPS: CartoonMap[] = [
     startArea: 'Borough High St, SE1',
     endArea: 'Royal Greenwich, SE10',
     description: 'Walk the historic South London river path from London Bridge coaching inns past Samuel Pepys’s tavern to Greenwich Meridian.',
-    mapArtwork: 'thames-summer-day.webp',
+    mapArtwork: 'map-backgrounds/thames_riverside_crawl.webp',
     seasonalArtwork: {
-      spring: { day: 'thames-spring-day.webp', night: 'thames-spring-night.webp' },
-      summer: { day: 'thames-summer-day.webp', night: 'thames-summer-night.webp' },
-      autumn: { day: 'thames-autumn-day.webp', night: 'thames-autumn-night.webp' },
-      winter: { day: 'thames-winter-day.webp', night: 'thames-winter-night.webp' },
+      spring: { day: 'map-backgrounds/thames_riverside_crawl.webp', night: 'map-backgrounds/thames_riverside_crawl.webp' },
+      summer: { day: 'map-backgrounds/thames_riverside_crawl.webp', night: 'map-backgrounds/thames_riverside_crawl.webp' },
+      autumn: { day: 'map-backgrounds/thames_riverside_crawl.webp', night: 'map-backgrounds/thames_riverside_crawl.webp' },
+      winter: { day: 'map-backgrounds/thames_riverside_crawl.webp', night: 'map-backgrounds/thames_riverside_crawl.webp' },
     },
     levels: [
       {
@@ -448,12 +448,12 @@ const makeLondonStage = ({
   startArea,
   endArea,
   description,
-  mapArtwork: `${artwork}-summer-day.webp`,
+  mapArtwork: `map-backgrounds/${id}.webp`,
   seasonalArtwork: {
-    spring: { day: `${artwork}-spring-day.webp`, night: `${artwork}-spring-night.webp` },
-    summer: { day: `${artwork}-summer-day.webp`, night: `${artwork}-summer-night.webp` },
-    autumn: { day: `${artwork}-autumn-day.webp`, night: `${artwork}-autumn-night.webp` },
-    winter: { day: `${artwork}-winter-day.webp`, night: `${artwork}-winter-night.webp` },
+    spring: { day: `map-backgrounds/${id}.webp`, night: `map-backgrounds/${id}.webp` },
+    summer: { day: `map-backgrounds/${id}.webp`, night: `map-backgrounds/${id}.webp` },
+    autumn: { day: `map-backgrounds/${id}.webp`, night: `map-backgrounds/${id}.webp` },
+    winter: { day: `map-backgrounds/${id}.webp`, night: `map-backgrounds/${id}.webp` },
   },
   levels: levels.map((level, index) => ({
     ...level,
