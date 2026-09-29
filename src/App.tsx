@@ -396,6 +396,7 @@ export default function App() {
   const [initialRoomCode, setInitialRoomCode] = useState('');
   const [showCover, setShowCover] = useState(true);
   const [coverProgress, setCoverProgress] = useState(6);
+  const [coverImageLoaded, setCoverImageLoaded] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -405,6 +406,20 @@ export default function App() {
   const usingFirebaseRef = useRef(false);
 
   useEffect(() => {
+    const coverImage = new Image();
+    let isActive = true;
+    const finishLoading = () => {
+      if (isActive) setCoverImageLoaded(true);
+    };
+    coverImage.onload = finishLoading;
+    coverImage.onerror = finishLoading;
+    coverImage.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
+    if (coverImage.complete) finishLoading();
+    return () => { isActive = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!coverImageLoaded) return;
     const startedAt = Date.now();
     const progressTimer = window.setInterval(() => {
       const elapsed = Date.now() - startedAt;
@@ -415,7 +430,7 @@ export default function App() {
       window.clearInterval(progressTimer);
       window.clearTimeout(coverTimer);
     };
-  }, []);
+  }, [coverImageLoaded]);
 
   useEffect(() => {
     const refreshTheme = () => setLondonTheme(getLondonTheme());
