@@ -5706,3 +5706,94 @@ html[data-time-theme="night"] .tv-display-shell {
 .role-solo .game-bottom-nav button.is-active .game-nav-icon {
   background: #fff1c9 !important;
 }
+
+/* Match the Solo title bar to the shared light pastel app theme. */
+html[data-time-theme] .role-solo .game-top-bar {
+  color: #202020 !important;
+  border: 2px solid #191919 !important;
+  background: linear-gradient(180deg, #f8e5e8, #eedadd) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18) !important;
+}
+
+html[data-time-theme] .role-solo .game-title h1,
+html[data-time-theme] .role-solo .game-title p {
+  color: #202020 !important;
+  text-shadow: none !important;
+}
+
+/* Two deliberate, timed screens after clearing a pub: the complete map and
+   the next pub artwork with a live loading bar. */
+.solo-stage-transition-cover {
+  position: fixed;
+  z-index: 140;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #e3eff5;
+  color: #202020;
+}
+
+.solo-stage-transition-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  color-scheme: only light;
+  forced-color-adjust: none;
+}
+
+.solo-stage-transition-progress {
+  position: absolute;
+  z-index: 1;
+  right: max(18px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  left: max(18px, env(safe-area-inset-left, 0px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+  width: min(84vw, 460px);
+  margin: 0 auto;
+  padding: 12px 14px;
+  border: 2px solid #191919;
+  border-radius: 18px;
+  background: rgba(255, 250, 240, 0.96);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+}
+
+.solo-stage-transition-progress strong {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  font-size: clamp(13px, 3.8vw, 17px);
+  font-weight: 900;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.solo-stage-transition-track {
+  height: 16px;
+  overflow: hidden;
+  border: 2px solid #191919;
+  border-radius: 999px;
+  background: #e3eff5;
+}
+
+.solo-stage-transition-track span {
+  display: block;
+  height: 100%;
+  min-width: 4%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f8e2e5, #fff1c9);
+  transition: width 60ms linear;
+}
+
+.solo-stage-transition-progress > span {
+  min-width: 3.5ch;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: right;
+}

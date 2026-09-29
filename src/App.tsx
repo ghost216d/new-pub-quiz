@@ -1039,6 +1039,7 @@ export default function App() {
   };
 
   const handleHomeClick = () => {
+    setShowFirstTimeAuth(false);
     shouldReconnectRef.current = false;
     if (reconnectTimerRef.current) window.clearTimeout(reconnectTimerRef.current);
     if (wsRef.current) {
@@ -1057,6 +1058,9 @@ export default function App() {
   };
 
   const navigateSolo = (target: SoloNavigationTarget) => {
+    // The profile dialog is a sheet above the current page. Navigation tabs
+    // remain usable while it is open and should dismiss it as they navigate.
+    setShowFirstTimeAuth(false);
     if (role !== 'solo') handleHomeClick();
     setSoloNavigationRequest((current) => ({ target, id: (current?.id || 0) + 1 }));
     setRole('solo');

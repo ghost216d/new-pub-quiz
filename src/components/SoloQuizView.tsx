@@ -105,6 +105,13 @@ const ONLINE_QUESTION_TIMEOUT_MS = 4500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 
+type CompletionTransition = {
+  phase: 'map' | 'loading';
+  nextTarget: { mapId: string; levelId: string } | null;
+  artwork: string | null;
+  nextLevelName: string;
+};
+
 const isMathsTopic = (topic: string): boolean =>
   /\b(math|maths|mathematics|arithmetic|numbers?)\b/i.test(topic);
 
@@ -346,6 +353,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [isOutOfLivesModalOpen, setIsOutOfLivesModalOpen] = useState(false);
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
+  const [completionTransition, setCompletionTransition] = useState<CompletionTransition | null>(null);
+  const [transitionProgress, setTransitionProgress] = useState(0);
   const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
   const [launchingLevel, setLaunchingLevel] = useState<{ level: MapLevel; artwork: string; stageName: string } | null>(null);
   const loadedStageIdsRef = useRef<Set<string>>(new Set());
@@ -356,6 +365,44 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setProgression(updated);
     saveSoloProgression(updated);
   };
+
+  useEffect(() => {
+    if (!completionTransition) return;
+
+    if (completionTransition.phase === 'map') {
+      const timer = window.setTimeout(() => {
+        if (completionTransition.nextTarget && completionTransition.artwork) {
+          setTransitionProgress(0);
+          setCompletionTransition({ ...completionTransition, phase: 'loading' });
+        } else {
+          setCompletionTransition(null);
+        }
+      }, 3000);
+      return () => window.clearTimeout(timer);
+    }
+
+    const startedAt = Date.now();
+    const progressTimer = window.setInterval(() => {
+      setTransitionProgress(Math.min(100, Math.round(((Date.now() - startedAt) / 3000) * 100)));
+    }, 50);
+    const finishTimer = window.setTimeout(() => {
+      const target = completionTransition.nextTarget;
+      if (target) {
+        setProgression((current) => {
+          const updated = { ...current, currentMapId: target.mapId };
+          saveSoloProgression(updated);
+          return updated;
+        });
+        setAutoAdvanceTarget(target);
+      }
+      setCompletionTransition(null);
+    }, 3000);
+
+    return () => {
+      window.clearInterval(progressTimer);
+      window.clearTimeout(finishTimer);
+    };
+  }, [completionTransition?.phase]);
 
   // Timer countdown
   useEffect(() => {
@@ -411,9 +458,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     // A route is a stage with five pub stops. Show its own level cover once
     // when entering the stage; moving between pubs within it stays immediate.
     if (!loadedStageIdsRef.current.has(map.id)) {
-      const mapIndex = getAllMaps(progression).findIndex((knownMap) => knownMap.id === map.id);
-      const stageAssetNumber = Math.max(1, mapIndex * 5 + 1);
-      const stageCover = `level-${String(stageAssetNumber).padStart(2, '0')}-cover.webp`;
+      const stageCover = level.coverArtwork || map.mapArtwork;
       loadedStageIdsRef.current.add(map.id);
       setLaunchingLevel({ level, artwork: stageCover, stageName: map.name });
     } else {
@@ -707,6 +752,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         totalStars: updatedTotalStars,
         completedLevels: updatedCompleted,
         unlockedMaps: updatedUnlockedMaps,
+        currentMapId: activeMap.id,
       });
 
       setCoinsEarnedInGame((prev) => prev + bonusReward);
@@ -720,15 +766,27 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         ? { mapId: activeMap.id, levelId: nextLevel.id }
         : nextMap?.levels[0]
           ? { mapId: nextMap.id, levelId: nextMap.levels[0].id }
-          : { mapId: activeMap.id, levelId: activeLevel.id };
+          : null;
 
-      setAutoAdvanceTarget(passedStage ? nextTarget : null);
-      const targetMap = allKnownMaps.find((map) => map.id === nextTarget.mapId);
-      const targetLevel = targetMap?.levels.find((level) => level.id === nextTarget.levelId);
-      const shouldShowJourney = passedStage && targetLevel?.levelNumber === 3;
+      setAutoAdvanceTarget(null);
+      const targetMap = nextTarget
+        ? allKnownMaps.find((map) => map.id === nextTarget.mapId)
+        : undefined;
+      const targetLevel = nextTarget
+        ? targetMap?.levels.find((level) => level.id === nextTarget.levelId)
+        : undefined;
+      // Each route is one stage. Use the destination route's own art so the
+      // loading screen always matches the map and pub being opened.
+      const nextArtwork = targetLevel?.coverArtwork || targetMap?.mapArtwork || null;
+
+      if (passedStage && nextArtwork) {
+        const preload = new Image();
+        preload.src = `${import.meta.env.BASE_URL}${nextArtwork}`;
+      }
 
       if (passedStage) {
-        // Show the victory moment, then travel to the newly unlocked stage.
+        // Keep the victory screen visible, then show the cleared map and the
+        // next pub's artwork as two timed, full-screen transition cards.
         window.setTimeout(() => {
           setDrinkCelebration(null);
           setGameOver(false);
@@ -736,12 +794,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           setIsAnswerRevealed(false);
           setActiveLevel(null);
           setActiveMap(null);
-          if (shouldShowJourney && targetLevel) {
-            setRouteJourney({ destinationName: targetLevel.pubName || targetLevel.name });
-            setViewMode('journey');
-          } else {
-            setViewMode('map');
-          }
+          setRouteJourney(null);
+          setCompletionTransition({
+            phase: 'map',
+            nextTarget,
+            artwork: nextArtwork,
+            nextLevelName: targetLevel?.pubName || targetLevel?.name || 'Next pub',
+          });
+          setViewMode('map');
           audioSynth.playChampionFanfare();
         }, 7000);
       }
@@ -809,6 +869,41 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               alt={`The Pub Quiz loading screen for ${launchingLevel.stageName}`}
               fetchPriority="high"
             />
+          </div>
+        )}
+
+        {completionTransition?.phase === 'loading' && completionTransition.artwork && (
+          <div
+            className="solo-stage-transition-cover"
+            role="status"
+            aria-live="polite"
+            aria-label={`Loading ${completionTransition.nextLevelName}`}
+          >
+            <img
+              key={completionTransition.artwork}
+              className="solo-stage-transition-art"
+              src={`${import.meta.env.BASE_URL}${completionTransition.artwork}`}
+              alt={`Artwork for ${completionTransition.nextLevelName}`}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
+              }}
+              draggable={false}
+            />
+            <div className="solo-stage-transition-progress">
+              <strong>Getting {completionTransition.nextLevelName} ready</strong>
+              <div
+                className="solo-stage-transition-track"
+                role="progressbar"
+                aria-label={`Loading ${completionTransition.nextLevelName}`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={transitionProgress}
+              >
+                <span style={{ width: `${transitionProgress}%` }} />
+              </div>
+              <span>{transitionProgress}%</span>
+            </div>
           </div>
         )}
 
@@ -1071,7 +1166,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         </div>
 
         <div className="space-y-3">
-          {activeLevel && (
+          {activeLevel && !passedStage && (
             <button
               onClick={() => setViewMode('map')}
               className="w-full py-4 rounded-2xl cartoon-btn-amber text-sm sm:text-base font-cartoon tracking-wider transition cursor-pointer flex items-center justify-center gap-2"
