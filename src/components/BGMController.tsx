@@ -40,7 +40,7 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
   };
 
   return (
-    <div className={`bgm-control relative inline-flex items-center ${isMenuOpen ? 'is-open' : ''} ${className}`}>
+    <div className={`bgm-control relative inline-flex items-center ${isMenuOpen ? 'is-open' : ''} ${compact ? 'is-compact' : ''} ${className}`}>
       {/* One-tap sound control; music settings stay separate. */}
       <button
         id="bgm-mute-toggle"
@@ -56,7 +56,7 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
         }`}
       >
         {status.isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-        {!compact && <span className="bgm-mute-label">{status.isMuted ? 'OFF' : 'ON'}</span>}
+        <span className="bgm-mute-label">{status.isMuted ? 'OFF' : 'ON'}</span>
       </button>
 
       <button
