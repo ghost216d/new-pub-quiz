@@ -2194,6 +2194,133 @@ body,
   }
 }
 
+/* Keep every part of a long Solo question reachable on mobile. The question
+   screen itself owns vertical scrolling; answer cards grow to their content. */
+@media (max-width: 899px) {
+  #root .role-solo .solo-quiz-screen {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
+    padding: max(8px, env(safe-area-inset-top, 0px)) 8px
+      calc(100px + env(safe-area-inset-bottom, 0px));
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root .role-solo .solo-quiz-screen > * {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 720px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  #root .role-solo .solo-quiz-hud {
+    position: sticky;
+    top: 0;
+    z-index: 45;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 58px;
+    padding: 8px 10px;
+    backdrop-filter: blur(10px);
+  }
+
+  #root .role-solo .solo-quiz-stage-name {
+    min-width: 0;
+    overflow: hidden;
+    color: #202020;
+    font-size: clamp(13px, 4vw, 18px);
+    font-weight: 1000;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #root .role-solo .solo-quiz-stats {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+    min-width: 0;
+  }
+
+  #root .role-solo .solo-quiz-hearts,
+  #root .role-solo .solo-quiz-timer {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 38px;
+    padding: 5px 7px;
+    border: 2px solid #191919;
+    border-radius: 13px;
+    color: #202020;
+    background: #f8e5e8;
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  #root .role-solo .solo-quiz-heart-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+  }
+
+  #root .role-solo .solo-quiz-heart-icons svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.5;
+  }
+
+  #root .role-solo .solo-quiz-heart-icons svg.is-alive {
+    fill: #e96378;
+    color: #b6203d;
+  }
+
+  #root .role-solo .solo-quiz-heart-icons svg.is-lost {
+    fill: #e5e1df;
+    color: #77716d;
+  }
+
+  #root .role-solo .solo-quiz-timer {
+    min-width: 54px;
+    background: #fff1c9;
+  }
+
+  #root .role-solo .solo-quiz-timer svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  #root .role-solo .solo-question-card {
+    flex: 0 0 auto;
+    min-height: min-content;
+    overflow: visible;
+    padding: 14px;
+  }
+
+  #root .role-solo .solo-question-card > .grid {
+    flex: 0 0 auto;
+    grid-template-rows: none;
+    grid-auto-rows: minmax(62px, auto);
+  }
+}
+
 /* Full-screen mobile question round and wider Solo realm selector. */
 @media (max-width: 639px) {
   .solo-quiz-screen {
