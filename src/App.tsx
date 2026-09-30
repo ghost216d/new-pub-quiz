@@ -10,7 +10,6 @@ import { HostControls } from './components/HostControls';
 import { TVDisplay } from './components/TVDisplay';
 import { PlayerMobileView } from './components/PlayerMobileView';
 import { SoloQuizView } from './components/SoloQuizView';
-import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal } from './components/AuthModal';
 import { BGMController } from './components/BGMController';
 import { getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
@@ -1207,11 +1206,8 @@ export default function App() {
         </nav>
       )}
 
-      {/* Music stays available on every screen, including Solo and quiz rounds. */}
-      <BGMController compact className="global-music-control" />
-
-      {/* Offline Status Badge */}
-      <OfflineIndicator />
+      {/* Keep sound controls with the Solo game interface. */}
+      {role === 'solo' && <BGMController compact className="global-music-control" />}
 
       {/* First-Time Sign In Prompt (Google, email or guest) */}
       <AuthModal
