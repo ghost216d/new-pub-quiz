@@ -236,14 +236,14 @@ const getProceduralBackupQuestions = (): Question[] => Array.from({ length: 400 
   } satisfies Question;
 });
 
-const getSoloQuestionVault = (): Question[] => [
+const getSoloQuestionVault = (includeMathsBackups = false): Question[] => [
   ...DEFAULT_ROUNDS
     .filter((round) => round.type !== 'music')
     .flatMap((round) => round.questions)
     .filter((question) => !question.musicData),
   ...SOLO_PICTURE_QUESTIONS,
   ...SOLO_PHOTO_QUESTIONS,
-  ...getProceduralBackupQuestions(),
+  ...(includeMathsBackups ? getProceduralBackupQuestions() : []),
 ];
 
 const loadOnlineQuestionsWithTimeout = (
@@ -479,7 +479,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     }
 
     // 2. Curated fallback
-    const allQuestions = getSoloQuestionVault();
+    const includeMathsBackups = isMathsTopic(level.category);
+    const allQuestions = getSoloQuestionVault(includeMathsBackups);
 
     let qPool = allQuestions.filter(
       (q) =>
@@ -501,7 +502,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       // finite offline pack has been exhausted. Keep this final guard so a
       // malformed or empty pack can never leave the launch overlay hanging.
       shuffled = buildUnseenFallbackQuestions(
-        getSoloQuestionVault(),
+        getSoloQuestionVault(includeMathsBackups),
         count,
       );
     }
@@ -543,7 +544,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     }
 
     // Curated local questions fallback
-    const allQuestions = getSoloQuestionVault();
+    const includeMathsBackups = isMathsTopic(topic);
+    const allQuestions = getSoloQuestionVault(includeMathsBackups);
 
     let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : isPhotoRound ? SOLO_PHOTO_QUESTIONS : allQuestions.filter(
       (q) =>
@@ -562,7 +564,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       );
     } catch {
       shuffled = buildUnseenFallbackQuestions(
-        getSoloQuestionVault(),
+        getSoloQuestionVault(includeMathsBackups),
         10,
       );
     }
