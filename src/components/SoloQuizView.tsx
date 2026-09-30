@@ -104,12 +104,11 @@ const DIFFICULTY_OPTIONS: {
 const ONLINE_QUESTION_TIMEOUT_MS = 4500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
+const COMPLETION_ARTWORK_DURATION_MS = 2000;
 
 type CompletionTransition = {
   phase: 'loading';
   nextTarget: { mapId: string; levelId: string } | null;
-  artwork: string | null;
-  nextLevelName: string;
 };
 
 const isMathsTopic = (topic: string): boolean =>
@@ -353,7 +352,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [floatingCoinText, setFloatingCoinText] = useState<string | null>(null);
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
   const [completionTransition, setCompletionTransition] = useState<CompletionTransition | null>(null);
-  const [transitionProgress, setTransitionProgress] = useState(0);
   const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
   const [launchingLevel, setLaunchingLevel] = useState<{ level: MapLevel; artwork: string; stageName: string } | null>(null);
   const loadedStageIdsRef = useRef<Set<string>>(new Set());
@@ -368,10 +366,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   useEffect(() => {
     if (!completionTransition) return;
 
-    const startedAt = Date.now();
-    const progressTimer = window.setInterval(() => {
-      setTransitionProgress(Math.min(100, Math.round(((Date.now() - startedAt) / 3000) * 100)));
-    }, 50);
     const finishTimer = window.setTimeout(() => {
       const target = completionTransition.nextTarget;
       if (target) {
@@ -383,12 +377,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         setAutoAdvanceTarget(target);
       }
       setCompletionTransition(null);
-    }, 3000);
+    }, COMPLETION_ARTWORK_DURATION_MS);
 
-    return () => {
-      window.clearInterval(progressTimer);
-      window.clearTimeout(finishTimer);
-    };
+    return () => window.clearTimeout(finishTimer);
   }, [completionTransition?.phase]);
 
   // Timer countdown
@@ -781,17 +772,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           setActiveLevel(null);
           setActiveMap(null);
           setRouteJourney(null);
-          if (nextTarget && nextArtwork) {
-            setTransitionProgress(0);
-            setCompletionTransition({
-              phase: 'loading',
-              nextTarget,
-              artwork: nextArtwork,
-              nextLevelName: targetLevel?.name || targetLevel?.pubName || 'Next level',
-            });
-          } else {
-            setCompletionTransition(null);
-          }
+          setCompletionTransition({ phase: 'loading', nextTarget });
           setViewMode('map');
           audioSynth.playChampionFanfare();
         }, 7000);
@@ -872,38 +853,24 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           </div>
         )}
 
-        {completionTransition?.phase === 'loading' && completionTransition.artwork && (
+        {completionTransition?.phase === 'loading' && (
           <div
             className="solo-stage-transition-cover"
             role="status"
             aria-live="polite"
-            aria-label={`Loading ${completionTransition.nextLevelName}`}
+            aria-label="Well done"
           >
             <img
-              key={completionTransition.artwork}
+              key="level-complete-celebration-v2.webp"
               className="solo-stage-transition-art"
-              src={`${import.meta.env.BASE_URL}${completionTransition.artwork}`}
-              alt={`Artwork for ${completionTransition.nextLevelName}`}
+              src={`${import.meta.env.BASE_URL}level-complete-celebration-v2.webp`}
+              alt="Well done!"
               onError={(event) => {
                 event.currentTarget.onerror = null;
-                event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
+                event.currentTarget.src = `${import.meta.env.BASE_URL}level-complete-celebration.webp`;
               }}
               draggable={false}
             />
-            <div className="solo-stage-transition-progress">
-              <strong>Getting {completionTransition.nextLevelName} ready</strong>
-              <div
-                className="solo-stage-transition-track"
-                role="progressbar"
-                aria-label={`Loading ${completionTransition.nextLevelName}`}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={transitionProgress}
-              >
-                <span style={{ width: `${transitionProgress}%` }} />
-              </div>
-              <span>{transitionProgress}%</span>
-            </div>
           </div>
         )}
 
