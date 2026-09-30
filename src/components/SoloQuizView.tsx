@@ -1347,28 +1347,46 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           })}
         </div>
 
-        {/* Answer Explanation & Next Question button */}
-        {isAnswerRevealed && (
-          <div className="pt-2 space-y-3 animate-in fade-in duration-200">
-            {currentQ?.explanation && (
-              <p className="text-xs text-stone-800 bg-amber-50 p-3.5 rounded-2xl border-2 border-amber-800/40 leading-relaxed font-medium animate-rubberband">
-                💡 <strong className="text-amber-900 font-cartoon">Fact:</strong> {currentQ.explanation}
+      </div>
+
+      {/* Focus the player on the answer and next action; the quiz stays softly blurred behind. */}
+      {isAnswerRevealed && currentQ && (
+        <div
+          className={`solo-answer-feedback-overlay ${selectedAnswer === currentQ.correctAnswer ? 'is-correct' : 'is-incorrect'}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="solo-answer-feedback-title"
+        >
+          <section className="solo-answer-feedback-panel">
+            <div className="solo-answer-feedback-status" role="status">
+              {selectedAnswer === currentQ.correctAnswer ? '✓ CORRECT' : '✕ NOT QUITE'}
+            </div>
+            <h2 id="solo-answer-feedback-title" className="solo-answer-feedback-title">
+              {selectedAnswer === currentQ.correctAnswer ? 'That’s right!' : 'The correct answer is'}
+            </h2>
+            <p className="solo-answer-feedback-answer">{currentQ.correctAnswer}</p>
+            {selectedAnswer !== currentQ.correctAnswer && selectedAnswer && (
+              <p className="solo-answer-feedback-choice">Your answer: {selectedAnswer}</p>
+            )}
+            {currentQ.explanation && (
+              <p className="solo-answer-feedback-explanation">
+                <strong>Quick fact:</strong> {currentQ.explanation}
               </p>
             )}
-
             <button
               onClick={handleNextQuestion}
-              className="w-full py-3.5 sm:py-4 rounded-2xl cartoon-btn-amber text-base sm:text-lg font-cartoon tracking-wider transition cursor-pointer flex items-center justify-center gap-2 animate-glow-pulse min-h-[48px]"
+              className="solo-answer-feedback-next"
+              autoFocus
             >
-              <span>{currentIdx + 1 < questions.length ? 'NEXT QUESTION ➔' : 'FINISH STAGE 🏆'}</span>
+              {currentIdx + 1 < questions.length ? 'NEXT QUESTION ➔' : 'FINISH STAGE 🏆'}
             </button>
-          </div>
-        )}
-      </div>
+          </section>
+        </div>
+      )}
 
       {/* OUT OF LIVES MODAL POPUP */}
       {isOutOfLivesModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in">
           <div className="max-w-sm w-full bg-[#fffdf8] rounded-3xl p-6 border-4 border-rose-600 shadow-[0_12px_0_#881337] text-center space-y-4 text-stone-900">
             <div className="w-16 h-16 mx-auto rounded-3xl bg-rose-100 text-rose-600 flex items-center justify-center text-3xl border-2 border-rose-400 animate-pulse shadow-md">
               💔
