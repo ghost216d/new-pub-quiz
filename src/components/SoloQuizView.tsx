@@ -106,10 +106,11 @@ const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 
 type CompletionTransition = {
-  phase: 'map' | 'loading';
+  phase: 'loading';
   nextTarget: { mapId: string; levelId: string } | null;
   artwork: string | null;
   stageName: string;
+  nextLevelNumber: number;
   nextLevelName: string;
 };
 
@@ -368,18 +369,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
   useEffect(() => {
     if (!completionTransition) return;
-
-    if (completionTransition.phase === 'map') {
-      const timer = window.setTimeout(() => {
-        if (completionTransition.nextTarget && completionTransition.artwork) {
-          setTransitionProgress(0);
-          setCompletionTransition({ ...completionTransition, phase: 'loading' });
-        } else {
-          setCompletionTransition(null);
-        }
-      }, 3000);
-      return () => window.clearTimeout(timer);
-    }
 
     const startedAt = Date.now();
     const progressTimer = window.setInterval(() => {
@@ -773,7 +762,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         : undefined;
       // Each route is one stage. Use the destination route's own art so the
       // loading screen always matches the map and pub being opened.
-      const nextArtwork = targetLevel?.coverArtwork || targetMap?.mapArtwork || null;
+      const nextArtwork = targetLevel?.coverArtwork
+        || targetLevel?.mapArtwork
+        || targetMap?.mapArtwork
+        || 'pub-quiz-main-cover-v2.webp';
 
       if (passedStage && nextArtwork) {
         const preload = new Image();
@@ -781,8 +773,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       }
 
       if (passedStage) {
-        // Keep the victory screen visible, then show the cleared map and the
-        // next pub's artwork as two timed, full-screen transition cards.
+        // Keep the victory screen visible, then go straight to the next pub's
+        // artwork. Do not reveal the full map between stages.
         window.setTimeout(() => {
           setDrinkCelebration(null);
           setGameOver(false);
@@ -791,13 +783,19 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           setActiveLevel(null);
           setActiveMap(null);
           setRouteJourney(null);
-          setCompletionTransition({
-            phase: 'map',
-            nextTarget,
-            artwork: nextArtwork,
-            stageName: targetMap?.name || 'Next Stage',
-            nextLevelName: targetLevel?.pubName || targetLevel?.name || 'Next pub',
-          });
+          if (nextTarget && nextArtwork) {
+            setTransitionProgress(0);
+            setCompletionTransition({
+              phase: 'loading',
+              nextTarget,
+              artwork: nextArtwork,
+              stageName: targetMap?.name || 'Next Stage',
+              nextLevelNumber: targetLevel?.levelNumber || 1,
+              nextLevelName: targetLevel?.pubName || targetLevel?.name || 'Next pub',
+            });
+          } else {
+            setCompletionTransition(null);
+          }
           setViewMode('map');
           audioSynth.playChampionFanfare();
         }, 7000);
@@ -890,8 +888,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               draggable={false}
             />
             <div className="solo-stage-transition-title">
-              <span>Next Stage</span>
-              <strong>{completionTransition.stageName}</strong>
+              <span>Next Level {completionTransition.nextLevelNumber}</span>
+              <strong>{completionTransition.nextLevelName}</strong>
+              <small>{completionTransition.stageName}</small>
             </div>
             <div className="solo-stage-transition-progress">
               <strong>Getting {completionTransition.nextLevelName} ready</strong>

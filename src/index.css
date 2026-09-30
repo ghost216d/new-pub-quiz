@@ -6081,8 +6081,7 @@ html[data-time-theme] .role-solo .game-title p {
   text-shadow: none !important;
 }
 
-/* Two deliberate, timed screens after clearing a pub: the complete map and
-   the next pub artwork with a live loading bar. */
+/* Full-screen destination artwork and loading progress after clearing a pub. */
 .solo-stage-transition-cover {
   position: fixed;
   z-index: 140;
@@ -6135,6 +6134,14 @@ html[data-time-theme] .role-solo .game-title p {
   font-size: clamp(17px, 4.8vw, 25px);
   font-weight: 1000;
   line-height: 1.1;
+}
+
+.solo-stage-transition-title small {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(11px, 3vw, 14px);
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .solo-stage-transition-progress {

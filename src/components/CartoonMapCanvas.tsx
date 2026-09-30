@@ -231,9 +231,14 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const highestCompletedLevelIndex = activeMap.levels.reduce((highest, level, index) => (
     progression.completedLevels[level.id]?.passed ? index : highest
   ), -1);
-  const colourRevealTop = highestCompletedLevelIndex < 0
-    ? 100
-    : LEVEL_COORDS[highestCompletedLevelIndex]?.y ?? 50;
+  const allActiveMapLevelsComplete = activeMap.levels.length > 0 && activeMap.levels.every(
+    (level) => progression.completedLevels[level.id]?.passed
+  );
+  const colourRevealTop = allActiveMapLevelsComplete
+    ? 0
+    : highestCompletedLevelIndex < 0
+      ? 100
+      : LEVEL_COORDS[highestCompletedLevelIndex]?.y ?? 50;
   useEffect(() => {
     const timer = window.setInterval(() => {
       const result = checkAndReplenishLives(progression);
