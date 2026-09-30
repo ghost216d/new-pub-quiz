@@ -183,6 +183,8 @@ export interface MapLevel {
   /** Per-level illustrated London map and loading cover. */
   mapArtwork?: string;
   coverArtwork?: string;
+  /** Global level number shown by the matching illustrated cover. */
+  artworkLevelNumber?: number;
 }
 
 export interface CartoonMap {

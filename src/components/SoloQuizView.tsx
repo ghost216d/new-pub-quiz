@@ -109,8 +109,6 @@ type CompletionTransition = {
   phase: 'loading';
   nextTarget: { mapId: string; levelId: string } | null;
   artwork: string | null;
-  stageName: string;
-  nextLevelNumber: number;
   nextLevelName: string;
 };
 
@@ -449,7 +447,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     if (!loadedStageIdsRef.current.has(map.id)) {
       const stageCover = level.coverArtwork || map.mapArtwork;
       loadedStageIdsRef.current.add(map.id);
-      setLaunchingLevel({ level, artwork: stageCover, stageName: map.name });
+      setLaunchingLevel({ level, artwork: stageCover, stageName: level.name || map.name });
     } else {
       setLaunchingLevel(null);
     }
@@ -789,9 +787,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               phase: 'loading',
               nextTarget,
               artwork: nextArtwork,
-              stageName: targetMap?.name || 'Next Stage',
-              nextLevelNumber: targetLevel?.levelNumber || 1,
-              nextLevelName: targetLevel?.pubName || targetLevel?.name || 'Next pub',
+              nextLevelName: targetLevel?.name || targetLevel?.pubName || 'Next level',
             });
           } else {
             setCompletionTransition(null);
@@ -887,11 +883,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               }}
               draggable={false}
             />
-            <div className="solo-stage-transition-title">
-              <span>Next Level {completionTransition.nextLevelNumber}</span>
-              <strong>{completionTransition.nextLevelName}</strong>
-              <small>{completionTransition.stageName}</small>
-            </div>
             <div className="solo-stage-transition-progress">
               <strong>Getting {completionTransition.nextLevelName} ready</strong>
               <div
