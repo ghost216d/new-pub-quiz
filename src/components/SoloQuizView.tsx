@@ -109,6 +109,7 @@ type CompletionTransition = {
   phase: 'map' | 'loading';
   nextTarget: { mapId: string; levelId: string } | null;
   artwork: string | null;
+  stageName: string;
   nextLevelName: string;
 };
 
@@ -794,6 +795,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             phase: 'map',
             nextTarget,
             artwork: nextArtwork,
+            stageName: targetMap?.name || 'Next Stage',
             nextLevelName: targetLevel?.pubName || targetLevel?.name || 'Next pub',
           });
           setViewMode('map');
@@ -887,6 +889,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               }}
               draggable={false}
             />
+            <div className="solo-stage-transition-title">
+              <span>Next Stage</span>
+              <strong>{completionTransition.stageName}</strong>
+            </div>
             <div className="solo-stage-transition-progress">
               <strong>Getting {completionTransition.nextLevelName} ready</strong>
               <div
