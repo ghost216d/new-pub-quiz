@@ -1215,58 +1215,27 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     <div className="solo-screen solo-quiz-screen w-full mx-auto space-y-3 sm:space-y-4 font-comic">
       {/* Top Solo Header (Vibrant Cartoon Game HUD) */}
       <div className="solo-quiz-hud bg-[#fffdf8] p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-[3px] sm:border-4 border-amber-800 shadow-[0_5px_0_#082f49] gap-2">
-        {/* Left: Level / Question index */}
-        <div className="solo-quiz-progress flex min-w-0 items-center gap-2">
-          <span className="shrink-0 px-2.5 sm:px-3 py-1 rounded-full cartoon-btn-amber text-[10px] sm:text-xs font-cartoon shadow-sm">
-            Q {currentIdx + 1} / {questions.length}
-          </span>
-          {activeLevel && (
-            <span className="shrink-0 rounded-full border-2 border-emerald-500 bg-emerald-100 px-2 py-1 text-[10px] font-cartoon text-emerald-900 shadow-sm">
-              ✓ {correctCount}/{Math.ceil((questions.length * SOLO_PASS_PERCENT) / 100)}
-            </span>
-          )}
-          <span className="solo-quiz-pub-name min-w-0 text-[11px] sm:text-xs text-stone-900 font-cartoon truncate">
-            {activeLevel ? activeLevel.name : currentQ?.category}
-          </span>
+        <div className="solo-quiz-stage-name" title={activeMap?.name || activeLevel?.name || selectedCategory}>
+          {activeMap?.name || activeLevel?.name || selectedCategory}
         </div>
 
-        {/* Right: Hearts (Lives), Coins, Streak, Timer */}
-        <div className="solo-quiz-stats flex min-w-0 items-center justify-end gap-1.5 sm:gap-3">
-          {/* Hearts / Lives */}
-          <div className="solo-quiz-hearts flex shrink-0 items-center gap-0.5 sm:gap-1 bg-rose-100 border-2 border-rose-400 px-1.5 sm:px-2.5 py-1 rounded-2xl shadow-sm">
-            {Array.from({ length: progression.maxLives }).map((_, i) => (
-              <Heart
-                key={i}
-                className={`w-4 h-4 ${
-                  i < progression.lives
-                    ? 'text-rose-500 fill-rose-500 animate-pulse'
-                    : 'text-stone-300 fill-stone-200 opacity-60'
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Pub Bucks Balance */}
-          <div className="relative flex min-w-0 items-center gap-1 bg-amber-100 border-2 border-amber-400 px-2 py-1 rounded-2xl text-[10px] sm:text-xs font-cartoon text-amber-950 shadow-sm">
-            <Coins className="w-4 h-4 text-amber-600 fill-amber-500 animate-beer-slosh" />
-            <span>{progression.coins.toLocaleString()}</span>
-            {floatingCoinText && (
-              <span className="absolute -top-5 right-0 text-amber-950 font-cartoon text-xs animate-bounce bg-amber-200 border border-amber-600 px-1.5 py-0.5 rounded shadow">
-                {floatingCoinText}
-              </span>
-            )}
-          </div>
-
-          {streak > 1 && (
-            <span className="text-xs font-cartoon text-amber-950 bg-amber-200 px-2.5 py-1 rounded-2xl border-2 border-amber-500 animate-hop">
-              🔥 {streak}x
+        <div className="solo-quiz-stats">
+          <div className="solo-quiz-hearts" aria-label={`Health: ${progression.lives} of ${progression.maxLives}`}>
+            <span className="solo-quiz-heart-icons" aria-hidden="true">
+              {Array.from({ length: progression.maxLives }).map((_, i) => (
+                <Heart
+                  key={i}
+                  className={i < progression.lives ? 'is-alive' : 'is-lost'}
+                />
+              ))}
             </span>
-          )}
+            <strong>{progression.lives}/{progression.maxLives}</strong>
+          </div>
 
-          <div className={`flex shrink-0 items-center gap-1 text-[10px] sm:text-xs font-cartoon text-amber-950 bg-amber-100 px-2 sm:px-2.5 py-1 rounded-2xl border-2 border-amber-400 shadow-inner ${
+          <div className={`solo-quiz-timer ${
             timerSec <= 5 ? 'animate-wiggle-fast text-rose-700 bg-rose-100 border-rose-400' : ''
           }`}>
-            <Clock className={`w-3.5 h-3.5 ${timerSec <= 5 ? 'text-rose-600 animate-spin' : 'text-amber-700 animate-pulse'}`} />
+            <Clock className={timerSec <= 5 ? 'text-rose-600' : ''} aria-hidden="true" />
             <span>{timerSec}s</span>
           </div>
         </div>
