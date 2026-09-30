@@ -104,7 +104,7 @@ const DIFFICULTY_OPTIONS: {
 const ONLINE_QUESTION_TIMEOUT_MS = 4500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
-const COMPLETION_ARTWORK_DURATION_MS = 1000;
+const COMPLETION_ARTWORK_DURATION_MS = 2000;
 
 type CompletionTransition = {
   phase: 'loading';
@@ -763,20 +763,17 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       }
 
       if (passedStage) {
-        // Keep the victory screen visible, then go straight to the next pub's
-        // artwork. Do not reveal the full map between stages.
-        window.setTimeout(() => {
-          setDrinkCelebration(null);
-          setGameOver(false);
-          setSelectedAnswer(null);
-          setIsAnswerRevealed(false);
-          setActiveLevel(null);
-          setActiveMap(null);
-          setRouteJourney(null);
-          setCompletionTransition({ phase: 'loading', nextTarget });
-          setViewMode('map');
-          audioSynth.playChampionFanfare();
-        }, 7000);
+        // Skip the long victory summary and show only the Well done artwork.
+        setDrinkCelebration(null);
+        setGameOver(false);
+        setSelectedAnswer(null);
+        setIsAnswerRevealed(false);
+        setActiveLevel(null);
+        setActiveMap(null);
+        setRouteJourney(null);
+        setCompletionTransition({ phase: 'loading', nextTarget });
+        setViewMode('map');
+        audioSynth.playChampionFanfare();
       }
     }
   };
