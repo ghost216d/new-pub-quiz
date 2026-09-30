@@ -11,7 +11,6 @@ import { TVDisplay } from './components/TVDisplay';
 import { PlayerMobileView } from './components/PlayerMobileView';
 import { SoloQuizView } from './components/SoloQuizView';
 import { AuthModal } from './components/AuthModal';
-import { BGMController } from './components/BGMController';
 import { getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
 import { SoloProgression } from './types';
 import { getLondonTheme } from './utils/londonTheme';
@@ -1205,9 +1204,6 @@ export default function App() {
           </button>
         </nav>
       )}
-
-      {/* Keep sound controls with the Solo game interface. */}
-      {role === 'solo' && <BGMController compact className="global-music-control" />}
 
       {/* First-Time Sign In Prompt (Google, email or guest) */}
       <AuthModal

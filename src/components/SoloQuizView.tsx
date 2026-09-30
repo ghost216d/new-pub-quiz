@@ -29,6 +29,7 @@ import { audioSynth } from '../utils/audioSynth';
 import { chooseUnseenFallbackQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../utils/onlineTrivia';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
+import { BGMController } from './BGMController';
 import { TavernShopModal } from './TavernShopModal';
 import { CorrectAnswerDrink } from './CorrectAnswerDrink';
 import { RunningToPubAnimation } from './RunningToPubAnimation';
@@ -854,6 +855,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           onOpenQuizMaster={onOpenQuizMaster}
           autoAdvanceTarget={autoAdvanceTarget}
         />
+
+        <BGMController compact className="global-music-control" />
 
         {launchingLevel && (
           <div className="solo-pub-launch" role="status" aria-live="polite" aria-label={`Loading ${launchingLevel.stageName}`}>
