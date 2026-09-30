@@ -983,6 +983,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
                 return (
                   <button
                     key={cat.id}
+                    type="button"
+                    aria-pressed={isChosen}
                     onClick={() => {
                       setSelectedCategory(cat.name);
                       setCustomTopic('');
@@ -992,9 +994,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
                         ? { borderColor: cat.color, backgroundColor: `${cat.color}25` }
                         : {}
                     }
-                    className={`p-3 rounded-xl border-2 font-bold text-xs flex items-center gap-2.5 transition cursor-pointer text-left ${
+                    className={`solo-category-option p-3 rounded-xl border-2 font-bold text-xs flex items-center gap-2.5 transition cursor-pointer text-left ${
                       isChosen
-                        ? 'text-stone-900 border-amber-800 shadow-md bg-amber-100'
+                        ? 'is-selected text-stone-900 border-amber-800 shadow-md bg-amber-100'
                         : 'bg-amber-50 text-stone-800 border-amber-800/30 hover:border-amber-700 hover:bg-white'
                     }`}
                   >
@@ -1003,6 +1005,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
                       <span className="block font-black truncate">{cat.name}</span>
                       <span className="text-[10px] opacity-75 line-clamp-1">{cat.description}</span>
                     </div>
+                    {isChosen && (
+                      <span className="solo-category-selected-indicator" aria-hidden="true">
+                        <CheckCircle2 />
+                        <span>Selected</span>
+                      </span>
+                    )}
                   </button>
                 );
               })}
