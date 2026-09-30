@@ -109,6 +109,9 @@ const COMPLETION_ARTWORK_DURATION_MS = 2000;
 type CompletionTransition = {
   phase: 'loading';
   nextTarget: { mapId: string; levelId: string } | null;
+  artwork: string;
+  nextLevelName: string;
+  nextLevelNumber?: number;
 };
 
 const isMathsTopic = (topic: string): boolean =>
@@ -759,13 +762,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         || targetMap?.mapArtwork
         || 'pub-quiz-main-cover-v2.webp';
 
-      if (passedStage && nextArtwork) {
+      if (passedStage && nextTarget && nextArtwork) {
         const preload = new Image();
         preload.src = `${import.meta.env.BASE_URL}${nextArtwork}`;
       }
 
       if (passedStage) {
-        // Skip the long victory summary and show only the Well done artwork.
+        // Show the next area's cover instead of a separate Well done screen.
         setDrinkCelebration(null);
         setGameOver(false);
         setSelectedAnswer(null);
@@ -773,7 +776,18 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         setActiveLevel(null);
         setActiveMap(null);
         setRouteJourney(null);
-        setCompletionTransition({ phase: 'loading', nextTarget });
+        if (nextTarget && targetLevel && nextArtwork) {
+          setCompletionTransition({
+            phase: 'loading',
+            nextTarget,
+            artwork: nextArtwork,
+            nextLevelName: targetLevel.name || targetLevel.pubName || 'Next area',
+            nextLevelNumber: targetLevel.artworkLevelNumber,
+          });
+        } else {
+          setAutoAdvanceTarget(null);
+          setCompletionTransition(null);
+        }
         setViewMode('map');
         audioSynth.playChampionFanfare();
       }
@@ -840,19 +854,25 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             className="solo-stage-transition-cover"
             role="status"
             aria-live="polite"
-            aria-label="Well done"
+            aria-label={`Next area: ${completionTransition.nextLevelName}`}
           >
             <img
-              key="level-complete-celebration-v2.webp"
+              key={completionTransition.artwork}
               className="solo-stage-transition-art"
-              src={`${import.meta.env.BASE_URL}level-complete-celebration-v2.webp`}
-              alt="Well done!"
+              src={`${import.meta.env.BASE_URL}${completionTransition.artwork}`}
+              alt={`Artwork for ${completionTransition.nextLevelName}`}
               onError={(event) => {
                 event.currentTarget.onerror = null;
-                event.currentTarget.src = `${import.meta.env.BASE_URL}level-complete-celebration.webp`;
+                event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
               }}
               draggable={false}
             />
+            <div className="solo-stage-transition-title" aria-hidden="true">
+              <span>
+                Next Area{completionTransition.nextLevelNumber ? ` · Level ${completionTransition.nextLevelNumber}` : ''}
+              </span>
+              <strong>{completionTransition.nextLevelName}</strong>
+            </div>
           </div>
         )}
 
