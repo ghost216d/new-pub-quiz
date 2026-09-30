@@ -104,7 +104,7 @@ const DIFFICULTY_OPTIONS: {
 const ONLINE_QUESTION_TIMEOUT_MS = 4500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
-const COMPLETION_ARTWORK_DURATION_MS = 2000;
+const COMPLETION_ARTWORK_DURATION_MS = 1000;
 
 type CompletionTransition = {
   phase: 'loading';
