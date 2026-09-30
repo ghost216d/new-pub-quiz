@@ -5778,6 +5778,38 @@ html[data-time-theme] .role-solo .game-title p {
   forced-color-adjust: none;
 }
 
+.solo-stage-transition-title {
+  position: absolute;
+  z-index: 1;
+  top: max(18px, calc(env(safe-area-inset-top, 0px) + 12px));
+  left: 50%;
+  width: min(88vw, 520px);
+  padding: 12px 18px;
+  transform: translateX(-50%);
+  border: 2px solid #191919;
+  border-radius: 20px;
+  background: rgba(255, 250, 240, 0.96);
+  color: #202020;
+  text-align: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+}
+
+.solo-stage-transition-title span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.solo-stage-transition-title strong {
+  display: block;
+  font-size: clamp(17px, 4.8vw, 25px);
+  font-weight: 1000;
+  line-height: 1.1;
+}
+
 .solo-stage-transition-progress {
   position: absolute;
   z-index: 1;
@@ -5946,6 +5978,38 @@ body,
 }
 
 @media (max-width: 899px) {
+  /* Keep scrolling inside one predictable map viewport on mobile. */
+  #root .role-solo.app-shell > .app-content {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+
+  #root .role-solo .game-map-shell {
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root .role-solo .game-map-board {
+    position: relative;
+    inset: auto;
+    height: max(132dvh, 980px);
+    min-height: max(132dvh, 980px);
+    touch-action: pan-y;
+  }
+
+  /* The shared bottom tabs stay tappable during full-screen stage cards. */
+  #root .app-bottom-nav {
+    z-index: 200 !important;
+    pointer-events: auto;
+  }
+
   #root .role-solo .resume-host-quiz-btn {
     top: max(158px, calc(env(safe-area-inset-top, 0px) + 152px)) !important;
   }
