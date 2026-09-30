@@ -406,7 +406,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
   // Timer countdown
   useEffect(() => {
-    if (viewMode !== 'quiz' || isAnswerRevealed || gameOver || isOutOfLivesModalOpen) return;
+    if (viewMode !== 'quiz' || isAnswerRevealed || gameOver || isOutOfLivesModalOpen || isShopOpen) return;
 
     const timer = setInterval(() => {
       setTimerSec((prev) => {
@@ -419,7 +419,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [viewMode, isAnswerRevealed, gameOver, isOutOfLivesModalOpen, currentIdx]);
+  }, [viewMode, isAnswerRevealed, gameOver, isOutOfLivesModalOpen, isShopOpen, currentIdx]);
 
   const handleTimeout = () => {
     setIsAnswerRevealed(true);
@@ -1411,12 +1411,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               <button
                 onClick={() => {
                   setShopTab('lives');
+                  setIsOutOfLivesModalOpen(false);
                   setIsShopOpen(true);
                 }}
                 className="w-full py-2.5 rounded-2xl bg-amber-500 text-slate-950 font-black text-xs shadow-[0_3px_0_#075985] hover:brightness-105 transition cursor-pointer flex items-center justify-center gap-1.5 border border-amber-900"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
-                <span>Open Tavern Store & Bundles</span>
+                <span>Open Tavern Store</span>
               </button>
 
               <button
@@ -1436,7 +1437,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       {/* Tavern Shop Modal */}
       <TavernShopModal
         isOpen={isShopOpen}
-        onClose={() => setIsShopOpen(false)}
+        onClose={() => {
+          setIsShopOpen(false);
+          if (progression.lives <= 0) setIsOutOfLivesModalOpen(true);
+        }}
         progression={progression}
         onUpdateProgression={updateProgression}
         initialTab={shopTab}
