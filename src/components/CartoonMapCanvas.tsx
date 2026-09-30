@@ -100,6 +100,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isRealmPanelExpanded, setIsRealmPanelExpanded] = useState(false);
   const lastPointerActivationRef = useRef(0);
+  const mapShellRef = useRef<HTMLElement | null>(null);
 
   const isMapUnlocked = useCallback(
     (map: CartoonMap) => {
@@ -197,6 +198,30 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     return 1;
   })();
+  const currentPositionLevel = activeMap.levels.find(
+    (level) => level.levelNumber === currentLevelNumber
+  ) || activeMap.levels[activeMap.levels.length - 1];
+
+  // On stage changes, scroll the tall mobile map to the player's current pub.
+  useEffect(() => {
+    if (!currentPositionLevel) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const shell = mapShellRef.current;
+      const marker = shell?.querySelector<HTMLElement>(
+        `[data-level-id="${CSS.escape(currentPositionLevel.id)}"]`
+      );
+      if (!shell || !marker) return;
+
+      const shellBounds = shell.getBoundingClientRect();
+      const markerBounds = marker.getBoundingClientRect();
+      const desiredMarkerY = shellBounds.top + shell.clientHeight * 0.57;
+      const nextScrollTop = shell.scrollTop + markerBounds.top - desiredMarkerY;
+      shell.scrollTo({ top: Math.max(0, nextScrollTop), behavior: 'smooth' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeMap.id, currentPositionLevel?.id]);
   const activeArtwork = selectedLevel?.mapArtwork
     || activeMap.levels.find((level) => level.levelNumber === currentLevelNumber)?.mapArtwork
     || activeMap.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time]
@@ -363,6 +388,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     <main
       id="cartoon-map-main-view"
       className="game-map-shell"
+      ref={mapShellRef}
     >
 
       {/* Top navigation */}
@@ -619,6 +645,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             <div
               key={level.id}
               className="game-level-position"
+              data-level-id={level.id}
               style={{
                 left: `${coordinates.x}%`,
                 top: `${coordinates.y}%`,

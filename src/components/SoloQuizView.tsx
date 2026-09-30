@@ -15,7 +15,6 @@ import {
   ShoppingBag,
   MapPin,
   ChevronLeft,
-  Info,
   Award,
 } from 'lucide-react';
 import { Question, QuizDifficulty, MapLevel, CartoonMap, SoloProgression } from '../types';
@@ -337,7 +336,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [customTopic, setCustomTopic] = useState('');
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('medium');
   const [isLoading, setIsLoading] = useState(false);
-  const [aiNotice, setAiNotice] = useState<string | null>(null);
 
   // Active Game State
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -469,7 +467,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
   const handleStartGameWithLevel = async (level: MapLevel, map: CartoonMap) => {
     setIsLoading(true);
-    setAiNotice(null);
     const launchStartedAt = Date.now();
     const finishLaunchAnimation = async () => {
       const remaining = Math.max(0, 700 - (Date.now() - launchStartedAt));
@@ -496,7 +493,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         return;
       } catch (err) {
         console.warn('Online questions unavailable, falling back to the offline question vault.', err);
-        setAiNotice('Online questions are temporarily unavailable. Using unseen offline questions.');
       }
     }
 
@@ -545,7 +541,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     }
 
     setIsLoading(true);
-    setAiNotice(null);
     setActiveLevel(null);
     setActiveMap(null);
     const topic = customTopic.trim() || selectedCategory;
@@ -563,7 +558,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         return;
       } catch (err) {
         console.warn('Online questions unavailable, falling back to the offline question vault.', err);
-        setAiNotice('Online questions are temporarily unavailable. Using unseen offline questions.');
       }
     }
 
@@ -1210,15 +1204,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
   return (
     <div className="solo-screen solo-quiz-screen w-full mx-auto space-y-3 sm:space-y-4 font-comic">
-      {/* Notice banner if fallback was served */}
-      {aiNotice && (
-        <div className="p-3 bg-amber-500/10 border border-amber-500/40 rounded-2xl text-amber-300 text-xs flex items-center gap-2">
-          <Info className="w-4 h-4 shrink-0 text-amber-400" />
-          <span className="flex-1">{aiNotice}</span>
-          <button onClick={() => setAiNotice(null)} className="text-amber-400 hover:text-white font-bold text-xs">✕</button>
-        </div>
-      )}
-
       {/* Top Solo Header (Vibrant Cartoon Game HUD) */}
       <div className="solo-quiz-hud bg-[#fffdf8] p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border-[3px] sm:border-4 border-amber-800 shadow-[0_5px_0_#082f49] gap-2">
         {/* Left: Level / Question index */}
