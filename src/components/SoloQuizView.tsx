@@ -135,6 +135,22 @@ const questionKey = (question: Question): string =>
 const questionImageUrl = (imageUrl: string): string =>
   /^https?:|^data:|^\//.test(imageUrl) ? imageUrl : `${import.meta.env.BASE_URL}${imageUrl}`;
 
+const preloadedPhotoRoundImages = new Map<string, HTMLImageElement>();
+
+const preloadPhotoRoundImages = () => {
+  SOLO_PHOTO_QUESTIONS.forEach((question) => {
+    if (!question.imageUrl) return;
+    const src = questionImageUrl(question.imageUrl);
+    if (preloadedPhotoRoundImages.has(src)) return;
+
+    const image = new Image();
+    image.decoding = 'async';
+    image.fetchPriority = 'low';
+    image.src = src;
+    preloadedPhotoRoundImages.set(src, image);
+  });
+};
+
 const readMissedQuestions = (): MissedQuestion[] => {
   try {
     const parsed = JSON.parse(localStorage.getItem(MISSED_QUESTIONS_KEY) || '[]');
@@ -360,6 +376,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setProgression(updated);
     saveSoloProgression(updated);
   };
+
+  useEffect(() => {
+    if (selectedCategory === 'Photo Round: World Landmarks') {
+      preloadPhotoRoundImages();
+    }
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (!completionTransition) return;
@@ -1203,6 +1225,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             src={questionImageUrl(currentQ.imageUrl)}
             alt="Picture clue for this question"
             className="max-h-64 w-full rounded-2xl border-4 border-amber-500 object-cover shadow-md"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         )}
 
