@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   X,
   Coins,
@@ -36,6 +36,10 @@ export const TavernShopModal: React.FC<Props> = ({
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setActiveTab(initialTab);
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -120,7 +124,7 @@ export const TavernShopModal: React.FC<Props> = ({
   return (
     <div
       id="tavern-shop-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 bg-amber-950/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[500] flex items-center justify-center p-1.5 sm:p-4 bg-amber-950/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
