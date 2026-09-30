@@ -43,17 +43,17 @@ interface Props {
 }
 
 const MAP_AREA_LABELS: Record<string, string> = {
-  thames_riverside_crawl: 'Thames Riverside',
-  west_london_crawl: 'West London',
-  north_london_crawl: 'North London',
-  east_london_crawl: 'East London',
+  thames_riverside_crawl: 'South London & Westminster',
+  west_london_crawl: 'West End & Hyde Park',
+  north_london_crawl: 'Central & North London',
+  east_london_crawl: 'East & South London',
 };
 
 const MAP_ROUTE_LABELS: Record<string, string> = {
-  thames_riverside_crawl: 'Borough → Greenwich',
-  west_london_crawl: 'Kensington → Hammersmith',
-  north_london_crawl: 'King’s Cross → Hampstead',
-  east_london_crawl: 'Spitalfields → Isle of Dogs',
+  thames_riverside_crawl: 'Waterloo → Westminster',
+  west_london_crawl: 'Covent Garden → Hyde Park',
+  north_london_crawl: 'Trafalgar Square → London Bridge',
+  east_london_crawl: 'Tower Hill → Greenwich',
 };
 
 const LEVEL_COORDS = [

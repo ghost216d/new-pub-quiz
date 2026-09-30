@@ -862,6 +862,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               alt={`The Pub Quiz loading screen for ${launchingLevel.stageName}`}
               fetchPriority="high"
             />
+            {launchingLevel.level.artworkLevelNumber !== 1 && (
+              <div className="solo-stage-transition-title solo-pub-launch-title" aria-hidden="true">
+                <span>The Pub Quiz · Level {launchingLevel.level.artworkLevelNumber}</span>
+                <strong>{launchingLevel.level.name}</strong>
+                <small>{launchingLevel.level.pubName}</small>
+              </div>
+            )}
           </div>
         )}
 
