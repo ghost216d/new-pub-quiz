@@ -353,8 +353,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [autoAdvanceTarget, setAutoAdvanceTarget] = useState<{ mapId: string; levelId: string } | null>(null);
   const [completionTransition, setCompletionTransition] = useState<CompletionTransition | null>(null);
   const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
-  const [launchingLevel, setLaunchingLevel] = useState<{ level: MapLevel; artwork: string; stageName: string } | null>(null);
-  const loadedStageIdsRef = useRef<Set<string>>(new Set());
   const [drinkCelebration, setDrinkCelebration] = useState<{ id: number; streak: number } | null>(null);
 
   // Helper to persist progression state updates
@@ -433,28 +431,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setDifficulty('medium');
     setCustomTopic('');
     setUseAI(true); // Enable the online topic field, with an unseen offline fallback
-    // A route is a stage with five pub stops. Show its own level cover once
-    // when entering the stage; moving between pubs within it stays immediate.
-    if (!loadedStageIdsRef.current.has(map.id)) {
-      const stageCover = level.coverArtwork || map.mapArtwork;
-      loadedStageIdsRef.current.add(map.id);
-      setLaunchingLevel({ level, artwork: stageCover, stageName: level.name || map.name });
-    } else {
-      setLaunchingLevel(null);
-    }
     handleStartGameWithLevel(level, map);
   };
 
   const handleStartGameWithLevel = async (level: MapLevel, map: CartoonMap) => {
     setIsLoading(true);
-    const launchStartedAt = Date.now();
-    const finishLaunchAnimation = async () => {
-      const remaining = Math.max(0, 700 - (Date.now() - launchStartedAt));
-      if (remaining > 0) {
-        await new Promise((resolve) => window.setTimeout(resolve, remaining));
-      }
-      setLaunchingLevel(null);
-    };
     const count = level.questionCount || 5;
     // 1. Fetch fresh Internet questions. The online session token and local
     // seen-question history prevent repeats across levels and later visits.
@@ -468,7 +449,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         setQuestions(attemptQuestions);
         initGame(attemptQuestions);
         setIsLoading(false);
-        await finishLaunchAnimation();
         setViewMode('quiz');
         return;
       } catch (err) {
@@ -508,7 +488,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setQuestions(attemptQuestions);
     initGame(attemptQuestions);
     setIsLoading(false);
-    await finishLaunchAnimation();
     setViewMode('quiz');
   };
 
@@ -834,24 +813,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         />
 
         <BGMController compact className="global-music-control" />
-
-        {launchingLevel && (
-          <div className="solo-pub-launch" role="status" aria-live="polite" aria-label={`Loading ${launchingLevel.stageName}`}>
-            <img
-              className="solo-pub-launch-art"
-              src={`${import.meta.env.BASE_URL}${launchingLevel.artwork}`}
-              alt={`The Pub Quiz loading screen for ${launchingLevel.stageName}`}
-              fetchPriority="high"
-            />
-            {launchingLevel.level.artworkLevelNumber !== 1 && (
-              <div className="solo-stage-transition-title solo-pub-launch-title" aria-hidden="true">
-                <span>The Pub Quiz · Level {launchingLevel.level.artworkLevelNumber}</span>
-                <strong>{launchingLevel.level.name}</strong>
-                <small>{launchingLevel.level.pubName}</small>
-              </div>
-            )}
-          </div>
-        )}
 
         {completionTransition?.phase === 'loading' && (
           <div
