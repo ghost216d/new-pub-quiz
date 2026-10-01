@@ -318,6 +318,23 @@ const loadMixedOnlineQuestions = async (
   });
 };
 
+const loadMediumGeneralKnowledgeQuestions = async (count: number): Promise<Question[]> => {
+  const questions = await loadOnlineQuestionsWithTimeout({
+    category: 'General Knowledge',
+    count,
+    difficulty: 'medium',
+  });
+  const mediumQuestions = questions.map((question) => ({
+    ...question,
+    category: 'General Knowledge',
+    difficulty: 'medium' as const,
+    points: 15,
+    timeLimitSec: 35,
+  }));
+  recordQuestionsAsSeen(mediumQuestions.map((question) => question.prompt));
+  return mediumQuestions;
+};
+
 const generateMixedOnDeviceQuestions = async (
   category: string,
   count: number,
@@ -357,6 +374,42 @@ const generateMixedOnDeviceQuestions = async (
   ).slice(0, count);
   recordQuestionsAsSeen(questions.map((question) => question.prompt));
   return questions;
+};
+
+const generateMediumGeneralKnowledgeQuestions = async (
+  count: number,
+  onProgress: (message: string) => void,
+): Promise<Question[]> => {
+  const questions = await generateOnDeviceQuizQuestions({
+    category: 'General Knowledge',
+    count,
+    difficulty: 'medium',
+    roundType: 'trivia',
+    roundNumber: 1,
+    excludedPrompts: getQuestionHistory(),
+    onProgress: (_progress, message) => onProgress(message),
+  });
+  const mediumQuestions = dedupeSimilarQuestions(questions).map((question) => ({
+    ...question,
+    category: 'General Knowledge',
+    difficulty: 'medium' as const,
+    points: 15,
+    timeLimitSec: 35,
+  }));
+  if (mediumQuestions.length < count) throw new Error('The device AI could not create enough distinct questions.');
+  recordQuestionsAsSeen(mediumQuestions.map((question) => question.prompt));
+  return mediumQuestions;
+};
+
+const buildMediumGeneralKnowledgeFallback = (pool: Question[], count: number): Question[] => {
+  const questions = chooseUnseenFallbackQuestions(dedupeSimilarQuestions(pool), count);
+  return questions.map((question) => ({
+    ...question,
+    category: 'General Knowledge',
+    difficulty: 'medium',
+    points: 15,
+    timeLimitSec: 35,
+  }));
 };
 
 const buildUnseenFallbackQuestions = (
@@ -539,11 +592,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       // seen-question history prevent repeats across levels and later visits.
       if (navigator.onLine) {
         try {
-          const onlineQuestions = await loadMixedOnlineQuestions(
-            `${map.name}: ${level.category}`,
-            count,
-            true,
-          );
+          const onlineQuestions = await loadMediumGeneralKnowledgeQuestions(count);
           const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count, level.id);
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
         } catch (err) {
@@ -557,8 +606,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       if (!questionsToPlay && supportsOnDeviceQuizAI()) {
         try {
           setLevelLaunchStatus('Creating fresh questions on this device…');
-          const deviceQuestions = await generateMixedOnDeviceQuestions(
-            `${map.name}: ${level.category}`,
+          const deviceQuestions = await generateMediumGeneralKnowledgeQuestions(
             count,
             (message) => setLevelLaunchStatus(message || 'Creating fresh questions on this device…'),
           );
@@ -570,28 +618,21 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
       // 2. Curated fallback
       if (!questionsToPlay) {
-        const includeMathsBackups = isMathsTopic(level.category);
-        const allQuestions = getSoloQuestionVault(includeMathsBackups);
-
-        let qPool = allQuestions.filter(
-          (q) =>
-            q.category.toLowerCase().includes(level.category.toLowerCase().slice(0, 3)) ||
-            level.category.toLowerCase().includes(q.category.toLowerCase().slice(0, 3))
+        const allQuestions = getSoloQuestionVault();
+        const qPool = allQuestions.filter((question) =>
+          question.category !== 'Emoji Picture Puzzles' &&
+          question.category !== 'Photo Round: World Landmarks' &&
+          !question.musicData
         );
-        if (qPool.length < count) {
-          qPool = allQuestions;
-        }
 
-        let shuffled: Question[];
+        let mediumQuestions: Question[];
         try {
-          shuffled = buildUnseenFallbackQuestions(qPool, count);
+          mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, count);
         } catch {
-          // If the filtered category is malformed or exhausted, draw from the
-          // full safe offline pool so an old pub can still be replayed.
-          shuffled = buildUnseenFallbackQuestions(allQuestions, count);
+          mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, count);
         }
 
-        questionsToPlay = prepareAttemptQuestions(shuffled, count, level.id);
+        questionsToPlay = prepareAttemptQuestions(mediumQuestions, count, level.id);
       }
 
       if (!questionsToPlay?.length) {

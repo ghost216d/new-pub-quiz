@@ -22,6 +22,7 @@ const writeStoredValue = (key: string, value: string): void => {
 };
 
 const CATEGORY_IDS: Array<[RegExp, number]> = [
+  [/general knowledge|^trivia$/i, 9],
   [/film|movie|cinema/i, 11],
   [/music|song|band/i, 12],
   [/television|tv/i, 14],
