@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions } from '../src/utils/onlineTrivia.ts';
+import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 
 const storage = new Map();
 globalThis.localStorage = {
@@ -37,5 +37,16 @@ const secondRound = chooseUnseenFallbackQuestions(pool, 3);
 const firstPrompts = new Set(firstRound.map((question) => question.prompt));
 assert.equal(secondRound.some((question) => firstPrompts.has(question.prompt)), false,
   'a second round should not repeat questions while enough unseen prompts remain');
+
+pool.forEach((question) => markQuestionMastered(question.prompt));
+assert.equal(chooseUnseenFallbackQuestions(pool, 3).length, 3,
+  'mastering every offline prompt should not prevent a pub from opening');
+
+globalThis.localStorage = {
+  getItem: () => { throw new Error('Storage unavailable'); },
+  setItem: () => { throw new Error('Storage unavailable'); },
+};
+assert.equal(chooseUnseenFallbackQuestions(pool, 3).length, 3,
+  'unavailable browser storage should not prevent a pub from opening');
 
 console.log('Question repeat regression passed.');

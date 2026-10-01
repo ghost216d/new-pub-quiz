@@ -5,6 +5,22 @@ const SEEN_KEY = 'pubquiz_seen_questions_v1';
 const MASTERED_KEY = 'pubquiz_mastered_questions_v1';
 const MAX_SEEN = 10000;
 
+const readStoredValue = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredValue = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Questions should remain playable when browser storage is unavailable.
+  }
+};
+
 const CATEGORY_IDS: Array<[RegExp, number]> = [
   [/film|movie|cinema/i, 11],
   [/music|song|band/i, 12],
@@ -97,7 +113,7 @@ export const dedupeSimilarQuestions = <T extends Question>(questions: T[]): T[] 
 
 const readSeen = (): string[] => {
   try {
-    const parsed = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+    const parsed = JSON.parse(readStoredValue(SEEN_KEY) || '[]');
     return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
   } catch {
     return [];
@@ -106,7 +122,7 @@ const readSeen = (): string[] => {
 
 const readMastered = (): string[] => {
   try {
-    const parsed = JSON.parse(localStorage.getItem(MASTERED_KEY) || '[]');
+    const parsed = JSON.parse(readStoredValue(MASTERED_KEY) || '[]');
     return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [];
   } catch {
     return [];
@@ -118,7 +134,7 @@ export const markQuestionMastered = (prompt: string): void => {
   if (!normalized) return;
   const mastered = readMastered();
   if (hasBeenUsed(normalized, mastered)) return;
-  localStorage.setItem(MASTERED_KEY, JSON.stringify([...mastered, normalized].slice(-MAX_SEEN)));
+  writeStoredValue(MASTERED_KEY, JSON.stringify([...mastered, normalized].slice(-MAX_SEEN)));
 };
 
 const saveSeen = (prompts: string[]) => {
@@ -130,7 +146,7 @@ const saveSeen = (prompts: string[]) => {
     ...readSeen().filter((prompt) => !selected.has(normalizePrompt(prompt))),
     ...normalizedPrompts,
   ];
-  localStorage.setItem(SEEN_KEY, JSON.stringify(merged.slice(-MAX_SEEN)));
+  writeStoredValue(SEEN_KEY, JSON.stringify(merged.slice(-MAX_SEEN)));
 };
 
 const getSecureQuestionEndpoint = (): string | null => {
@@ -184,14 +200,14 @@ const shuffled = <T,>(items: T[]): T[] => {
 };
 
 const getSessionToken = async (): Promise<string> => {
-  const stored = localStorage.getItem(TOKEN_KEY);
+  const stored = readStoredValue(TOKEN_KEY);
   if (stored) return stored;
 
   const response = await fetch('https://opentdb.com/api_token.php?command=request');
   if (!response.ok) throw new Error('Unable to start online trivia session.');
   const data = (await response.json()) as OpenTriviaResponse;
   if (!data.token) throw new Error('Online trivia session did not return a token.');
-  localStorage.setItem(TOKEN_KEY, data.token);
+  writeStoredValue(TOKEN_KEY, data.token);
   return data.token;
 };
 
@@ -322,6 +338,22 @@ export const chooseUnseenFallbackQuestions = (
 
   if (playable.length < count) {
     playable = allowedPool;
+  }
+
+  if (playable.length < count) {
+    // Correctly answered questions are kept out of normal rotation. If every
+    // offline question has been mastered, cycle the oldest prompts so the
+    // player can still open the pub when fresh online questions are unavailable.
+    const recentWindowSize = Math.min(
+      Math.max(count * 4, 30),
+      Math.max(0, uniquePool.length - count),
+    );
+    const recent = seen.slice(-recentWindowSize);
+    playable = uniquePool.filter((question) => !hasBeenUsed(question.prompt, recent));
+  }
+
+  if (playable.length < count) {
+    playable = uniquePool;
   }
 
   if (playable.length === 0) {
