@@ -313,7 +313,7 @@ const generateMixedOnDeviceQuestions = async (
 ): Promise<Question[]> => {
   const mediumCount = Math.ceil(count / 2);
   const hardCount = Math.floor(count / 2);
-  const history = getQuestionHistory().slice(-60);
+  const history = getQuestionHistory();
   const medium = await generateOnDeviceQuizQuestions({
     category,
     count: mediumCount,
