@@ -355,6 +355,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [customTopic, setCustomTopic] = useState('');
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('medium');
   const [isLoading, setIsLoading] = useState(false);
+  const [levelLaunchError, setLevelLaunchError] = useState<string | null>(null);
+  const isStartingLevelRef = useRef(false);
 
   // Active Game State
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -444,12 +446,15 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
   // Start Level from Cartoon Map
   const handleSelectMapLevel = (level: MapLevel, map: CartoonMap) => {
+    if (isStartingLevelRef.current) return;
+
     if (progression.lives <= 0) {
       setShopTab('lives');
       setIsShopOpen(true);
       return;
     }
 
+    setLevelLaunchError(null);
     setActiveLevel(level);
     setActiveMap(map);
     setSelectedCategory(level.category);
@@ -460,61 +465,72 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   };
 
   const handleStartGameWithLevel = async (level: MapLevel, map: CartoonMap) => {
+    if (isStartingLevelRef.current) return;
+    isStartingLevelRef.current = true;
     setIsLoading(true);
-    const count = level.questionCount || 5;
-    // 1. Fetch fresh Internet questions. The online session token and local
-    // seen-question history prevent repeats across levels and later visits.
-    if (navigator.onLine) {
-      try {
-        const onlineQuestions = await loadMixedOnlineQuestions(
-          `${map.name}: ${level.category}`,
-          count,
-        );
-        const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count, level.id);
-        setQuestions(attemptQuestions);
-        initGame(attemptQuestions);
-        setIsLoading(false);
-        setViewMode('quiz');
-        return;
-      } catch (err) {
-        console.warn('Online questions unavailable, falling back to the offline question vault.', err);
-      }
-    }
+    setLevelLaunchError(null);
 
-    // 2. Curated fallback
-    const includeMathsBackups = isMathsTopic(level.category);
-    const allQuestions = getSoloQuestionVault(includeMathsBackups);
-
-    let qPool = allQuestions.filter(
-      (q) =>
-        q.category.toLowerCase().includes(level.category.toLowerCase().slice(0, 3)) ||
-        level.category.toLowerCase().includes(q.category.toLowerCase().slice(0, 3))
-    );
-    if (qPool.length < count) {
-      qPool = allQuestions;
-    }
-
-    let shuffled: Question[];
     try {
-      shuffled = buildUnseenFallbackQuestions(
-        qPool,
-        count,
-      );
-    } catch {
-      // The helper normally rotates the oldest completed questions when the
-      // finite offline pack has been exhausted. Keep this final guard so a
-      // malformed or empty pack can never leave the launch overlay hanging.
-      shuffled = buildUnseenFallbackQuestions(
-        getSoloQuestionVault(includeMathsBackups),
-        count,
-      );
-    }
+      const count = level.questionCount || 5;
+      let questionsToPlay: Question[] | null = null;
 
-    const attemptQuestions = prepareAttemptQuestions(shuffled, count, level.id);
-    setQuestions(attemptQuestions);
-    initGame(attemptQuestions);
-    setIsLoading(false);
-    setViewMode('quiz');
+      // 1. Fetch fresh Internet questions. The online session token and local
+      // seen-question history prevent repeats across levels and later visits.
+      if (navigator.onLine) {
+        try {
+          const onlineQuestions = await loadMixedOnlineQuestions(
+            `${map.name}: ${level.category}`,
+            count,
+          );
+          const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count, level.id);
+          if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
+        } catch (err) {
+          console.warn('Online questions unavailable, falling back to the offline question vault.', err);
+        }
+      }
+
+      // 2. Curated fallback
+      if (!questionsToPlay) {
+        const includeMathsBackups = isMathsTopic(level.category);
+        const allQuestions = getSoloQuestionVault(includeMathsBackups);
+
+        let qPool = allQuestions.filter(
+          (q) =>
+            q.category.toLowerCase().includes(level.category.toLowerCase().slice(0, 3)) ||
+            level.category.toLowerCase().includes(q.category.toLowerCase().slice(0, 3))
+        );
+        if (qPool.length < count) {
+          qPool = allQuestions;
+        }
+
+        let shuffled: Question[];
+        try {
+          shuffled = buildUnseenFallbackQuestions(qPool, count);
+        } catch {
+          // If the filtered category is malformed or exhausted, draw from the
+          // full safe offline pool so an old pub can still be replayed.
+          shuffled = buildUnseenFallbackQuestions(allQuestions, count);
+        }
+
+        questionsToPlay = prepareAttemptQuestions(shuffled, count, level.id);
+      }
+
+      if (!questionsToPlay?.length) {
+        throw new Error('No quiz questions were available for this pub.');
+      }
+
+      setQuestions(questionsToPlay);
+      initGame(questionsToPlay);
+      setViewMode('quiz');
+    } catch (error) {
+      console.error('Unable to start this pub quiz.', error);
+      setLevelLaunchError(`Could not load questions for ${level.pubName || level.name}. Tap the pub to try again.`);
+      setActiveLevel(null);
+      setActiveMap(null);
+    } finally {
+      isStartingLevelRef.current = false;
+      setIsLoading(false);
+    }
   };
 
   // Start Custom Quiz
@@ -846,6 +862,22 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           onOpenQuizMaster={onOpenQuizMaster}
           autoAdvanceTarget={autoAdvanceTarget}
         />
+
+        {isLoading && activeLevel && (
+          <div className="solo-level-loading-status" role="status" aria-live="polite">
+            <span className="solo-level-loading-spinner" aria-hidden="true" />
+            <span>
+              <strong>Entering {activeLevel.pubName || activeLevel.name}</strong>
+              <small>Loading your questions…</small>
+            </span>
+          </div>
+        )}
+
+        {levelLaunchError && !isLoading && (
+          <div className="solo-level-loading-error" role="alert" aria-live="assertive">
+            {levelLaunchError}
+          </div>
+        )}
 
         <BGMController compact className="global-music-control" />
 
