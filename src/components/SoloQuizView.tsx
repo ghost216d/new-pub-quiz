@@ -26,7 +26,8 @@ import {
   saveSoloProgression,
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
-import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../utils/onlineTrivia';
+import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
+import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
 import { BGMController } from './BGMController';
@@ -305,6 +306,47 @@ const loadMixedOnlineQuestions = async (category: string, count: number): Promis
   ).slice(0, count);
 };
 
+const generateMixedOnDeviceQuestions = async (
+  category: string,
+  count: number,
+  onProgress: (message: string) => void,
+): Promise<Question[]> => {
+  const mediumCount = Math.ceil(count / 2);
+  const hardCount = Math.floor(count / 2);
+  const history = getQuestionHistory().slice(-60);
+  const medium = await generateOnDeviceQuizQuestions({
+    category,
+    count: mediumCount,
+    difficulty: isMathsTopic(category) ? 'easy' : 'medium',
+    roundType: 'trivia',
+    roundNumber: 1,
+    excludedPrompts: history,
+    onProgress: (_progress, message) => onProgress(message),
+  });
+  const hard = hardCount > 0
+    ? await generateOnDeviceQuizQuestions({
+        category,
+        count: hardCount,
+        difficulty: isMathsTopic(category) ? 'medium' : 'hard',
+        roundType: 'trivia',
+        roundNumber: 1,
+        excludedPrompts: [...history, ...medium.map((question) => question.prompt)],
+        onProgress: (_progress, message) => onProgress(message),
+      })
+    : [];
+  const labelledMedium = medium.map((question) => ({ ...question, difficulty: 'medium' as const, points: 15, timeLimitSec: 35 }));
+  const labelledHard = hard.map((question) => ({ ...question, difficulty: 'hard' as const, points: 20, timeLimitSec: 40 }));
+  const unique = dedupeSimilarQuestions([...labelledMedium, ...labelledHard]);
+  if (unique.length < count) throw new Error('The device AI could not create enough distinct questions.');
+
+  const questions = interleaveDifficulty(
+    unique.filter((question) => question.difficulty === 'medium'),
+    unique.filter((question) => question.difficulty === 'hard'),
+  ).slice(0, count);
+  recordQuestionsAsSeen(questions.map((question) => question.prompt));
+  return questions;
+};
+
 const buildUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
@@ -360,6 +402,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [customTopic, setCustomTopic] = useState('');
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('medium');
   const [isLoading, setIsLoading] = useState(false);
+  const [levelLaunchStatus, setLevelLaunchStatus] = useState('Loading your questions…');
   const [levelLaunchError, setLevelLaunchError] = useState<string | null>(null);
   const isStartingLevelRef = useRef(false);
 
@@ -474,6 +517,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     isStartingLevelRef.current = true;
     setIsLoading(true);
     setLevelLaunchError(null);
+    setLevelLaunchStatus('Getting fresh questions…');
 
     try {
       const count = level.questionCount || 5;
@@ -491,6 +535,23 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
         } catch (err) {
           console.warn('Online questions unavailable, falling back to the offline question vault.', err);
+        }
+      }
+
+      // If the public trivia bank has run out of unseen questions, create a
+      // fresh set locally on browsers with WebGPU support. The model is cached
+      // by WebLLM after its first download on that device.
+      if (!questionsToPlay && supportsOnDeviceQuizAI()) {
+        try {
+          setLevelLaunchStatus('Creating fresh questions on this device…');
+          const deviceQuestions = await generateMixedOnDeviceQuestions(
+            `${map.name}: ${level.category}`,
+            count,
+            (message) => setLevelLaunchStatus(message || 'Creating fresh questions on this device…'),
+          );
+          questionsToPlay = prepareAttemptQuestions(deviceQuestions, count, level.id);
+        } catch (err) {
+          console.warn('On-device questions unavailable, using the offline question vault.', err);
         }
       }
 
@@ -873,7 +934,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             <span className="solo-level-loading-spinner" aria-hidden="true" />
             <span>
               <strong>Entering {activeLevel.pubName || activeLevel.name}</strong>
-              <small>Loading your questions…</small>
+              <small>{levelLaunchStatus}</small>
             </span>
           </div>
         )}

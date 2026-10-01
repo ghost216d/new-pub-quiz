@@ -115,6 +115,10 @@ Do not repeat these recent questions: ${previous.slice(-40).join(' | ') || 'none
     if (questions.length === count) break;
   }
   if (questions.length < count) throw new Error('Device AI could not create enough valid questions.');
-  localStorage.setItem(SEEN_KEY, JSON.stringify([...seenPrompts(), ...questions.map((q) => q.prompt)].slice(-1000)));
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...seenPrompts(), ...questions.map((q) => q.prompt)].slice(-1000)));
+  } catch {
+    // Generated questions are still playable if this browser blocks storage.
+  }
   return questions;
 };

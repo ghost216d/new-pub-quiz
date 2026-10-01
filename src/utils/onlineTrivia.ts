@@ -137,6 +137,10 @@ export const markQuestionMastered = (prompt: string): void => {
   writeStoredValue(MASTERED_KEY, JSON.stringify([...mastered, normalized].slice(-MAX_SEEN)));
 };
 
+export const getQuestionHistory = (): string[] => [...readSeen(), ...readMastered()];
+
+export const recordQuestionsAsSeen = (prompts: string[]): void => saveSeen(prompts);
+
 const saveSeen = (prompts: string[]) => {
   const normalizedPrompts = prompts.map(normalizePrompt).filter(Boolean);
   const selected = new Set(normalizedPrompts);
@@ -242,43 +246,53 @@ export const getOnlineTriviaQuestions = async ({
     : (difficulty === 'expert' ? 'hard' : difficulty);
   const amount = Math.min(50, Math.max(count * 3, 12));
 
-  const buildUrl = () => {
+  const buildUrl = (requestedCategoryId?: number) => {
     const params = new URLSearchParams({
       amount: String(amount),
       type: 'multiple',
       difficulty: onlineDifficulty,
       token,
     });
-    if (categoryId) params.set('category', String(categoryId));
+    if (requestedCategoryId) params.set('category', String(requestedCategoryId));
     return `https://opentdb.com/api.php?${params.toString()}`;
   };
 
   const seen = [...readSeen(), ...readMastered()];
   const collected: Array<OpenTriviaQuestion & { decodedPrompt: string }> = [];
 
-  // Fetch more than one batch when necessary. We never recycle an already-seen
-  // question merely to fill a level.
-  for (let attempt = 0; attempt < 5 && collected.length < count; attempt += 1) {
-    let response = await fetch(buildUrl(), { cache: 'no-store' });
-    if (!response.ok) throw new Error('Online trivia service is unavailable.');
-    let data = (await response.json()) as OpenTriviaResponse;
-
-    if (data.response_code === 4) {
-      await resetSessionToken(token);
-      response = await fetch(buildUrl(), { cache: 'no-store' });
+  const collectFromCategory = async (requestedCategoryId?: number) => {
+    // Fetch more than one batch when necessary. We never recycle an already-seen
+    // question merely to fill a level.
+    for (let attempt = 0; attempt < 5 && collected.length < count; attempt += 1) {
+      let response = await fetch(buildUrl(requestedCategoryId), { cache: 'no-store' });
       if (!response.ok) throw new Error('Online trivia service is unavailable.');
-      data = (await response.json()) as OpenTriviaResponse;
-    }
-    if (data.response_code !== 0 || !Array.isArray(data.results)) break;
+      let data = (await response.json()) as OpenTriviaResponse;
 
-    for (const item of data.results) {
-      const decodedPrompt = decodeHtml(item.question);
-      const normalized = normalizePrompt(decodedPrompt);
-      if (!hasBeenUsed(normalized, seen)) {
-        seen.push(normalized);
-        collected.push({ ...item, decodedPrompt });
+      if (data.response_code === 4) {
+        await resetSessionToken(token);
+        response = await fetch(buildUrl(requestedCategoryId), { cache: 'no-store' });
+        if (!response.ok) throw new Error('Online trivia service is unavailable.');
+        data = (await response.json()) as OpenTriviaResponse;
+      }
+      if (data.response_code !== 0 || !Array.isArray(data.results)) break;
+
+      for (const item of data.results) {
+        const decodedPrompt = decodeHtml(item.question);
+        const normalized = normalizePrompt(decodedPrompt);
+        if (!hasBeenUsed(normalized, seen)) {
+          seen.push(normalized);
+          collected.push({ ...item, decodedPrompt });
+        }
       }
     }
+  };
+
+  await collectFromCategory(categoryId);
+  if (collected.length < count && categoryId) {
+    // Topic-specific trivia banks are small. Once one is exhausted, try the
+    // wider database for fresh questions instead of immediately replaying the
+    // old offline pack.
+    await collectFromCategory();
   }
 
   const unique = collected.slice(0, count);
