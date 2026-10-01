@@ -102,7 +102,7 @@ const DIFFICULTY_OPTIONS: {
 // A level must feel responsive even when the public trivia service is slow or
 // blocked by the player's network. Fall back quickly instead of leaving the
 // launch animation looking like a button that did nothing.
-const ONLINE_QUESTION_TIMEOUT_MS = 4500;
+const ONLINE_QUESTION_TIMEOUT_MS = 8500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
@@ -280,30 +280,42 @@ const interleaveDifficulty = (medium: Question[], hard: Question[]): Question[] 
   return mixed;
 };
 
-const loadMixedOnlineQuestions = async (category: string, count: number): Promise<Question[]> => {
-  const mediumCount = Math.ceil(count / 2);
-  const hardCount = Math.floor(count / 2);
-  // Maths is deliberately gentler than the other categories: "hard" maths
-  // from trivia services often means specialist formulas rather than fun
-  // mental arithmetic. Keep the displayed mix, scoring and progression the
-  // same while requesting easy/medium source material for maths topics.
-  const mediumSourceDifficulty: QuizDifficulty = isMathsTopic(category) ? 'easy' : 'medium';
-  const hardSourceDifficulty: QuizDifficulty = isMathsTopic(category) ? 'medium' : 'hard';
-  const [medium, hard] = await Promise.all([
-    loadOnlineQuestionsWithTimeout({ category, count: mediumCount, difficulty: mediumSourceDifficulty }),
-    loadOnlineQuestionsWithTimeout({ category, count: hardCount, difficulty: hardSourceDifficulty }),
-  ]);
-  const labelledMedium = medium.map((question) => ({ ...question, difficulty: 'medium' as const, points: 15, timeLimitSec: 35 }));
-  const labelledHard = hard.map((question) => ({ ...question, difficulty: 'hard' as const, points: 20, timeLimitSec: 40 }));
-  const unique = dedupeSimilarQuestions([...labelledMedium, ...labelledHard]);
+const loadMixedOnlineQuestions = async (
+  category: string,
+  count: number,
+  broadPool = false,
+): Promise<Question[]> => {
+  // One larger mixed request avoids Open Trivia DB's per-IP rate limit. The
+  // extra candidates give us room to build a medium/hard mix after filtering
+  // anything the player has already seen.
+  const candidateCount = Math.min(50, Math.max(count * 2, 10));
+  const online = await loadOnlineQuestionsWithTimeout({
+    category,
+    count: candidateCount,
+    difficulty: 'medium',
+    mixed: true,
+    broadPool,
+  });
+  const unique = dedupeSimilarQuestions(online);
   if (unique.length < count) {
     throw new Error('Not enough distinct online questions were returned.');
   }
 
-  return interleaveDifficulty(
-    unique.filter((question) => question.difficulty === 'medium'),
-    unique.filter((question) => question.difficulty === 'hard'),
-  ).slice(0, count);
+  const medium = unique.filter((question) => question.difficulty !== 'hard');
+  const hard = unique.filter((question) => question.difficulty === 'hard');
+  const selected = interleaveDifficulty([...medium], [...hard]).slice(0, count);
+  recordQuestionsAsSeen(selected.map((question) => question.prompt));
+  return selected.map((question, index) => {
+    const displayedDifficulty: QuizDifficulty = question.difficulty === 'hard'
+      ? 'hard'
+      : index % 2 === 1 && hard.length === 0 ? 'hard' : 'medium';
+    return {
+      ...question,
+      difficulty: displayedDifficulty,
+      points: displayedDifficulty === 'hard' ? 20 : 15,
+      timeLimitSec: displayedDifficulty === 'hard' ? 40 : 35,
+    };
+  });
 };
 
 const generateMixedOnDeviceQuestions = async (
@@ -530,6 +542,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           const onlineQuestions = await loadMixedOnlineQuestions(
             `${map.name}: ${level.category}`,
             count,
+            true,
           );
           const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count, level.id);
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;

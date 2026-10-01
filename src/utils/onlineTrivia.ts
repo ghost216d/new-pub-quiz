@@ -215,22 +215,22 @@ const getSessionToken = async (): Promise<string> => {
   return data.token;
 };
 
-const resetSessionToken = async (token: string): Promise<void> => {
-  await fetch(`https://opentdb.com/api_token.php?command=reset&token=${encodeURIComponent(token)}`);
-};
-
 export const getOnlineTriviaQuestions = async ({
   category,
   count,
   difficulty,
+  mixed = false,
+  broadPool = false,
 }: {
   category: string;
   count: number;
   difficulty: QuizDifficulty;
+  mixed?: boolean;
+  broadPool?: boolean;
 }): Promise<Question[]> => {
   // Prefer the protected Gemini proxy. The browser receives questions only;
   // the Gemini key remains an encrypted server-side secret.
-  if (getSecureQuestionEndpoint()) {
+  if (!mixed && getSecureQuestionEndpoint()) {
     try {
       return await getSecureAiQuestions({ category, count, difficulty });
     } catch (error) {
@@ -239,92 +239,74 @@ export const getOnlineTriviaQuestions = async ({
   }
 
   const token = await getSessionToken();
-  const categoryId = CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1];
+  const categoryId = broadPool ? undefined : CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1];
   const mathsTopic = /\b(math|maths|mathematics|arithmetic|numbers?)\b/i.test(category);
-  const onlineDifficulty = mathsTopic
-    ? (difficulty === 'easy' ? 'easy' : 'medium')
-    : (difficulty === 'expert' ? 'hard' : difficulty);
-  const amount = Math.min(50, Math.max(count * 3, 12));
+  const onlineDifficulty = mixed
+    ? undefined
+    : mathsTopic
+      ? (difficulty === 'easy' ? 'easy' : 'medium')
+      : (difficulty === 'expert' ? 'hard' : difficulty);
+  const amount = Math.min(50, Math.max(count * (mixed ? 2 : 3), 12));
 
-  const buildUrl = (requestedCategoryId?: number) => {
+  const buildUrl = () => {
     const params = new URLSearchParams({
       amount: String(amount),
       type: 'multiple',
-      difficulty: onlineDifficulty,
       token,
     });
-    if (requestedCategoryId) params.set('category', String(requestedCategoryId));
+    if (onlineDifficulty) params.set('difficulty', onlineDifficulty);
+    if (categoryId) params.set('category', String(categoryId));
     return `https://opentdb.com/api.php?${params.toString()}`;
   };
 
   const seen = [...readSeen(), ...readMastered()];
-  const collected: Array<OpenTriviaQuestion & { decodedPrompt: string }> = [];
-
-  const collectFromCategory = async (requestedCategoryId?: number) => {
-    // Fetch more than one batch when necessary. We never recycle an already-seen
-    // question merely to fill a level.
-    for (let attempt = 0; attempt < 5 && collected.length < count; attempt += 1) {
-      let response = await fetch(buildUrl(requestedCategoryId), { cache: 'no-store' });
-      if (!response.ok) throw new Error('Online trivia service is unavailable.');
-      let data = (await response.json()) as OpenTriviaResponse;
-
-      if (data.response_code === 4) {
-        await resetSessionToken(token);
-        response = await fetch(buildUrl(requestedCategoryId), { cache: 'no-store' });
-        if (!response.ok) throw new Error('Online trivia service is unavailable.');
-        data = (await response.json()) as OpenTriviaResponse;
-      }
-      if (data.response_code !== 0 || !Array.isArray(data.results)) break;
-
-      for (const item of data.results) {
-        const decodedPrompt = decodeHtml(item.question);
-        const normalized = normalizePrompt(decodedPrompt);
-        if (!hasBeenUsed(normalized, seen)) {
-          seen.push(normalized);
-          collected.push({ ...item, decodedPrompt });
-        }
-      }
-    }
-  };
-
-  await collectFromCategory(categoryId);
-  if (collected.length < count && categoryId) {
-    // Topic-specific trivia banks are small. Once one is exhausted, try the
-    // wider database for fresh questions instead of immediately replaying the
-    // old offline pack.
-    await collectFromCategory();
+  let response = await fetch(buildUrl(), { cache: 'no-store' });
+  if (!response.ok) throw new Error('Online trivia service is unavailable.');
+  let data = (await response.json()) as OpenTriviaResponse;
+  if (data.response_code === 5) {
+    // Open Trivia DB allows one question request per IP every five seconds.
+    // A shared Wi-Fi connection may briefly hit that limit, so retry once.
+    await new Promise((resolve) => window.setTimeout(resolve, 5100));
+    response = await fetch(buildUrl(), { cache: 'no-store' });
+    if (!response.ok) throw new Error('Online trivia service is unavailable.');
+    data = (await response.json()) as OpenTriviaResponse;
+  }
+  if (data.response_code !== 0 || !Array.isArray(data.results)) {
+    throw new Error(data.response_code === 5
+      ? 'The online question service is rate limited.'
+      : 'The online question service has no fresh questions for this request.');
   }
 
-  const unique = collected.slice(0, count);
+  const unique: Question[] = [];
+  for (const item of data.results) {
+    const decodedPrompt = decodeHtml(item.question);
+    if (hasBeenUsed(decodedPrompt, seen)) continue;
+    seen.push(decodedPrompt);
+    const correctAnswer = decodeHtml(item.correct_answer);
+    const sourceDifficulty = item.difficulty;
+    unique.push({
+      id: `online_${Date.now()}_${unique.length}`,
+      roundNumber: 1,
+      category: decodeHtml(item.category),
+      prompt: decodedPrompt,
+      type: 'multiple_choice',
+      difficulty: sourceDifficulty,
+      options: shuffled([correctAnswer, ...item.incorrect_answers.map(decodeHtml)]),
+      correctAnswer,
+      acceptableAnswers: [correctAnswer.toLowerCase()],
+      explanation: `The correct answer is ${correctAnswer}.`,
+      points: sourceDifficulty === 'hard' ? 20 : 15,
+      timeLimitSec: sourceDifficulty === 'hard' ? 35 : 30,
+    });
+    if (unique.length >= count) break;
+  }
 
   if (unique.length < count) {
     throw new Error('Not enough unseen online questions were returned.');
   }
 
-  const points = difficulty === 'hard' || difficulty === 'expert' ? 20 : 15;
-  const questions: Question[] = unique.map((item, index) => {
-    const correctAnswer = decodeHtml(item.correct_answer);
-    return {
-      id: `online_${Date.now()}_${index}`,
-      roundNumber: 1,
-      category: decodeHtml(item.category),
-      prompt: item.decodedPrompt,
-      type: 'multiple_choice',
-      difficulty,
-      options: shuffled([
-        correctAnswer,
-        ...item.incorrect_answers.map(decodeHtml),
-      ]),
-      correctAnswer,
-      acceptableAnswers: [correctAnswer.toLowerCase()],
-      explanation: `The correct answer is ${correctAnswer}.`,
-      points,
-      timeLimitSec: difficulty === 'hard' || difficulty === 'expert' ? 35 : 30,
-    };
-  });
-
-  saveSeen(questions.map((question) => question.prompt));
-  return questions;
+  if (!mixed) saveSeen(unique.map((question) => question.prompt));
+  return unique;
 };
 
 export const chooseUnseenFallbackQuestions = (
