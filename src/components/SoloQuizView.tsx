@@ -319,10 +319,13 @@ const loadMixedOnlineQuestions = async (
 };
 
 const loadMediumGeneralKnowledgeQuestions = async (count: number): Promise<Question[]> => {
+  // Use approachable General Knowledge questions for the Solo map's Medium
+  // setting. The game keeps Medium scoring and timing, while avoiding the
+  // specialist questions that can appear in Open Trivia DB's medium pool.
   const questions = await loadOnlineQuestionsWithTimeout({
     category: 'General Knowledge',
     count,
-    difficulty: 'medium',
+    difficulty: 'easy',
   });
   const mediumQuestions = questions.map((question) => ({
     ...question,
@@ -383,7 +386,7 @@ const generateMediumGeneralKnowledgeQuestions = async (
   const questions = await generateOnDeviceQuizQuestions({
     category: 'General Knowledge',
     count,
-    difficulty: 'medium',
+    difficulty: 'easy',
     roundType: 'trivia',
     roundNumber: 1,
     excludedPrompts: getQuestionHistory(),
