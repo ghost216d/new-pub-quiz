@@ -215,6 +215,10 @@ const getSessionToken = async (): Promise<string> => {
   return data.token;
 };
 
+const resetSessionToken = async (token: string): Promise<void> => {
+  await fetch(`https://opentdb.com/api_token.php?command=reset&token=${encodeURIComponent(token)}`);
+};
+
 export const getOnlineTriviaQuestions = async ({
   category,
   count,
@@ -263,7 +267,13 @@ export const getOnlineTriviaQuestions = async ({
   let response = await fetch(buildUrl(), { cache: 'no-store' });
   if (!response.ok) throw new Error('Online trivia service is unavailable.');
   let data = (await response.json()) as OpenTriviaResponse;
-  if (data.response_code === 5) {
+  if (data.response_code === 4) {
+    await resetSessionToken(token);
+    await new Promise((resolve) => window.setTimeout(resolve, 5100));
+    response = await fetch(buildUrl(), { cache: 'no-store' });
+    if (!response.ok) throw new Error('Online trivia service is unavailable.');
+    data = (await response.json()) as OpenTriviaResponse;
+  } else if (data.response_code === 5) {
     // Open Trivia DB allows one question request per IP every five seconds.
     // A shared Wi-Fi connection may briefly hit that limit, so retry once.
     await new Promise((resolve) => window.setTimeout(resolve, 5100));
