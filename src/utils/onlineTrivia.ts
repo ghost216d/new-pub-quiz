@@ -81,6 +81,20 @@ const isTooSimilar = (candidate: string, previous: string): boolean => {
 const hasBeenUsed = (prompt: string, history: string[]): boolean =>
   history.some((previous) => isTooSimilar(prompt, previous));
 
+export const dedupeSimilarQuestions = <T extends Question>(questions: T[]): T[] => {
+  const unique: T[] = [];
+  const prompts: string[] = [];
+
+  questions.forEach((question) => {
+    const prompt = typeof question.prompt === 'string' ? question.prompt : '';
+    if (!prompt || hasBeenUsed(prompt, prompts)) return;
+    unique.push(question);
+    prompts.push(prompt);
+  });
+
+  return unique;
+};
+
 const readSeen = (): string[] => {
   try {
     const parsed = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
@@ -289,7 +303,8 @@ export const chooseUnseenFallbackQuestions = (
 ): Question[] => {
   const mastered = readMastered();
   const seen = readSeen();
-  const allowedPool = pool.filter((question) => !hasBeenUsed(question.prompt, mastered));
+  const uniquePool = dedupeSimilarQuestions(pool);
+  const allowedPool = uniquePool.filter((question) => !hasBeenUsed(question.prompt, mastered));
   const candidates = allowedPool.filter((question) => !hasBeenUsed(question.prompt, seen));
 
   let playable = candidates;

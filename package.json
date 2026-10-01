@@ -10,7 +10,8 @@
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "test:multiplayer": "npm run build && node tests/multiplayer-smoke.mjs"
+    "test:multiplayer": "npm run build && node tests/multiplayer-smoke.mjs",
+    "test:questions": "node --import tsx tests/question-repeat-regression.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
