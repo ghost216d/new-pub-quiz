@@ -63,6 +63,12 @@ try {
   const playerTwo = await connect(created.roomCode, 'player', { teamId: 'shared-team', name: 'Ignored Rename', avatar: '👑' });
   sockets.push(host.ws, playerOne.ws, playerTwo.ws);
 
+  assert.deepEqual(
+    host.state.rounds.map((round) => round.title),
+    ['Round 1: Classic Tavern Trivia', 'Round 2: The Pub Genius Showdown', 'Round 3: South London Pub Crawl Lore'],
+    'round labels should match the order after the music round is removed',
+  );
+
   const twoPlayerState = await waitForState(host.ws, (state) => state.teams['shared-team']?.connectedPlayers === 2);
   assert.equal(Object.keys(twoPlayerState.teams).length, 1, 'two devices should share one team');
   assert.equal(twoPlayerState.teams['shared-team'].name, 'The Mates', 'joining a team must not rename it');
