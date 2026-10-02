@@ -473,6 +473,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [levelLaunchStatus, setLevelLaunchStatus] = useState('Loading your questions…');
   const [levelLaunchError, setLevelLaunchError] = useState<string | null>(null);
   const isStartingLevelRef = useRef(false);
+  const prefetchedQuestionSetsRef = useRef(new Map<string, Promise<Question[]>>());
 
   // Active Game State
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -496,6 +497,18 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const updateProgression = (updated: SoloProgression) => {
     setProgression(updated);
     saveSoloProgression(updated);
+  };
+
+  const prefetchLevelQuestions = (level?: MapLevel) => {
+    if (!level || !navigator.onLine || prefetchedQuestionSetsRef.current.has(level.id)) return;
+
+    const request = loadMediumGeneralKnowledgeQuestions(level.questionCount || 5);
+    prefetchedQuestionSetsRef.current.set(level.id, request);
+    void request.catch(() => {
+      if (prefetchedQuestionSetsRef.current.get(level.id) === request) {
+        prefetchedQuestionSetsRef.current.delete(level.id);
+      }
+    });
   };
 
   useEffect(() => {
@@ -522,6 +535,25 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
     return () => window.clearTimeout(finishTimer);
   }, [completionTransition?.phase]);
+
+  useEffect(() => {
+    const maps = getAllMaps(progression);
+    const transitionTarget = completionTransition?.nextTarget || autoAdvanceTarget;
+    const transitionLevel = transitionTarget
+      ? maps.flatMap((map) => map.levels).find((level) => level.id === transitionTarget.levelId)
+      : undefined;
+    const currentMap = maps.find((map) => map.id === progression.currentMapId) || maps[0];
+    const nextAvailableLevel =
+      currentMap?.levels.find((level) => !progression.completedLevels[level.id]?.passed) ||
+      maps.flatMap((map) => map.levels).find((level) => !progression.completedLevels[level.id]?.passed);
+
+    prefetchLevelQuestions(transitionLevel || nextAvailableLevel);
+  }, [
+    progression.currentMapId,
+    progression.completedLevels,
+    completionTransition?.nextTarget?.levelId,
+    autoAdvanceTarget?.levelId,
+  ]);
 
   // Timer countdown
   useEffect(() => {
@@ -595,7 +627,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       // seen-question history prevent repeats across levels and later visits.
       if (navigator.onLine) {
         try {
-          const onlineQuestions = await loadMediumGeneralKnowledgeQuestions(count);
+          const pendingQuestions = prefetchedQuestionSetsRef.current.get(level.id);
+          const onlineQuestions = pendingQuestions
+            ? await pendingQuestions
+            : await loadMediumGeneralKnowledgeQuestions(count);
+          prefetchedQuestionSetsRef.current.delete(level.id);
           const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count, level.id);
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
         } catch (err) {
