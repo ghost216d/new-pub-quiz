@@ -38,7 +38,7 @@ const quizMasterRounds = () => DEFAULT_ROUNDS
   .map((round, index) => ({
     ...round,
     roundNumber: index + 1,
-    title: round.title.replace(/^Round\\s+\\d+\\s*:\\s*/i, `Round ${index + 1}: `),
+    title: round.title.replace(/^Round\s+\d+\s*:\s*/i, `Round ${index + 1}: `),
     questions: round.questions.map((question) => ({
       ...randomizeQuestionOptions(question),
       roundNumber: index + 1,
@@ -53,7 +53,7 @@ const removeMusicFromRoom = (source: RoomState): RoomState => {
     .map((round, index) => ({
       ...round,
       roundNumber: index + 1,
-      title: round.title.replace(/^Round\\s+\\d+\\s*:\\s*/i, `Round ${index + 1}: `),
+      title: round.title.replace(/^Round\s+\d+\s*:\s*/i, `Round ${index + 1}: `),
       questions: round.questions.map((question) => ({ ...question, roundNumber: index + 1, musicData: undefined })),
     }));
   room.currentRoundIndex = Math.min(room.currentRoundIndex, Math.max(0, room.rounds.length - 1));

@@ -140,7 +140,7 @@ function createInitialRoom(
   const initialRounds = DEFAULT_ROUNDS.filter((round) => round.type !== 'music').map((round, index) => ({
     ...round,
     roundNumber: index + 1,
-    title: round.title.replace(/^Round\\s+\\d+\\s*:\\s*/i, `Round ${index + 1}: `),
+    title: round.title.replace(/^Round\s+\d+\s*:\s*/i, `Round ${index + 1}: `),
     questions: round.questions.map((question) => ({
       ...randomizeQuestionOptions(question),
       roundNumber: index + 1,
