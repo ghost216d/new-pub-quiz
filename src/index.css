@@ -121,7 +121,7 @@
   position: absolute;
   z-index: 2;
   right: max(1.15rem, env(safe-area-inset-right));
-  bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.8rem));
+  bottom: max(6rem, calc(env(safe-area-inset-bottom, 0px) + 6rem));
   left: max(1.15rem, env(safe-area-inset-left));
   display: grid;
   justify-items: center;
@@ -6152,7 +6152,7 @@ html[data-time-theme] .role-solo .game-title p {
   position: absolute;
   z-index: 1;
   right: max(18px, env(safe-area-inset-right, 0px));
-  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  bottom: max(100px, calc(88px + env(safe-area-inset-bottom, 0px) + 12px));
   left: max(18px, env(safe-area-inset-left, 0px));
   display: flex;
   align-items: center;
@@ -6251,7 +6251,7 @@ html[data-time-theme] .role-solo .game-title p {
   position: absolute;
   z-index: 1;
   right: max(18px, env(safe-area-inset-right, 0px));
-  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  bottom: max(100px, calc(88px + env(safe-area-inset-bottom, 0px) + 12px));
   left: max(18px, env(safe-area-inset-left, 0px));
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
