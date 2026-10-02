@@ -6445,7 +6445,7 @@ body,
   [class*="text-amber-400"],
   [class*="text-amber-500"]
 ) {
-  color: #6b3b08 !important;
+  color: #000000 !important;
 }
 
 /* Keep Quiz Master scrolling on the page itself on small screens. */
