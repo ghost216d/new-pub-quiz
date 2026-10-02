@@ -330,6 +330,9 @@ const loadMediumGeneralKnowledgeQuestions = async (count: number): Promise<Quest
     category: 'General Knowledge',
     count,
     difficulty: 'easy',
+    // Search a larger batch so seen questions don't force a fallback to the
+    // small curated bank after a few stages.
+    candidateMultiplier: 12,
   });
   const mediumQuestions = questions.map((question) => ({
     ...question,
@@ -647,7 +650,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
         } catch (err) {
           console.warn('Online questions unavailable, falling back to the offline question vault.', err);
+          setLevelLaunchStatus('No fresh online questions found. Choosing unseen saved questions…');
         }
+      } else {
+        setLevelLaunchStatus('Offline. Choosing unseen saved questions…');
       }
 
       // If the public trivia bank has run out of unseen questions, create a

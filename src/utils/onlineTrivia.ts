@@ -226,12 +226,14 @@ export const getOnlineTriviaQuestions = async ({
   difficulty,
   mixed = false,
   broadPool = false,
+  candidateMultiplier = 3,
 }: {
   category: string;
   count: number;
   difficulty: QuizDifficulty;
   mixed?: boolean;
   broadPool?: boolean;
+  candidateMultiplier?: number;
 }): Promise<Question[]> => {
   // Prefer the protected Gemini proxy. The browser receives questions only;
   // the Gemini key remains an encrypted server-side secret.
@@ -251,7 +253,7 @@ export const getOnlineTriviaQuestions = async ({
     : mathsTopic
       ? (difficulty === 'easy' ? 'easy' : 'medium')
       : (difficulty === 'expert' ? 'hard' : difficulty);
-  const amount = Math.min(50, Math.max(count * (mixed ? 2 : 3), 12));
+  const amount = Math.min(50, Math.max(count * (mixed ? 2 : candidateMultiplier), 12));
 
   const buildUrl = () => {
     const params = new URLSearchParams({
