@@ -105,7 +105,6 @@ const DIFFICULTY_OPTIONS: {
 const ONLINE_QUESTION_TIMEOUT_MS = 8500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
-const MISSED_QUESTION_RETRY_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
 
 type CompletionTransition = {
@@ -123,7 +122,6 @@ type MissedQuestion = {
   question: Question;
   levelId: string;
   missedAt: number;
-  lastRetriedAt?: number;
 };
 
 const shuffleItems = <T,>(items: T[]): T[] => {
@@ -188,29 +186,23 @@ const forgetMasteredQuestion = (question: Question) => {
 const prepareAttemptQuestions = (
   freshQuestions: Question[],
   count: number,
-  levelId?: string,
 ): Question[] => {
-  const retryLimit = Math.min(2, Math.max(1, Math.floor(count / 3)));
-  const missedQuestions = readMissedQuestions();
-  const now = Date.now();
-  const retryCandidates = levelId
-    ? shuffleItems(
-        missedQuestions.filter((item) =>
-          item.levelId === levelId &&
-          now - Math.max(item.missedAt, item.lastRetriedAt || 0) >= MISSED_QUESTION_RETRY_COOLDOWN_MS
-        ),
-      ).slice(0, retryLimit)
-    : [];
-  const retriedKeys = new Set(retryCandidates.map((item) => questionKey(item.question)));
-  if (retriedKeys.size) {
-    saveMissedQuestions(missedQuestions.map((item) =>
-      retriedKeys.has(questionKey(item.question)) ? { ...item, lastRetriedAt: now } : item,
-    ));
-  }
-  // Reuse a missed question only after a day, so reopening a stage gives the
-  // player a fresh set instead of immediately repeating the last attempt.
-  const retries = retryCandidates.map((item) => item.question);
-  const combined = dedupeSimilarQuestions([...retries, ...freshQuestions]).slice(0, count);
+  const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
+  const triviaCount = Math.max(0, count - pictureCount);
+  const visualQuestions = [
+    ...SOLO_PICTURE_QUESTIONS.map((question) => ({
+      ...question,
+      // Include the clue in history so each rebus counts as a different
+      // question even though the visible prompt template is shared.
+      prompt: question.pictureClue
+        ? `${question.prompt} Clue: ${question.pictureClue}`
+        : question.prompt,
+    })),
+    ...SOLO_PHOTO_QUESTIONS,
+  ];
+  const pictureQuestions = chooseUnseenFallbackQuestions(visualQuestions, pictureCount);
+  const regularQuestions = dedupeSimilarQuestions(freshQuestions).slice(0, triviaCount);
+  const combined = [...regularQuestions, ...pictureQuestions];
 
   return shuffleItems(combined).map((question) => ({
     ...question,
@@ -512,9 +504,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   };
 
   const prefetchLevelQuestions = (level?: MapLevel) => {
-    if (!level || !navigator.onLine || prefetchedQuestionSetsRef.current.has(level.id)) return;
+    if (!level) return;
+    // Prepare landmark images while the player is still on the map/loading screen.
+    preloadPhotoRoundImages();
+    if (!navigator.onLine || prefetchedQuestionSetsRef.current.has(level.id)) return;
 
-    const request = loadMediumGeneralKnowledgeQuestions(level.questionCount || 5);
+    const totalCount = level.questionCount || 5;
+    const pictureCount = Math.min(totalCount, Math.max(1, Math.floor(totalCount / 5)));
+    const request = loadMediumGeneralKnowledgeQuestions(totalCount - pictureCount);
     prefetchedQuestionSetsRef.current.set(level.id, request);
     void request.catch(() => {
       if (prefetchedQuestionSetsRef.current.get(level.id) === request) {
@@ -633,6 +630,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
     try {
       const count = level.questionCount || 5;
+      const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
+      const triviaCount = Math.max(0, count - pictureCount);
       let questionsToPlay: Question[] | null = null;
 
       // 1. Fetch fresh Internet questions. The online session token and local
@@ -642,9 +641,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           const pendingQuestions = prefetchedQuestionSetsRef.current.get(level.id);
           const onlineQuestions = pendingQuestions
             ? await pendingQuestions
-            : await loadMediumGeneralKnowledgeQuestions(count);
+            : await loadMediumGeneralKnowledgeQuestions(triviaCount);
           prefetchedQuestionSetsRef.current.delete(level.id);
-          const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count, level.id);
+          const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count);
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
         } catch (err) {
           console.warn('Online questions unavailable, falling back to the offline question vault.', err);
@@ -658,10 +657,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         try {
           setLevelLaunchStatus('Creating fresh questions on this device…');
           const deviceQuestions = await generateMediumGeneralKnowledgeQuestions(
-            count,
+            triviaCount,
             (message) => setLevelLaunchStatus(message || 'Creating fresh questions on this device…'),
           );
-          questionsToPlay = prepareAttemptQuestions(deviceQuestions, count, level.id);
+          questionsToPlay = prepareAttemptQuestions(deviceQuestions, count);
         } catch (err) {
           console.warn('On-device questions unavailable, using the offline question vault.', err);
         }
@@ -678,12 +677,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
         let mediumQuestions: Question[];
         try {
-          mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, count);
+          mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, triviaCount);
         } catch {
-          mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, count);
+          mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, triviaCount);
         }
 
-        questionsToPlay = prepareAttemptQuestions(mediumQuestions, count, level.id);
+        questionsToPlay = prepareAttemptQuestions(mediumQuestions, count);
       }
 
       if (!questionsToPlay?.length) {
