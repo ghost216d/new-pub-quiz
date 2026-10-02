@@ -325,48 +325,25 @@ export const getOnlineTriviaQuestions = async ({
 export const chooseUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
+  repeatablePrompts: string[] = [],
 ): Question[] => {
   const mastered = readMastered();
   const seen = readSeen();
   const uniquePool = dedupeSimilarQuestions(pool);
   const allowedPool = uniquePool.filter((question) => !hasBeenUsed(question.prompt, mastered));
-  const candidates = allowedPool.filter((question) => !hasBeenUsed(question.prompt, seen));
+  const unseen = allowedPool.filter((question) => !hasBeenUsed(question.prompt, seen));
 
-  let playable = candidates;
-  if (playable.length < count) {
-    // The offline pack is finite. Once it has all been completed, exclude the
-    // most recently played prompts and rotate the oldest material back in.
-    // This prevents back-to-back repetition without ever blocking a level.
-    const recentWindowSize = Math.min(
-      Math.max(count * 4, 30),
-      Math.max(0, pool.length - count),
-    );
-    const recent = seen.slice(-recentWindowSize);
-    playable = allowedPool.filter((question) => !hasBeenUsed(question.prompt, recent));
-  }
-
-  if (playable.length < count) {
-    playable = allowedPool;
-  }
-
-  if (playable.length < count) {
-    // Correctly answered questions are kept out of normal rotation. If every
-    // offline question has been mastered, cycle the oldest prompts so the
-    // player can still open the pub when fresh online questions are unavailable.
-    const recentWindowSize = Math.min(
-      Math.max(count * 4, 30),
-      Math.max(0, uniquePool.length - count),
-    );
-    const recent = seen.slice(-recentWindowSize);
-    playable = uniquePool.filter((question) => !hasBeenUsed(question.prompt, recent));
-  }
-
-  if (playable.length < count) {
-    playable = uniquePool;
-  }
-
+  // A question can reappear only when the player previously missed it. Do not
+  // silently recycle other old questions when the offline pack is exhausted.
+  const missed = repeatablePrompts.length
+    ? allowedPool.filter((question) =>
+        hasBeenUsed(question.prompt, repeatablePrompts) &&
+        hasBeenUsed(question.prompt, seen)
+      )
+    : [];
+  const playable = [...unseen, ...shuffled(missed)];
   if (playable.length === 0) {
-    throw new Error('The offline question pack is empty.');
+    throw new Error('No unseen or previously missed questions are available.');
   }
 
   const selected = shuffled(playable).slice(0, Math.min(count, playable.length));
