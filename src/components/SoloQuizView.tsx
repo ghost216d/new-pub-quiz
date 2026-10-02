@@ -200,7 +200,11 @@ const prepareAttemptQuestions = (
     })),
     ...SOLO_PHOTO_QUESTIONS,
   ];
-  const pictureQuestions = chooseUnseenFallbackQuestions(visualQuestions, pictureCount);
+  const pictureQuestions = chooseUnseenFallbackQuestions(
+    visualQuestions,
+    pictureCount,
+    readMissedQuestions().map((item) => item.question.prompt),
+  );
   const regularQuestions = dedupeSimilarQuestions(freshQuestions).slice(0, triviaCount);
   const combined = [...regularQuestions, ...pictureQuestions];
 
@@ -412,7 +416,11 @@ const generateMediumGeneralKnowledgeQuestions = async (
 };
 
 const buildMediumGeneralKnowledgeFallback = (pool: Question[], count: number): Question[] => {
-  const questions = chooseUnseenFallbackQuestions(dedupeSimilarQuestions(pool), count);
+  const questions = chooseUnseenFallbackQuestions(
+    dedupeSimilarQuestions(pool),
+    count,
+    readMissedQuestions().map((item) => item.question.prompt),
+  );
   return questions.map((question) => ({
     ...question,
     category: 'General Knowledge',
