@@ -223,7 +223,7 @@ export const LandingView: React.FC<Props> = ({
                 type="button"
                 onClick={handleFindRoom}
                 disabled={isFindingRoom || !roomCode.trim()}
-                className="mt-2 w-full py-2 rounded-xl bg-sky-100 text-sky-950 border-2 border-sky-500 text-xs font-cartoon disabled:opacity-50"
+                className="mt-2 w-full py-2 rounded-xl bg-sky-100 text-stone-950 border-2 border-sky-500 text-xs font-cartoon disabled:opacity-50"
               >
                 {isFindingRoom ? 'FINDING PUB…' : 'FIND ROOM & TEAMS'}
               </button>

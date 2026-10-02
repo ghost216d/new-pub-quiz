@@ -38,7 +38,7 @@ export const Header: React.FC<Props> = ({
             🍺
           </div>
           <div>
-            <h1 className="text-sm sm:text-lg font-cartoon text-sky-950 leading-tight tracking-wide">
+            <h1 className="text-sm sm:text-lg font-cartoon text-stone-950 leading-tight tracking-wide">
               THE PUB QUIZ
             </h1>
             <span className="text-[10px] sm:text-[11px] font-cartoon text-amber-700 uppercase tracking-wider block">

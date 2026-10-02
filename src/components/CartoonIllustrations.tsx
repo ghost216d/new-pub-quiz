@@ -429,9 +429,9 @@ export const CartoonSwingingPubSign: React.FC<{
           <div className="absolute bottom-1 left-1.5 text-yellow-400 text-xs">✦</div>
           <div className="absolute bottom-1 right-1.5 text-yellow-400 text-xs">✦</div>
 
-          <div className="flex items-center justify-center gap-1.5 text-amber-300 text-xs font-cartoon mb-0.5">
+          <div className="flex items-center justify-center gap-1.5 text-stone-950 text-xs font-cartoon mb-0.5">
             <span>👑</span>
-            <span className="tracking-widest text-[10px] uppercase text-yellow-300/90 font-black">EST. 1892 • FREE HOUSE</span>
+            <span className="tracking-widest text-[10px] uppercase text-stone-950 font-black">EST. 1892 • FREE HOUSE</span>
             <span>👑</span>
           </div>
 
@@ -439,7 +439,7 @@ export const CartoonSwingingPubSign: React.FC<{
             {pubName}
           </h2>
 
-          <div className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-[10px] font-comic font-black text-amber-300">
+          <div className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-[10px] font-comic font-black text-stone-950">
             <span>🍺</span>
             <span>{subTitle}</span>
             <span>🎯</span>
