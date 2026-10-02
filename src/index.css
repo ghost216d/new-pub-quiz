@@ -6513,3 +6513,38 @@ body,
     overflow: visible;
   }
 }
+
+
+/* Android browsers can lose nested touch scrolling in the fixed Solo frame.
+   Let the Solo question flow use normal page scrolling instead. */
+@media (max-width: 899px) {
+  #root .role-solo.app-shell:has(.solo-quiz-screen) {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+  }
+
+  #root .role-solo.app-shell:has(.solo-quiz-screen) > .app-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #root .role-solo:has(.solo-quiz-screen) .solo-quiz-screen {
+    height: auto !important;
+    min-height: 100dvh;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+    touch-action: auto;
+  }
+
+  #root .role-solo:has(.solo-quiz-screen) .solo-question-card {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
