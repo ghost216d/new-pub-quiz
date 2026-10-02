@@ -77,6 +77,23 @@ try {
   const onePlayerState = await afterDisconnect;
   assert.equal(onePlayerState.teams['shared-team'].isOnline, true, 'one disconnect must not take the whole team offline');
 
+  const questionStarted = waitForState(playerOne.ws, (state) => state.status === 'question');
+  host.ws.send(JSON.stringify({
+    type: 'host_action',
+    roomCode: created.roomCode,
+    action: { actionType: 'start_round', roundIndex: 0 },
+  }));
+  await questionStarted;
+
+  const timedReveal = waitForState(playerOne.ws, (state) => state.status === 'answer_reveal');
+  host.ws.send(JSON.stringify({
+    type: 'host_action',
+    roomCode: created.roomCode,
+    action: { actionType: 'reset_timer', seconds: 1 },
+  }));
+  const revealedState = await timedReveal;
+  assert.ok(revealedState.rounds[0].questions[0].correctAnswer, 'timer expiry should reveal the correct answer to players');
+
   console.log('Multiplayer smoke test passed.');
 } finally {
   sockets.forEach((socket) => socket.close());

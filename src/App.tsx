@@ -519,6 +519,12 @@ export default function App() {
       setRoomState((current) => {
         if (!current?.isTimerRunning) return current;
         const remaining = Math.max(0, current.timerRemaining - 1);
+        if (remaining === 0 && current.status === 'question') {
+          return applyLocalHostAction(
+            { ...current, timerRemaining: 0, isTimerRunning: false },
+            { actionType: 'reveal_answer' },
+          );
+        }
         return {
           ...current,
           timerRemaining: remaining,

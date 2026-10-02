@@ -1415,7 +1415,9 @@ const timerInterval = setInterval(() => {
 
       if (room.timerRemaining <= 0) {
         room.timerRemaining = 0;
-        room.isTimerRunning = false;
+        // Use the regular reveal path so timed-out questions show the answer
+        // and apply the same scoring and knockout rules as a manual reveal.
+        handleHostAction(room, { actionType: 'reveal_answer' });
       }
 
       broadcastRoomState(code);

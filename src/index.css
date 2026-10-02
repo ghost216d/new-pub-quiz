@@ -6435,3 +6435,40 @@ body,
     letter-spacing: 0.035em;
   }
 }
+
+
+/* Yellow utility text needs a darker shade on the Quiz Master's pale cards. */
+.role-host .host-console-shell :is(
+  [class*="text-yellow-"],
+  [class*="text-amber-200"],
+  [class*="text-amber-300"],
+  [class*="text-amber-400"],
+  [class*="text-amber-500"]
+) {
+  color: #6b3b08 !important;
+}
+
+/* Keep Quiz Master scrolling on the page itself on small screens. */
+@media (max-width: 899px) {
+  #root .role-host.app-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: visible;
+    justify-content: flex-start;
+  }
+
+  #root .role-host.app-shell > .app-content {
+    flex: 0 0 auto;
+    min-height: 0;
+    overflow: visible;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root .role-host .host-console-shell {
+    min-width: 0;
+    overflow: visible;
+  }
+}
