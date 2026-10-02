@@ -105,6 +105,7 @@ const DIFFICULTY_OPTIONS: {
 const ONLINE_QUESTION_TIMEOUT_MS = 8500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
+const MISSED_QUESTION_RETRY_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
 
 type CompletionTransition = {
@@ -122,6 +123,7 @@ type MissedQuestion = {
   question: Question;
   levelId: string;
   missedAt: number;
+  lastRetriedAt?: number;
 };
 
 const shuffleItems = <T,>(items: T[]): T[] => {
@@ -189,15 +191,25 @@ const prepareAttemptQuestions = (
   levelId?: string,
 ): Question[] => {
   const retryLimit = Math.min(2, Math.max(1, Math.floor(count / 3)));
-  const retries = levelId
+  const missedQuestions = readMissedQuestions();
+  const now = Date.now();
+  const retryCandidates = levelId
     ? shuffleItems(
-        readMissedQuestions()
-          .filter((item) => item.levelId === levelId)
-          .map((item) => item.question),
+        missedQuestions.filter((item) =>
+          item.levelId === levelId &&
+          now - Math.max(item.missedAt, item.lastRetriedAt || 0) >= MISSED_QUESTION_RETRY_COOLDOWN_MS
+        ),
       ).slice(0, retryLimit)
     : [];
-  // Keep missed questions eligible for later rounds, but don't put a retry
-  // beside a lightly reworded copy in the same attempt.
+  const retriedKeys = new Set(retryCandidates.map((item) => questionKey(item.question)));
+  if (retriedKeys.size) {
+    saveMissedQuestions(missedQuestions.map((item) =>
+      retriedKeys.has(questionKey(item.question)) ? { ...item, lastRetriedAt: now } : item,
+    ));
+  }
+  // Reuse a missed question only after a day, so reopening a stage gives the
+  // player a fresh set instead of immediately repeating the last attempt.
+  const retries = retryCandidates.map((item) => item.question);
   const combined = dedupeSimilarQuestions([...retries, ...freshQuestions]).slice(0, count);
 
   return shuffleItems(combined).map((question) => ({
