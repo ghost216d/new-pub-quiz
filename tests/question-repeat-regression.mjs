@@ -38,9 +38,18 @@ const firstPrompts = new Set(firstRound.map((question) => question.prompt));
 assert.equal(secondRound.some((question) => firstPrompts.has(question.prompt)), false,
   'a second round should not repeat questions while enough unseen prompts remain');
 
+markQuestionMastered(firstRound[0].prompt);
+const missedPrompt = firstRound[1].prompt;
+const missedRound = chooseUnseenFallbackQuestions(pool, 3, [missedPrompt]);
+assert.equal(missedRound.some((question) => question.prompt === missedPrompt), true,
+  'a previously missed question may return');
+assert.equal(missedRound.some((question) => question.prompt === firstRound[0].prompt), false,
+  'a mastered question must stay retired');
+
 pool.forEach((question) => markQuestionMastered(question.prompt));
-assert.equal(chooseUnseenFallbackQuestions(pool, 3).length, 3,
-  'mastering every offline prompt should not prevent a pub from opening');
+assert.throws(() => chooseUnseenFallbackQuestions(pool, 3),
+  /No unseen or previously missed questions/,
+  'the fallback must not recycle old or mastered prompts');
 
 globalThis.localStorage = {
   getItem: () => { throw new Error('Storage unavailable'); },
