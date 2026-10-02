@@ -6144,6 +6144,47 @@ html[data-time-theme] .role-solo .game-title p {
   to { transform: rotate(360deg); }
 }
 
+.solo-pub-loading-cover {
+  cursor: progress;
+}
+
+.solo-pub-loading-panel {
+  position: absolute;
+  z-index: 1;
+  right: max(18px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  left: max(18px, env(safe-area-inset-left, 0px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(84vw, 460px);
+  margin: 0 auto;
+  padding: 14px 18px;
+  border: 2px solid #191919;
+  border-radius: 18px;
+  background: rgba(255, 250, 240, 0.96);
+  color: #202020;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+}
+
+.solo-pub-loading-panel strong,
+.solo-pub-loading-panel small {
+  display: block;
+}
+
+.solo-pub-loading-panel strong {
+  font-size: clamp(14px, 4vw, 17px);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.solo-pub-loading-panel small {
+  margin-top: 3px;
+  font-size: clamp(11px, 3vw, 13px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .solo-stage-transition-cover {
   position: fixed;
   z-index: 140;

@@ -987,12 +987,35 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         />
 
         {isLoading && activeLevel && (
-          <div className="solo-level-loading-status" role="status" aria-live="polite">
-            <span className="solo-level-loading-spinner" aria-hidden="true" />
-            <span>
-              <strong>Entering {activeLevel.pubName || activeLevel.name}</strong>
-              <small>{levelLaunchStatus}</small>
-            </span>
+          <div
+            className="solo-stage-transition-cover solo-pub-loading-cover"
+            role="status"
+            aria-live="polite"
+            aria-label={`Loading questions for ${activeLevel.pubName || activeLevel.name}`}
+          >
+            <img
+              key={activeLevel.coverArtwork || activeLevel.mapArtwork || activeMap?.mapArtwork}
+              className="solo-stage-transition-art"
+              src={`${import.meta.env.BASE_URL}${activeLevel.coverArtwork || activeLevel.mapArtwork || activeMap?.mapArtwork || 'pub-quiz-main-cover-v2.webp'}`}
+              alt={`Artwork for ${activeLevel.pubName || activeLevel.name}`}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
+              }}
+              draggable={false}
+            />
+            <div className="solo-stage-transition-title">
+              <span>Loading pub quiz</span>
+              <strong>{activeLevel.pubName || activeLevel.name}</strong>
+              <small>Fresh questions are being prepared</small>
+            </div>
+            <div className="solo-pub-loading-panel">
+              <span className="solo-level-loading-spinner" aria-hidden="true" />
+              <span>
+                <strong>Preparing your questions</strong>
+                <small>{levelLaunchStatus}</small>
+              </span>
+            </div>
           </div>
         )}
 
