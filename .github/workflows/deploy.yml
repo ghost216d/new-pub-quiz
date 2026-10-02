@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Check Solo question repeat rules
+        run: npm run test:questions
+
       - name: Build app
         run: npm run build
         env:
