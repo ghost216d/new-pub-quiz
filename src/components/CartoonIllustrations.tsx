@@ -435,8 +435,10 @@ export const CartoonSwingingPubSign: React.FC<{
             <span>👑</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-cartoon text-amber-100 tracking-wider leading-none drop-shadow-[0_2px_0_#000]">
-            {pubName}
+          <h2 className="text-xl sm:text-2xl font-cartoon font-black text-stone-950 tracking-wider leading-none [text-shadow:0_2px_0_rgba(185,28,28,0.45)]">
+            {pubName.trim().toUpperCase() === 'THE RED LION' ? (
+              <>THE <span className="text-red-700">RED</span> LION</>
+            ) : pubName}
           </h2>
 
           <div className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-[10px] font-comic font-black text-stone-950">
