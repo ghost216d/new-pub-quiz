@@ -202,10 +202,10 @@ export const AuthModal: React.FC<Props> = ({
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-black text-amber-950 leading-tight">
-                {isFirstTime ? 'Welcome to Cartoon Pub Quiz!' : 'Player Profile & Cloud Sync'}
+                {isFirstTime ? 'Welcome to Cartoon Pub Quiz!' : currentProfile?.provider === 'guest' ? 'Guest Profile' : 'Player Profile & Cloud Sync'}
               </h3>
               <p className="text-[11px] text-stone-600 font-bold">
-                Save your stars, coins, and maps across devices
+                {currentProfile?.provider === 'guest' ? 'Your guest profile is saved on this device' : 'Save your stars, coins, and maps across devices'}
               </p>
             </div>
           </div>
@@ -411,7 +411,7 @@ export const AuthModal: React.FC<Props> = ({
           )}
 
           {/* Guest / Continue Action */}
-          {(!currentProfile || currentProfile.provider === 'guest') && (
+          {!currentProfile && (
             <button
               id="play-as-guest-btn"
               onClick={handlePlayAsGuest}
@@ -425,7 +425,7 @@ export const AuthModal: React.FC<Props> = ({
 
         {/* Info footer */}
         <div className="text-[11px] text-stone-600 font-bold text-center pt-1 border-t border-amber-800/30">
-          🔒 Your progress is stored safely on this device. Sign in securely with Google or any valid email address.
+          {currentProfile?.provider === 'guest' ? '🔒 Guest progress stays on this device. Sign in with Google or email to sync across devices.' : '🔒 Your progress is stored safely on this device. Sign in securely with Google or any valid email address.'}
         </div>
       </div>
     </div>

@@ -18,7 +18,7 @@ import {
   Award,
 } from 'lucide-react';
 import { Question, QuizDifficulty, MapLevel, CartoonMap, SoloProgression } from '../types';
-import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_PHOTO_QUESTIONS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
+import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_ANIMAL_QUESTIONS, SOLO_FLAG_QUESTIONS, SOLO_PHOTO_QUESTIONS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -205,8 +205,16 @@ const prepareAttemptQuestions = (
     pictureCount,
     readMissedQuestions().map((item) => item.question.prompt),
   );
-  const regularQuestions = dedupeSimilarQuestions(freshQuestions).slice(0, triviaCount);
-  const combined = [...regularQuestions, ...pictureQuestions];
+  const specialKnowledge = chooseUnseenFallbackQuestions(
+    [...SOLO_FLAG_QUESTIONS, ...SOLO_ANIMAL_QUESTIONS],
+    Math.min(1, triviaCount),
+    readMissedQuestions().map((item) => item.question.prompt),
+  );
+  const regularQuestions = dedupeSimilarQuestions(freshQuestions).slice(
+    0,
+    Math.max(0, triviaCount - specialKnowledge.length),
+  );
+  const combined = [...regularQuestions, ...specialKnowledge, ...pictureQuestions];
 
   return shuffleItems(combined).map((question) => ({
     ...question,
@@ -253,6 +261,8 @@ const getSoloQuestionVault = (includeMathsBackups = false): Question[] => [
     .filter((question) => !question.musicData),
   ...SOLO_PICTURE_QUESTIONS,
   ...SOLO_PHOTO_QUESTIONS,
+  ...SOLO_FLAG_QUESTIONS,
+  ...SOLO_ANIMAL_QUESTIONS,
   ...(includeMathsBackups ? getProceduralBackupQuestions() : []),
 ];
 
@@ -522,7 +532,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
     const totalCount = level.questionCount || 5;
     const pictureCount = Math.min(totalCount, Math.max(1, Math.floor(totalCount / 5)));
-    const request = loadMediumGeneralKnowledgeQuestions(totalCount - pictureCount);
+    const curatedCount = Math.min(1, Math.max(0, totalCount - pictureCount));
+    const request = loadMediumGeneralKnowledgeQuestions(totalCount - pictureCount - curatedCount);
     prefetchedQuestionSetsRef.current.set(level.id, request);
     void request.catch(() => {
       if (prefetchedQuestionSetsRef.current.get(level.id) === request) {
@@ -643,6 +654,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const count = level.questionCount || 5;
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
+      const curatedCount = Math.min(1, triviaCount);
+      const onlineQuestionCount = Math.max(0, triviaCount - curatedCount);
       let questionsToPlay: Question[] | null = null;
 
       // 1. Fetch fresh Internet questions. The online session token and local
@@ -652,7 +665,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           const pendingQuestions = prefetchedQuestionSetsRef.current.get(level.id);
           const onlineQuestions = pendingQuestions
             ? await pendingQuestions
-            : await loadMediumGeneralKnowledgeQuestions(triviaCount);
+            : await loadMediumGeneralKnowledgeQuestions(onlineQuestionCount);
           prefetchedQuestionSetsRef.current.delete(level.id);
           const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count);
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
@@ -671,7 +684,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         try {
           setLevelLaunchStatus('Creating fresh questions on this device…');
           const deviceQuestions = await generateMediumGeneralKnowledgeQuestions(
-            triviaCount,
+            onlineQuestionCount,
             (message) => setLevelLaunchStatus(message || 'Creating fresh questions on this device…'),
           );
           questionsToPlay = prepareAttemptQuestions(deviceQuestions, count);
@@ -686,14 +699,16 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         const qPool = allQuestions.filter((question) =>
           question.category !== 'Emoji Picture Puzzles' &&
           question.category !== 'Photo Round: World Landmarks' &&
+          question.category !== 'World Flags' &&
+          question.category !== 'Animals & Nature' &&
           !question.musicData
         );
 
         let mediumQuestions: Question[];
         try {
-          mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, triviaCount);
+          mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, onlineQuestionCount);
         } catch {
-          mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, triviaCount);
+          mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, onlineQuestionCount);
         }
 
         questionsToPlay = prepareAttemptQuestions(mediumQuestions, count);
@@ -731,9 +746,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     const topic = customTopic.trim() || selectedCategory;
     const isPictureRound = !customTopic.trim() && selectedCategory === 'Emoji Picture Puzzles';
     const isPhotoRound = !customTopic.trim() && selectedCategory === 'Photo Round: World Landmarks';
+    const isFlagRound = !customTopic.trim() && selectedCategory === 'World Flags';
+    const isAnimalRound = !customTopic.trim() && selectedCategory === 'Animals & Nature';
     setDifficulty('medium');
 
-    if (navigator.onLine && !isPictureRound && !isPhotoRound) {
+    if (navigator.onLine && !isPictureRound && !isPhotoRound && !isFlagRound && !isAnimalRound) {
       try {
         const onlineQuestions = await loadMixedOnlineQuestions(topic, 10);
         setQuestions(onlineQuestions);
@@ -750,7 +767,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     const includeMathsBackups = isMathsTopic(topic);
     const allQuestions = getSoloQuestionVault(includeMathsBackups);
 
-    let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : isPhotoRound ? SOLO_PHOTO_QUESTIONS : allQuestions.filter(
+    let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : isPhotoRound ? SOLO_PHOTO_QUESTIONS : isFlagRound ? SOLO_FLAG_QUESTIONS : isAnimalRound ? SOLO_ANIMAL_QUESTIONS : allQuestions.filter(
       (q) =>
         q.category.toLowerCase().includes(selectedCategory.toLowerCase().slice(0, 4)) ||
         selectedCategory.toLowerCase().includes(q.category.toLowerCase().slice(0, 4))
@@ -963,8 +980,15 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         || 'pub-quiz-main-cover-v2.webp';
 
       if (passedStage && nextTarget && nextArtwork) {
-        const preload = new Image();
-        preload.src = `${import.meta.env.BASE_URL}${nextArtwork}`;
+        const targetMapArtwork = targetLevel?.mapArtwork || targetMap?.mapArtwork;
+        [nextArtwork, targetMapArtwork]
+          .filter((artwork): artwork is string => Boolean(artwork))
+          .forEach((artwork) => {
+            const preload = new Image();
+            preload.decoding = 'async';
+            preload.fetchPriority = 'high';
+            preload.src = `${import.meta.env.BASE_URL}${artwork}`;
+          });
       }
 
       if (passedStage) {
@@ -1045,6 +1069,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           }}
           onOpenQuizMaster={onOpenQuizMaster}
           autoAdvanceTarget={autoAdvanceTarget}
+          onAutoAdvanceHandled={() => setAutoAdvanceTarget(null)}
         />
 
         {isLoading && activeLevel && (

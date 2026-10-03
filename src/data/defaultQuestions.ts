@@ -4,50 +4,1477 @@ export const CATEGORY_VAULT: CategoryVaultItem[] = [
   { id: 'pub_classics', name: 'Pub Classics & Beer Lore', icon: '🍺', description: 'Traditional pub trivia, brews, and bar games', color: '#F59E0B' },
   { id: 'picture_rebus', name: 'Emoji Picture Puzzles', icon: '🧩', description: 'Colourful rebuses, visual clues, and picture puzzles', color: '#EC4899' },
   { id: 'photo_round', name: 'Photo Round: World Landmarks', icon: '📸', description: 'Identify famous places from full-colour photographs', color: '#8B5CF6' },
+  { id: 'world_flags', name: 'World Flags', icon: '🏳️', description: 'Identify countries from their national flags', color: '#0EA5E9' },
+  { id: 'animals_nature', name: 'Animals & Nature', icon: '🦊', description: 'Wildlife facts and animal adaptations', color: '#22C55E' },
   { id: 'movies_tv', name: 'Binge-Worthy TV & Movies', icon: '🍿', description: 'Blockbusters, iconic quotes, and sitcom legends', color: '#3B82F6' },
   { id: 'science_nature', name: 'Wacky Science & Nature', icon: '🧪', description: 'Bizarre animal facts, outer space, and elements', color: '#10B981' },
   { id: 'history_geography', name: 'World Atlas & Odd History', icon: '🌍', description: 'Strange historical quirks and world geography', color: '#EF4444' },
 ];
 
 export const SOLO_PICTURE_QUESTIONS: Question[] = [
-  { id: 'pic_1', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐝 + 🍃', prompt: 'Which word is represented by this picture clue?', type: 'multiple_choice', options: ['Believe', 'Beaver', 'Beneath', 'Before'], correctAnswer: 'Believe', acceptableAnswers: ['believe'], explanation: 'Bee + leaf sounds like “believe”.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_2', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '👁️ + scream', prompt: 'Which dessert is represented by this picture clue?', type: 'multiple_choice', options: ['Ice cream', 'Apple pie', 'Cheesecake', 'Fruit salad'], correctAnswer: 'Ice cream', acceptableAnswers: ['ice cream'], explanation: 'Eye sounds like “ice”, followed by scream.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_3', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🌧️ + 🏹', prompt: 'Which colourful natural phenomenon does this rebus show?', type: 'multiple_choice', options: ['Rainbow', 'Sunset', 'Thunder', 'Snowfall'], correctAnswer: 'Rainbow', acceptableAnswers: ['rainbow'], explanation: 'Rain + bow makes rainbow.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_4', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🔥 + 🪰', prompt: 'Which glowing insect is represented by these pictures?', type: 'multiple_choice', options: ['Firefly', 'Butterfly', 'Dragonfly', 'Ladybird'], correctAnswer: 'Firefly', acceptableAnswers: ['firefly'], explanation: 'Fire + fly makes firefly.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_5', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🧈 + 🪰', prompt: 'Which insect is represented by this picture clue?', type: 'multiple_choice', options: ['Butterfly', 'Firefly', 'Horsefly', 'Dragonfly'], correctAnswer: 'Butterfly', acceptableAnswers: ['butterfly'], explanation: 'Butter + fly makes butterfly.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_6', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '⭐ + 🐟', prompt: 'Which sea creature is represented by these pictures?', type: 'multiple_choice', options: ['Starfish', 'Swordfish', 'Jellyfish', 'Seahorse'], correctAnswer: 'Starfish', acceptableAnswers: ['starfish'], explanation: 'Star + fish makes starfish.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_7', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🌙 + 💡', prompt: 'Which word is represented by this visual clue?', type: 'multiple_choice', options: ['Moonlight', 'Midnight', 'Daylight', 'Starlight'], correctAnswer: 'Moonlight', acceptableAnswers: ['moonlight'], explanation: 'Moon + light makes moonlight.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_8', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐝 + 🏠', prompt: 'Which insect home is represented by the pictures?', type: 'multiple_choice', options: ['Beehive', 'Birdhouse', 'Anthill', 'Cocoon'], correctAnswer: 'Beehive', acceptableAnswers: ['beehive', 'bee hive'], explanation: 'Bee + home points to a beehive.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_9', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '☀️ + 🌻', prompt: 'Which flower is represented by these pictures?', type: 'multiple_choice', options: ['Sunflower', 'Rose', 'Daffodil', 'Tulip'], correctAnswer: 'Sunflower', acceptableAnswers: ['sunflower'], explanation: 'Sun + flower makes sunflower.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_10', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🦷 + 🪥', prompt: 'Which everyday activity do these pictures suggest?', type: 'multiple_choice', options: ['Brushing your teeth', 'Eating breakfast', 'Going to sleep', 'Visiting a barber'], correctAnswer: 'Brushing your teeth', acceptableAnswers: ['brushing your teeth', 'brush teeth'], explanation: 'A tooth and toothbrush show brushing your teeth.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_11', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🌊 + 🐚', prompt: 'Which object is represented by these pictures?', type: 'multiple_choice', options: ['Seashell', 'Starfish', 'Sandcastle', 'Sailboat'], correctAnswer: 'Seashell', acceptableAnswers: ['seashell', 'sea shell'], explanation: 'Sea + shell makes seashell.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_12', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐎 + 👞', prompt: 'Which lucky object does this rebus represent?', type: 'multiple_choice', options: ['Horseshoe', 'Cowboy boot', 'Saddle', 'Stirrup'], correctAnswer: 'Horseshoe', acceptableAnswers: ['horseshoe', 'horse shoe'], explanation: 'Horse + shoe makes horseshoe.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_13', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐱 + 🐟', prompt: 'Which animal name is created by these pictures?', type: 'multiple_choice', options: ['Catfish', 'Dogfish', 'Lionfish', 'Goldfish'], correctAnswer: 'Catfish', acceptableAnswers: ['catfish'], explanation: 'Cat + fish makes catfish.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_14', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐉 + 🪰', prompt: 'Which insect is represented by this rebus?', type: 'multiple_choice', options: ['Dragonfly', 'Butterfly', 'Firefly', 'Mayfly'], correctAnswer: 'Dragonfly', acceptableAnswers: ['dragonfly'], explanation: 'Dragon + fly makes dragonfly.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_15', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🧠 + ⛈️', prompt: 'Which creative activity is represented here?', type: 'multiple_choice', options: ['Brainstorm', 'Daydream', 'Mind reading', 'Cloud watching'], correctAnswer: 'Brainstorm', acceptableAnswers: ['brainstorm'], explanation: 'Brain + storm makes brainstorm.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_16', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '📚 + 🐛', prompt: 'What do we call someone who loves reading?', type: 'multiple_choice', options: ['Bookworm', 'Librarian', 'Storyteller', 'Night owl'], correctAnswer: 'Bookworm', acceptableAnswers: ['bookworm'], explanation: 'Book + worm makes bookworm.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_17', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🏠 + 🛥️', prompt: 'Which type of floating home is shown?', type: 'multiple_choice', options: ['Houseboat', 'Lighthouse', 'Boathouse', 'Cruise ship'], correctAnswer: 'Houseboat', acceptableAnswers: ['houseboat', 'house boat'], explanation: 'House + boat makes houseboat.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_18', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🧀 + 🍰', prompt: 'Which dessert is represented by these pictures?', type: 'multiple_choice', options: ['Cheesecake', 'Carrot cake', 'Shortcake', 'Cupcake'], correctAnswer: 'Cheesecake', acceptableAnswers: ['cheesecake', 'cheese cake'], explanation: 'Cheese + cake makes cheesecake.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_19', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐦 + 🏠', prompt: 'Which garden object is represented here?', type: 'multiple_choice', options: ['Birdhouse', 'Birdbath', 'Nest box', 'Feeder'], correctAnswer: 'Birdhouse', acceptableAnswers: ['birdhouse', 'bird house'], explanation: 'Bird + house makes birdhouse.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_20', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '☀️ + 🕶️', prompt: 'Which accessory is suggested by these pictures?', type: 'multiple_choice', options: ['Sunglasses', 'Sunhat', 'Umbrella', 'Goggles'], correctAnswer: 'Sunglasses', acceptableAnswers: ['sunglasses', 'sun glasses'], explanation: 'Sun + glasses makes sunglasses.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_21', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🌧️ + 🧥', prompt: 'Which item of clothing is represented here?', type: 'multiple_choice', options: ['Raincoat', 'Waistcoat', 'Overcoat', 'Tracksuit'], correctAnswer: 'Raincoat', acceptableAnswers: ['raincoat', 'rain coat'], explanation: 'Rain + coat makes raincoat.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_22', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🦷 + 🧚', prompt: 'Which childhood character is represented?', type: 'multiple_choice', options: ['Tooth Fairy', 'Tinker Bell', 'Queen Mab', 'Sandman'], correctAnswer: 'Tooth Fairy', acceptableAnswers: ['tooth fairy'], explanation: 'Tooth + fairy makes the Tooth Fairy.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_23', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '⛄ + ⚽', prompt: 'Which wintry object does this rebus suggest?', type: 'multiple_choice', options: ['Snowball', 'Snowman', 'Ice rink', 'Sledge'], correctAnswer: 'Snowball', acceptableAnswers: ['snowball', 'snow ball'], explanation: 'Snow + ball makes snowball.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_24', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🔑 + 🕳️', prompt: 'Which part of a lock is represented?', type: 'multiple_choice', options: ['Keyhole', 'Keyring', 'Door handle', 'Padlock'], correctAnswer: 'Keyhole', acceptableAnswers: ['keyhole', 'key hole'], explanation: 'Key + hole makes keyhole.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_25', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🛏️ + 🪲', prompt: 'Which tiny pest is represented by these pictures?', type: 'multiple_choice', options: ['Bedbug', 'Ladybird', 'Flea', 'Beetle'], correctAnswer: 'Bedbug', acceptableAnswers: ['bedbug', 'bed bug'], explanation: 'Bed + bug makes bedbug.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_26', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🐂 + 🐸', prompt: 'Which large frog is represented here?', type: 'multiple_choice', options: ['Bullfrog', 'Tree frog', 'Toad', 'Tadpole'], correctAnswer: 'Bullfrog', acceptableAnswers: ['bullfrog', 'bull frog'], explanation: 'Bull + frog makes bullfrog.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_27', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🍯 + 🌙', prompt: 'Which holiday after a wedding is represented?', type: 'multiple_choice', options: ['Honeymoon', 'Weekend break', 'Anniversary', 'Summer holiday'], correctAnswer: 'Honeymoon', acceptableAnswers: ['honeymoon', 'honey moon'], explanation: 'Honey + moon makes honeymoon.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_28', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🧁 + ☕', prompt: 'Which pairing do these pictures show?', type: 'multiple_choice', options: ['Cake and coffee', 'Tea and toast', 'Milk and cookies', 'Pie and mash'], correctAnswer: 'Cake and coffee', acceptableAnswers: ['cake and coffee', 'coffee and cake'], explanation: 'The pictures show a cake served with coffee.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_29', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🦁 + 👑', prompt: 'Which royal animal title is suggested?', type: 'multiple_choice', options: ['Lion King', 'Tiger Queen', 'Bear Prince', 'Wolf Lord'], correctAnswer: 'Lion King', acceptableAnswers: ['lion king', 'the lion king'], explanation: 'Lion + crown points to the Lion King.', points: 15, timeLimitSec: 30 },
-  { id: 'pic_30', roundNumber: 1, category: 'Emoji Picture Puzzles', pictureClue: '🕷️ + 🧑', prompt: 'Which comic-book hero is represented?', type: 'multiple_choice', options: ['Spider-Man', 'Batman', 'Ant-Man', 'Superman'], correctAnswer: 'Spider-Man', acceptableAnswers: ['spider-man', 'spiderman', 'spider man'], explanation: 'Spider + man makes Spider-Man.', points: 15, timeLimitSec: 30 },
+  {
+    "id": "pic_1",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐘 + 🛋️ + 🤐",
+    "prompt": "Which idiom is suggested by these three clues?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "The elephant in the room",
+      "A storm in a teacup",
+      "Let sleeping dogs lie",
+      "A bull in a china shop"
+    ],
+    "correctAnswer": "The elephant in the room",
+    "acceptableAnswers": [
+      "the elephant in the room"
+    ],
+    "explanation": "The elephant is in the room, while the zipped mouth suggests everyone is avoiding the obvious subject.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "pic_2",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🌧️ + 🐱 + 🐶",
+    "prompt": "Which phrase describes this unusual weather?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Raining cats and dogs",
+      "Every cloud has a silver lining",
+      "A drop in the ocean",
+      "Come rain or shine"
+    ],
+    "correctAnswer": "Raining cats and dogs",
+    "acceptableAnswers": [
+      "raining cats and dogs"
+    ],
+    "explanation": "The two animals falling with the rain form the idiom “raining cats and dogs”.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_3",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐦 + ✋ + 2️⃣ + 🌳",
+    "prompt": "Which proverb is pictured?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "A bird in the hand is worth two in the bush",
+      "Two birds with one stone",
+      "The early bird catches the worm",
+      "Birds of a feather flock together"
+    ],
+    "correctAnswer": "A bird in the hand is worth two in the bush",
+    "acceptableAnswers": [
+      "a bird in the hand is worth two in the bush"
+    ],
+    "explanation": "One bird is already in a hand; two more are waiting in the bush.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_4",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐺 + 🐑 + 🧥",
+    "prompt": "Which expression is this rebus showing?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "A wolf in sheep’s clothing",
+      "A wolf at the door",
+      "Separate the sheep from the goats",
+      "Count your chickens before they hatch"
+    ],
+    "correctAnswer": "A wolf in sheep’s clothing",
+    "acceptableAnswers": [
+      "a wolf in sheep’s clothing"
+    ],
+    "explanation": "The wolf is disguised by wearing a sheep’s coat.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_5",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🍎 + 👁️ + ❤️",
+    "prompt": "Which affectionate expression is represented?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "The apple of someone’s eye",
+      "As easy as pie",
+      "A taste of your own medicine",
+      "The icing on the cake"
+    ],
+    "correctAnswer": "The apple of someone’s eye",
+    "acceptableAnswers": [
+      "the apple of someone’s eye"
+    ],
+    "explanation": "The apple is placed with an eye and a heart: the apple of someone’s eye.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "pic_6",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐟 + 🚶 + 🏜️",
+    "prompt": "Which saying best matches these clues?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "A fish out of water",
+      "There are plenty more fish in the sea",
+      "Like a duck to water",
+      "A watched pot never boils"
+    ],
+    "correctAnswer": "A fish out of water",
+    "acceptableAnswers": [
+      "a fish out of water"
+    ],
+    "explanation": "The fish is walking through a dry desert, far from its natural element.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_7",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "👂 + 🍇 + 🗣️",
+    "prompt": "Which phrase is hinted at?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Heard it through the grapevine",
+      "Turn over a new leaf",
+      "Sour grapes",
+      "The apple doesn’t fall far from the tree"
+    ],
+    "correctAnswer": "Heard it through the grapevine",
+    "acceptableAnswers": [
+      "heard it through the grapevine"
+    ],
+    "explanation": "An ear listens to news travelling through a grapevine.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_8",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🪨 + 🧱 + 😓",
+    "prompt": "Which difficult situation does this clue describe?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Between a rock and a hard place",
+      "Rock the boat",
+      "Hit rock bottom",
+      "A hard nut to crack"
+    ],
+    "correctAnswer": "Between a rock and a hard place",
+    "acceptableAnswers": [
+      "between a rock and a hard place"
+    ],
+    "explanation": "The person is squeezed between a rock and a hard place.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_9",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐈 + 🎒 + 🛍️",
+    "prompt": "Which idiom is pictured?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Let the cat out of the bag",
+      "Curiosity killed the cat",
+      "A bag of tricks",
+      "Put the cart before the horse"
+    ],
+    "correctAnswer": "Let the cat out of the bag",
+    "acceptableAnswers": [
+      "let the cat out of the bag"
+    ],
+    "explanation": "A cat escaping from a bag reveals a hidden secret.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "pic_10",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐴 + ⚰️ + 🔨",
+    "prompt": "Which expression is this rebus illustrating?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Flogging a dead horse",
+      "Hold your horses",
+      "Straight from the horse’s mouth",
+      "Back the wrong horse"
+    ],
+    "correctAnswer": "Flogging a dead horse",
+    "acceptableAnswers": [
+      "flogging a dead horse"
+    ],
+    "explanation": "The horse is dead, so continuing to beat it is pointless.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_11",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🥚 + 🐚 + 🚶",
+    "prompt": "Which phrase is represented by the careful footsteps?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Walking on eggshells",
+      "A nest egg",
+      "Don’t put all your eggs in one basket",
+      "Egg on your face"
+    ],
+    "correctAnswer": "Walking on eggshells",
+    "acceptableAnswers": [
+      "walking on eggshells"
+    ],
+    "explanation": "The person has to tread carefully over fragile eggshells.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_12",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "💰 + 🌳 + 🚫",
+    "prompt": "Which reminder is pictured?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Money doesn’t grow on trees",
+      "Money talks",
+      "A cash cow",
+      "The grass is always greener"
+    ],
+    "correctAnswer": "Money doesn’t grow on trees",
+    "acceptableAnswers": [
+      "money doesn’t grow on trees"
+    ],
+    "explanation": "The no symbol shows that money is not something you can pick from a tree.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_13",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🧊 + 🪓 + 🤝",
+    "prompt": "Which social phrase is suggested?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Break the ice",
+      "Cold shoulder",
+      "Thin ice",
+      "Water under the bridge"
+    ],
+    "correctAnswer": "Break the ice",
+    "acceptableAnswers": [
+      "break the ice"
+    ],
+    "explanation": "The axe breaks the ice before the two people shake hands.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "pic_14",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐦 + 🪨 + 2️⃣ 🎯",
+    "prompt": "Which idiom means achieving two things with one action?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Kill two birds with one stone",
+      "A bird in the hand is worth two in the bush",
+      "The early bird catches the worm",
+      "Stone-cold sober"
+    ],
+    "correctAnswer": "Kill two birds with one stone",
+    "acceptableAnswers": [
+      "kill two birds with one stone"
+    ],
+    "explanation": "One stone is aimed at two birds.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_15",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐍 + 🌱 + 👀",
+    "prompt": "Which warning does this clue represent?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "A snake in the grass",
+      "A green thumb",
+      "The grass is always greener",
+      "A slippery slope"
+    ],
+    "correctAnswer": "A snake in the grass",
+    "acceptableAnswers": [
+      "a snake in the grass"
+    ],
+    "explanation": "The snake is hidden among the grass, suggesting a concealed threat.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_16",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🧅 + 😭 + 🔪",
+    "prompt": "Which everyday phrase is pictured?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Cutting onions makes you cry",
+      "Crying over spilt milk",
+      "Peeling away the layers",
+      "A tough nut to crack"
+    ],
+    "correctAnswer": "Cutting onions makes you cry",
+    "acceptableAnswers": [
+      "cutting onions makes you cry"
+    ],
+    "explanation": "The knife is cutting an onion and the person is crying.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_17",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🪞 + 🐒 + 🎭",
+    "prompt": "Which phrase best matches the clue?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Monkey see, monkey do",
+      "The elephant never forgets",
+      "A leopard can’t change its spots",
+      "When pigs fly"
+    ],
+    "correctAnswer": "Monkey see, monkey do",
+    "acceptableAnswers": [
+      "monkey see, monkey do"
+    ],
+    "explanation": "The monkey copies what it sees in the mirror.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "pic_18",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐝 + 🦵 + 👑",
+    "prompt": "Which old-fashioned compliment is represented?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "The bee’s knees",
+      "Busy as a bee",
+      "A social butterfly",
+      "As strong as an ox"
+    ],
+    "correctAnswer": "The bee’s knees",
+    "acceptableAnswers": [
+      "the bee’s knees"
+    ],
+    "explanation": "A bee is pointing to its knees, the phrase for something excellent.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_19",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🐕 + 🦴 + 🛏️",
+    "prompt": "Which saying is pictured?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Let sleeping dogs lie",
+      "Barking up the wrong tree",
+      "Every dog has its day",
+      "A dog’s life"
+    ],
+    "correctAnswer": "Let sleeping dogs lie",
+    "acceptableAnswers": [
+      "let sleeping dogs lie"
+    ],
+    "explanation": "The dog is asleep beside a bone, and the phrase advises leaving it alone.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "pic_20",
+    "roundNumber": 1,
+    "category": "Emoji Picture Puzzles",
+    "pictureClue": "🕰️ + 🪰 + 🎉",
+    "prompt": "Which saying about time and enjoyment is suggested?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Time flies when you’re having fun",
+      "A stitch in time saves nine",
+      "Better late than never",
+      "Around the clock"
+    ],
+    "correctAnswer": "Time flies when you’re having fun",
+    "acceptableAnswers": [
+      "time flies when you’re having fun"
+    ],
+    "explanation": "The clock has wings and the party represents having fun.",
+    "points": 20,
+    "timeLimitSec": 40
+  }
 ];
 
 export const SOLO_PHOTO_QUESTIONS: Question[] = [
-  { id: 'photo_tower_bridge', roundNumber: 1, category: 'Photo Round: World Landmarks', imageUrl: 'photo-round/tower-bridge.webp', prompt: 'Which famous landmark is shown in this photograph?', type: 'multiple_choice', difficulty: 'medium', options: ['Tower Bridge', 'Brooklyn Bridge', 'Sydney Harbour Bridge', 'Charles Bridge'], correctAnswer: 'Tower Bridge', acceptableAnswers: ['tower bridge'], explanation: 'Tower Bridge crosses the River Thames beside the Tower of London.', points: 15, timeLimitSec: 35 },
-  { id: 'photo_edinburgh_castle', roundNumber: 1, category: 'Photo Round: World Landmarks', imageUrl: 'photo-round/edinburgh-castle.webp', prompt: 'Which historic fortress is shown in this photograph?', type: 'multiple_choice', difficulty: 'hard', options: ['Edinburgh Castle', 'Stirling Castle', 'Cardiff Castle', 'Dover Castle'], correctAnswer: 'Edinburgh Castle', acceptableAnswers: ['edinburgh castle'], explanation: 'Edinburgh Castle stands on Castle Rock above Scotland’s capital.', points: 20, timeLimitSec: 40 },
-  { id: 'photo_eiffel_tower', roundNumber: 1, category: 'Photo Round: World Landmarks', imageUrl: 'photo-round/eiffel-tower.webp', prompt: 'Which European landmark is shown in this photograph?', type: 'multiple_choice', difficulty: 'medium', options: ['Eiffel Tower', 'Blackpool Tower', 'Tokyo Tower', 'Berlin TV Tower'], correctAnswer: 'Eiffel Tower', acceptableAnswers: ['eiffel tower'], explanation: 'The Eiffel Tower was completed for the 1889 Exposition Universelle in Paris.', points: 15, timeLimitSec: 35 },
-  { id: 'photo_colosseum', roundNumber: 1, category: 'Photo Round: World Landmarks', imageUrl: 'photo-round/colosseum.webp', prompt: 'Which ancient structure is shown in this photograph?', type: 'multiple_choice', difficulty: 'hard', options: ['The Colosseum', 'The Pantheon', 'The Acropolis', 'Pompeii Forum'], correctAnswer: 'The Colosseum', acceptableAnswers: ['the colosseum', 'colosseum'], explanation: 'Rome’s Colosseum was the largest amphitheatre built in the ancient world.', points: 20, timeLimitSec: 40 },
-  { id: 'photo_taj_mahal', roundNumber: 1, category: 'Photo Round: World Landmarks', imageUrl: 'photo-round/taj-mahal.webp', prompt: 'Which UNESCO World Heritage Site is shown in this photograph?', type: 'multiple_choice', difficulty: 'medium', options: ['Taj Mahal', 'Humayun’s Tomb', 'Sheikh Zayed Grand Mosque', 'Hawa Mahal'], correctAnswer: 'Taj Mahal', acceptableAnswers: ['taj mahal', 'the taj mahal'], explanation: 'The Taj Mahal in Agra was commissioned by Mughal emperor Shah Jahan.', points: 15, timeLimitSec: 35 },
+  {
+    "id": "photo_tower_bridge_identity",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/tower-bridge.webp",
+    "prompt": "Which London bridge in this photograph has two high towers linked by walkways?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Tower Bridge",
+      "Westminster Bridge",
+      "Millennium Bridge",
+      "Albert Bridge"
+    ],
+    "correctAnswer": "Tower Bridge",
+    "acceptableAnswers": [
+      "tower bridge"
+    ],
+    "explanation": "Tower Bridge is recognisable by its two towers and upper walkways.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_tower_bridge_river",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/tower-bridge.webp",
+    "prompt": "Which river runs beneath the bridge shown here?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "River Thames",
+      "River Seine",
+      "River Clyde",
+      "River Mersey"
+    ],
+    "correctAnswer": "River Thames",
+    "acceptableAnswers": [
+      "river thames"
+    ],
+    "explanation": "Tower Bridge crosses the River Thames in central London.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_tower_bridge_mechanism",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/tower-bridge.webp",
+    "prompt": "What is the name for the type of bridge whose central roadway lifts for ships?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Bascule bridge",
+      "Suspension bridge",
+      "Aqueduct",
+      "Cantilever bridge"
+    ],
+    "correctAnswer": "Bascule bridge",
+    "acceptableAnswers": [
+      "bascule bridge"
+    ],
+    "explanation": "Tower Bridge is a bascule bridge: its road bascules lift to let ships pass.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "photo_edinburgh_castle_city",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/edinburgh-castle.webp",
+    "prompt": "Which Scottish capital is home to the fortress in this photograph?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Edinburgh",
+      "Glasgow",
+      "Aberdeen",
+      "Inverness"
+    ],
+    "correctAnswer": "Edinburgh",
+    "acceptableAnswers": [
+      "edinburgh"
+    ],
+    "explanation": "Edinburgh Castle stands above Scotland’s capital city.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_edinburgh_castle_rock",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/edinburgh-castle.webp",
+    "prompt": "The fortress shown here stands on which famous volcanic outcrop?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Castle Rock",
+      "Arthur’s Seat",
+      "Calton Hill",
+      "Salisbury Crags"
+    ],
+    "correctAnswer": "Castle Rock",
+    "acceptableAnswers": [
+      "castle rock"
+    ],
+    "explanation": "Edinburgh Castle sits on Castle Rock, an extinct volcanic plug.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "photo_edinburgh_castle_festival",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/edinburgh-castle.webp",
+    "prompt": "Which annual arts festival shares its name with the city of this castle?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Edinburgh Festival Fringe",
+      "Highland Games",
+      "Royal Welsh Show",
+      "Celtic Connections"
+    ],
+    "correctAnswer": "Edinburgh Festival Fringe",
+    "acceptableAnswers": [
+      "edinburgh festival fringe"
+    ],
+    "explanation": "The Edinburgh Festival Fringe takes place in the city each summer.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "photo_eiffel_tower_city",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/eiffel-tower.webp",
+    "prompt": "Which city skyline is dominated by the iron tower shown here?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Paris",
+      "Lyon",
+      "Brussels",
+      "Vienna"
+    ],
+    "correctAnswer": "Paris",
+    "acceptableAnswers": [
+      "paris"
+    ],
+    "explanation": "The Eiffel Tower is one of the best-known landmarks of Paris.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_eiffel_tower_river",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/eiffel-tower.webp",
+    "prompt": "Which river flows through the city pictured with this landmark?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "River Seine",
+      "River Loire",
+      "River Rhône",
+      "River Danube"
+    ],
+    "correctAnswer": "River Seine",
+    "acceptableAnswers": [
+      "river seine"
+    ],
+    "explanation": "The River Seine passes through Paris near the Eiffel Tower.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_eiffel_tower_exhibition",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/eiffel-tower.webp",
+    "prompt": "For which 19th-century event was the Eiffel Tower originally built?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "1889 Exposition Universelle",
+      "1900 Olympic Games",
+      "1867 World’s Fair",
+      "1910 Paris Air Show"
+    ],
+    "correctAnswer": "1889 Exposition Universelle",
+    "acceptableAnswers": [
+      "1889 exposition universelle"
+    ],
+    "explanation": "It was built for the 1889 Exposition Universelle marking 100 years since the French Revolution.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "photo_colosseum_city",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/colosseum.webp",
+    "prompt": "Which Italian city is home to the oval amphitheatre pictured here?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Rome",
+      "Naples",
+      "Florence",
+      "Athens"
+    ],
+    "correctAnswer": "Rome",
+    "acceptableAnswers": [
+      "rome"
+    ],
+    "explanation": "The Colosseum is in Rome, Italy.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_colosseum_name",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/colosseum.webp",
+    "prompt": "What is the usual English name of the ancient amphitheatre shown here?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "The Colosseum",
+      "The Pantheon",
+      "Circus Maximus",
+      "Theatre of Marcellus"
+    ],
+    "correctAnswer": "The Colosseum",
+    "acceptableAnswers": [
+      "the colosseum"
+    ],
+    "explanation": "The Colosseum is the large oval amphitheatre in Rome.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_colosseum_emperor",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/colosseum.webp",
+    "prompt": "Which Flavian emperor began construction of the amphitheatre shown here?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Vespasian",
+      "Nero",
+      "Hadrian",
+      "Augustus"
+    ],
+    "correctAnswer": "Vespasian",
+    "acceptableAnswers": [
+      "vespasian"
+    ],
+    "explanation": "Emperor Vespasian began construction around AD 70–72; Titus opened it.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "photo_taj_mahal_city",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/taj-mahal.webp",
+    "prompt": "In which Indian city is the white marble mausoleum shown here?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Agra",
+      "Delhi",
+      "Jaipur",
+      "Lucknow"
+    ],
+    "correctAnswer": "Agra",
+    "acceptableAnswers": [
+      "agra"
+    ],
+    "explanation": "The Taj Mahal stands in Agra, in northern India.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "photo_taj_mahal_emperor",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/taj-mahal.webp",
+    "prompt": "Which Mughal emperor commissioned the building pictured here?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Shah Jahan",
+      "Akbar",
+      "Aurangzeb",
+      "Babur"
+    ],
+    "correctAnswer": "Shah Jahan",
+    "acceptableAnswers": [
+      "shah jahan"
+    ],
+    "explanation": "Shah Jahan commissioned the Taj Mahal in memory of Mumtaz Mahal.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "photo_taj_mahal_river",
+    "roundNumber": 1,
+    "category": "Photo Round: World Landmarks",
+    "imageUrl": "photo-round/taj-mahal.webp",
+    "prompt": "Which river flows beside the gardens of this monument?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Yamuna",
+      "Ganges",
+      "Indus",
+      "Brahmaputra"
+    ],
+    "correctAnswer": "Yamuna",
+    "acceptableAnswers": [
+      "yamuna"
+    ],
+    "explanation": "The Taj Mahal is built beside the Yamuna River.",
+    "points": 20,
+    "timeLimitSec": 40
+  }
+];
+
+export const SOLO_FLAG_QUESTIONS: Question[] = [
+  {
+    "id": "flag_1",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇯🇵",
+    "prompt": "Which country uses the red sun disc on a plain white flag?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Japan",
+      "Bangladesh",
+      "Palau",
+      "South Korea"
+    ],
+    "correctAnswer": "Japan",
+    "acceptableAnswers": [
+      "japan"
+    ],
+    "explanation": "Japan’s flag has one red disc on a white field.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_2",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇵🇹",
+    "prompt": "A green and red flag with a coat of arms belongs to which country?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Portugal",
+      "Spain",
+      "Italy",
+      "Mexico"
+    ],
+    "correctAnswer": "Portugal",
+    "acceptableAnswers": [
+      "portugal"
+    ],
+    "explanation": "Portugal’s flag is green and red with its coat of arms on the dividing line.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_3",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇰🇷",
+    "prompt": "Which country’s white flag shows a red-and-blue taegeuk and four black trigrams?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "South Korea",
+      "Japan",
+      "North Korea",
+      "Taiwan"
+    ],
+    "correctAnswer": "South Korea",
+    "acceptableAnswers": [
+      "south korea"
+    ],
+    "explanation": "South Korea’s white flag has a red-and-blue taegeuk with four black trigrams.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_4",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇯🇲",
+    "prompt": "Which Caribbean country has a gold diagonal cross between green and black triangles?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Jamaica",
+      "South Africa",
+      "Kenya",
+      "Tanzania"
+    ],
+    "correctAnswer": "Jamaica",
+    "acceptableAnswers": [
+      "jamaica"
+    ],
+    "explanation": "Jamaica’s flag has a gold diagonal cross with green and black triangles.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_5",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇬🇷",
+    "prompt": "Which country’s flag combines a white cross with nine blue-and-white stripes?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Greece",
+      "Finland",
+      "Uruguay",
+      "Argentina"
+    ],
+    "correctAnswer": "Greece",
+    "acceptableAnswers": [
+      "greece"
+    ],
+    "explanation": "Greece uses blue and white stripes and a white cross in the canton.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_6",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇨🇭",
+    "prompt": "Which country has a square red flag with a white equal-armed cross?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Switzerland",
+      "Denmark",
+      "Georgia",
+      "Tonga"
+    ],
+    "correctAnswer": "Switzerland",
+    "acceptableAnswers": [
+      "switzerland"
+    ],
+    "explanation": "Switzerland’s flag is a white equal-armed cross on a red square.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_7",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇧🇷",
+    "prompt": "Which South American country has a yellow diamond and blue globe on green?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Brazil",
+      "Argentina",
+      "Uruguay",
+      "Venezuela"
+    ],
+    "correctAnswer": "Brazil",
+    "acceptableAnswers": [
+      "brazil"
+    ],
+    "explanation": "Brazil’s green flag carries a yellow diamond and blue globe.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_8",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇳🇿",
+    "prompt": "The Union Jack and four red stars appear on which country’s flag?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "New Zealand",
+      "Australia",
+      "Fiji",
+      "Tuvalu"
+    ],
+    "correctAnswer": "New Zealand",
+    "acceptableAnswers": [
+      "new zealand"
+    ],
+    "explanation": "New Zealand’s flag has the Union Jack and four red stars with white borders.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_9",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇸🇳",
+    "prompt": "Which West African country has green, yellow and red vertical bands with a green star?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Senegal",
+      "Mali",
+      "Guinea",
+      "Cameroon"
+    ],
+    "correctAnswer": "Senegal",
+    "acceptableAnswers": [
+      "senegal"
+    ],
+    "explanation": "Senegal has vertical green, yellow and red bands with a green star in the centre.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_10",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇱🇻",
+    "prompt": "Which Baltic country’s flag has a narrow white stripe between two dark red bands?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Latvia",
+      "Austria",
+      "Lebanon",
+      "Bahrain"
+    ],
+    "correctAnswer": "Latvia",
+    "acceptableAnswers": [
+      "latvia"
+    ],
+    "explanation": "Latvia’s flag has a narrow white stripe between two dark red bands.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_11",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇪🇪",
+    "prompt": "Which Baltic country uses blue, black and white horizontal bands?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Estonia",
+      "Lithuania",
+      "Bulgaria",
+      "Hungary"
+    ],
+    "correctAnswer": "Estonia",
+    "acceptableAnswers": [
+      "estonia"
+    ],
+    "explanation": "Estonia’s horizontal bands are blue, black and white.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "flag_12",
+    "roundNumber": 1,
+    "category": "World Flags",
+    "pictureClue": "🇭🇷",
+    "prompt": "Which country has a red-white-blue flag with a red-and-white checkerboard shield?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Croatia",
+      "Slovenia",
+      "Slovakia",
+      "Serbia"
+    ],
+    "correctAnswer": "Croatia",
+    "acceptableAnswers": [
+      "croatia"
+    ],
+    "explanation": "Croatia’s red-white-blue flag has a red-and-white checkerboard shield.",
+    "points": 15,
+    "timeLimitSec": 35
+  }
+];
+
+export const SOLO_ANIMAL_QUESTIONS: Question[] = [
+  {
+    "id": "animal_1",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which mammal is the only one capable of sustained, powered flight?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Bats",
+      "Flying squirrels",
+      "Sugar gliders",
+      "Colugos"
+    ],
+    "correctAnswer": "Bats",
+    "acceptableAnswers": [
+      "bats"
+    ],
+    "explanation": "Bats generate lift with powered wing strokes; the other animals glide.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_2",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which animal is the largest living rodent?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Capybara",
+      "Beaver",
+      "Porcupine",
+      "Nutria"
+    ],
+    "correctAnswer": "Capybara",
+    "acceptableAnswers": [
+      "capybara"
+    ],
+    "explanation": "The capybara is the world’s largest rodent.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_3",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "What colour is a polar bear’s skin beneath its fur?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Black",
+      "Pink",
+      "White",
+      "Grey"
+    ],
+    "correctAnswer": "Black",
+    "acceptableAnswers": [
+      "black"
+    ],
+    "explanation": "Polar bear skin is black, even though the fur appears white.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_4",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which bird is known for having a tongue that wraps around the inside of its skull?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Woodpecker",
+      "Kingfisher",
+      "Toucan",
+      "Heron"
+    ],
+    "correctAnswer": "Woodpecker",
+    "acceptableAnswers": [
+      "woodpecker"
+    ],
+    "explanation": "A woodpecker’s long tongue is anchored around the skull to help it reach insects.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_5",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which animal has three hearts?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Octopus",
+      "Shark",
+      "Dolphin",
+      "Crocodile"
+    ],
+    "correctAnswer": "Octopus",
+    "acceptableAnswers": [
+      "octopus"
+    ],
+    "explanation": "An octopus has two hearts that pump to the gills and one for the body.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "animal_6",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "What gives flamingos their pink colour?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Pigments in their food",
+      "Sunlight on their feathers",
+      "Salt in the water",
+      "A pink undercoat"
+    ],
+    "correctAnswer": "Pigments in their food",
+    "acceptableAnswers": [
+      "pigments in their food"
+    ],
+    "explanation": "Carotenoid pigments from algae and small crustaceans colour flamingo feathers.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_7",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which reptile is the largest living lizard?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Komodo dragon",
+      "Green anaconda",
+      "Saltwater crocodile",
+      "Leatherback turtle"
+    ],
+    "correctAnswer": "Komodo dragon",
+    "acceptableAnswers": [
+      "komodo dragon"
+    ],
+    "explanation": "The Komodo dragon is the largest living lizard species.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_8",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which group of mammals includes echidnas and the platypus?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Monotremes",
+      "Marsupials",
+      "Primates",
+      "Pangolins"
+    ],
+    "correctAnswer": "Monotremes",
+    "acceptableAnswers": [
+      "monotremes"
+    ],
+    "explanation": "Monotremes are mammals that lay eggs.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_9",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which animal is famous for being able to regenerate lost limbs and parts of its heart?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Axolotl",
+      "Clownfish",
+      "Iguana",
+      "Sea otter"
+    ],
+    "correctAnswer": "Axolotl",
+    "acceptableAnswers": [
+      "axolotl"
+    ],
+    "explanation": "Axolotls can regenerate limbs and several other tissues.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_10",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which animal has the longest known gestation period, at about 22 months?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "African elephant",
+      "Blue whale",
+      "Giraffe",
+      "Rhinoceros"
+    ],
+    "correctAnswer": "African elephant",
+    "acceptableAnswers": [
+      "african elephant"
+    ],
+    "explanation": "An elephant’s pregnancy lasts close to 22 months.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "animal_11",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which living land animal is most closely related to whales and dolphins?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Hippopotamus",
+      "Elephant",
+      "Rhinoceros",
+      "Camel"
+    ],
+    "correctAnswer": "Hippopotamus",
+    "acceptableAnswers": [
+      "hippopotamus"
+    ],
+    "explanation": "Hippos are the closest living land relatives of cetaceans.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_12",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "What is the main food of a giant panda?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Bamboo",
+      "Eucalyptus leaves",
+      "Bamboo shoots only",
+      "Small rodents"
+    ],
+    "correctAnswer": "Bamboo",
+    "acceptableAnswers": [
+      "bamboo"
+    ],
+    "explanation": "Giant pandas eat mostly bamboo, though they can digest other foods.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_13",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which sea creature has blue blood because it uses copper-based haemocyanin to carry oxygen?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Horseshoe crab",
+      "Blue whale",
+      "Sea turtle",
+      "Manta ray"
+    ],
+    "correctAnswer": "Horseshoe crab",
+    "acceptableAnswers": [
+      "horseshoe crab"
+    ],
+    "explanation": "Horseshoe crab blood uses copper-rich haemocyanin and looks blue.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_14",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which mammal uses echolocation to find insects in the dark?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Bat",
+      "Red fox",
+      "Hedgehog",
+      "Squirrel"
+    ],
+    "correctAnswer": "Bat",
+    "acceptableAnswers": [
+      "bat"
+    ],
+    "explanation": "Many bats use echolocation to locate prey and navigate.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_15",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which animal’s fingerprints are so similar to humans’ that they can be difficult to tell apart?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Koala",
+      "Chimpanzee",
+      "Raccoon",
+      "Gorilla"
+    ],
+    "correctAnswer": "Koala",
+    "acceptableAnswers": [
+      "koala"
+    ],
+    "explanation": "Koala fingerprints closely resemble human fingerprints.",
+    "points": 20,
+    "timeLimitSec": 40
+  },
+  {
+    "id": "animal_16",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "What is a group of flamingos commonly called?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "A flamboyance",
+      "A parliament",
+      "A murder",
+      "A crash"
+    ],
+    "correctAnswer": "A flamboyance",
+    "acceptableAnswers": [
+      "a flamboyance"
+    ],
+    "explanation": "A flamboyance is a collective noun for a group of flamingos.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_17",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which bird can fly backwards for sustained periods?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Hummingbird",
+      "Swift",
+      "Albatross",
+      "Kingfisher"
+    ],
+    "correctAnswer": "Hummingbird",
+    "acceptableAnswers": [
+      "hummingbird"
+    ],
+    "explanation": "Hummingbirds can hover and fly backwards.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_18",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which mammal has the thickest fur of any animal?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Sea otter",
+      "Polar bear",
+      "Arctic fox",
+      "Chinchilla"
+    ],
+    "correctAnswer": "Sea otter",
+    "acceptableAnswers": [
+      "sea otter"
+    ],
+    "explanation": "Sea otters have extremely dense fur that traps insulating air.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_19",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "What is the name of the hard, keratin-covered plates on a pangolin?",
+    "type": "multiple_choice",
+    "difficulty": "medium",
+    "options": [
+      "Scales",
+      "Osteoderms",
+      "Scutes",
+      "Quills"
+    ],
+    "correctAnswer": "Scales",
+    "acceptableAnswers": [
+      "scales"
+    ],
+    "explanation": "Pangolin scales are made of keratin, the same material as human hair and nails.",
+    "points": 15,
+    "timeLimitSec": 35
+  },
+  {
+    "id": "animal_20",
+    "roundNumber": 1,
+    "category": "Animals & Nature",
+    "prompt": "Which animal is a marsupial native to North America?",
+    "type": "multiple_choice",
+    "difficulty": "hard",
+    "options": [
+      "Virginia opossum",
+      "Wombat",
+      "Wallaby",
+      "Bandicoot"
+    ],
+    "correctAnswer": "Virginia opossum",
+    "acceptableAnswers": [
+      "virginia opossum"
+    ],
+    "explanation": "The Virginia opossum is the only marsupial native to North America.",
+    "points": 20,
+    "timeLimitSec": 40
+  }
 ];
 
 export const DEFAULT_ROUNDS: Round[] = [

@@ -39,6 +39,7 @@ interface Props {
   onOpenShop: (tab?: 'lives' | 'bundles' | 'free') => void;
   onOpenQuizMaster: () => void;
   autoAdvanceTarget?: { mapId: string; levelId: string } | null;
+  onAutoAdvanceHandled?: () => void;
   initialEntranceAnim?: boolean;
 }
 
@@ -78,6 +79,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   onOpenShop,
   onOpenQuizMaster,
   autoAdvanceTarget,
+  onAutoAdvanceHandled,
 }) => {
   const allMaps = getAllMaps(progression);
 
@@ -286,11 +288,15 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     const targetMap = allMaps.find((map) => map.id === autoAdvanceTarget.mapId);
     const targetLevel = targetMap?.levels.find((level) => level.id === autoAdvanceTarget.levelId);
-    if (!targetMap || !targetLevel) return;
+    if (!targetMap || !targetLevel) {
+      onAutoAdvanceHandled?.();
+      return;
+    }
 
     setActiveMapId(targetMap.id);
     setSelectedLevel(targetLevel);
     setArrivalLevelId(targetLevel.id);
+    onAutoAdvanceHandled?.();
     audioSynth.playCoinFx();
 
     const celebrationTimer = window.setTimeout(() => {

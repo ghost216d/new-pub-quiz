@@ -6515,8 +6515,8 @@ body,
 }
 
 
-/* Android browsers can lose nested touch scrolling in the fixed Solo frame.
-   Let the Solo question flow use normal page scrolling instead. */
+/* Android browsers lose nested touch scrolling when the quiz card grows.
+   Keep the app frame in normal document flow so long prompts scroll with the page. */
 @media (max-width: 899px) {
   #root .role-solo.app-shell:has(.solo-quiz-screen) {
     display: block !important;
@@ -6526,18 +6526,24 @@ body,
     overflow-y: visible !important;
   }
 
-  #root .role-solo.app-shell:has(.solo-quiz-screen) > .app-content {
+  #root .role-solo.app-shell:has(.solo-quiz-screen) .app-content {
+    flex: 0 0 auto !important;
+    width: 100%;
     height: auto !important;
     min-height: 0 !important;
-    overflow: visible !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   #root .role-solo:has(.solo-quiz-screen) .solo-quiz-screen {
+    box-sizing: border-box;
+    display: flex;
     height: auto !important;
     min-height: 100dvh;
     max-height: none !important;
-    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
     touch-action: auto;
   }
