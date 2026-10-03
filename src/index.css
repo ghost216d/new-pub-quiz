@@ -5079,12 +5079,15 @@ body,
   opacity: 0 !important;
 }
 
-/* Smaller return-to-Quiz-Master status chip; keep the map title clear. */
+/* Keep the resume action in document flow so it never covers a quiz choice. */
 .role-solo .resume-host-quiz-btn,
 .role-landing .resume-host-quiz-btn {
-  top: max(70px, calc(env(safe-area-inset-top, 0px) + 66px)) !important;
-  right: max(8px, env(safe-area-inset-right, 0px)) !important;
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
   left: auto !important;
+  align-self: flex-end;
+  margin: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) 8px auto;
   min-height: 40px;
   padding: 6px 11px !important;
   border-width: 2px !important;
@@ -6414,8 +6417,6 @@ body,
 }
 
 #root .role-solo .resume-host-quiz-btn {
-  right: max(8px, env(safe-area-inset-right, 0px)) !important;
-  left: auto !important;
   border: 2px solid #191919 !important;
   color: #202020 !important;
   background: #e4f4eb !important;
@@ -6503,10 +6504,6 @@ body,
   #root .app-bottom-nav {
     z-index: 200 !important;
     pointer-events: auto;
-  }
-
-  #root .role-solo .resume-host-quiz-btn {
-    top: max(158px, calc(env(safe-area-inset-top, 0px) + 152px)) !important;
   }
 
   #root .role-solo .game-top-bar {

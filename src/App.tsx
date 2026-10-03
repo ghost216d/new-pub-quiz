@@ -1137,7 +1137,7 @@ export default function App() {
             disabled={isLoading}
             aria-label={`Resume ${activeHostMode} Quiz Master game`}
             title={`Resume ${activeHostMode} Quiz Master game`}
-            className={`resume-host-quiz-btn fixed z-50 top-safe left-2 mt-2 flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
+            className={`resume-host-quiz-btn relative z-50 ml-auto mt-2 mr-2 flex w-fit items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
           >
             <span className="resume-host-quiz-icon" aria-hidden="true"><Play size={13} strokeWidth={3} /></span>
             <span>{isLoading ? 'OPENING…' : `RESUME ${activeHostMode.toUpperCase()} QUIZ`}</span>
