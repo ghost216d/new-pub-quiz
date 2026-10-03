@@ -100,7 +100,7 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
           {/* Track options */}
           <div className="space-y-1.5">
             <label className="block text-[10px] font-black uppercase tracking-wider text-stone-600">
-              Choose Pub Soundtrack
+              Select Tavern Soundtrack
             </label>
             {BGM_TRACKS.map((t) => {
               const isSelected = t.id === status.currentTrackId;
