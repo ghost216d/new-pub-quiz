@@ -25,23 +25,46 @@ export const awardCurrentAnswers = (room: RoomState): void => {
 
   Object.entries(room.submissions).forEach(([teamId, submission]) => {
     const team = room.teams[teamId];
-    if (!team || submission.reviewedByHost) return;
+    if (!team || submission.manuallyGraded) return;
 
-    // Recheck the submitted answer against the revealed question before
-    // publishing the result. This prevents stale or inconsistent client-side
-    // grading from showing a correct answer as incorrect.
-    submission.isCorrect = answerMatchesQuestion(submission.answer, question);
-    const awarded = submission.isCorrect
-      ? submission.pointsAwarded || question.points || 0
-      : 0;
-    team.score += awarded;
-    team.scoreHistory.push({
-      questionIndex: room.currentQuestionIndex + 1,
-      roundNumber: round.roundNumber || 1,
-      delta: awarded,
-      cumulativeScore: team.score,
-      isCorrect: !!submission.isCorrect,
-    });
+    // Recheck every auto-graded answer against the revealed question. This
+    // also repairs a result already reviewed by an older app version.
+    const wasReviewed = !!submission.reviewedByHost;
+    const previousAward = wasReviewed ? submission.pointsAwarded || 0 : 0;
+    const isCorrect = answerMatchesQuestion(submission.answer, question);
+    const awarded = isCorrect ? question.points || 0 : 0;
+    submission.isCorrect = isCorrect;
+
+    if (wasReviewed) {
+      const oldScore = team.score;
+      team.score = Math.max(0, team.score + awarded - previousAward);
+      const appliedDelta = team.score - oldScore;
+      let historyIndex = -1;
+      for (let index = team.scoreHistory.length - 1; index >= 0; index--) {
+        const entry = team.scoreHistory[index];
+        if (entry.questionIndex === room.currentQuestionIndex + 1 && entry.roundNumber === (round.roundNumber || 1)) {
+          historyIndex = index;
+          break;
+        }
+      }
+      if (historyIndex >= 0) {
+        team.scoreHistory[historyIndex].delta = awarded;
+        team.scoreHistory[historyIndex].isCorrect = isCorrect;
+        for (let index = historyIndex; index < team.scoreHistory.length; index++) {
+          team.scoreHistory[index].cumulativeScore += appliedDelta;
+        }
+      }
+    } else {
+      team.score += awarded;
+      team.scoreHistory.push({
+        questionIndex: room.currentQuestionIndex + 1,
+        roundNumber: round.roundNumber || 1,
+        delta: awarded,
+        cumulativeScore: team.score,
+        isCorrect,
+      });
+    }
+
     submission.pointsAwarded = awarded;
     submission.reviewedByHost = true;
   });

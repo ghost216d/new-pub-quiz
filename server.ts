@@ -2837,6 +2837,9 @@ function handleHostAction(
       submission.isCorrect =
         isCorrect;
 
+      submission.manuallyGraded =
+        true;
+
       submission.reviewedByHost =
         true;
 

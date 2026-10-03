@@ -211,6 +211,7 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
         const points = action.isCorrect ? Math.max(0, action.points) : 0;
         team.score = Math.max(0, team.score - previous + points);
         submission.isCorrect = action.isCorrect;
+        submission.manuallyGraded = true;
         submission.reviewedByHost = true;
         submission.pointsAwarded = points;
       }

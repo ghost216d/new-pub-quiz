@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Send, Music, Clock, Sparkles, Trophy, Disc3, Radio, Skull, Flame, Crown } from 'lucide-react';
 import { RoomState, Team } from '../types';
+import { answerMatchesQuestion } from '../utils/answerGrading';
 import { RoundTransitionScreen } from './RoundTransitionScreen';
 import { audioSynth } from '../utils/audioSynth';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy } from './CartoonIllustrations';
@@ -41,7 +42,11 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
 
   const isMusic = currentRound?.type === 'music' || !!currentQ?.musicData;
   const isAnswerRevealed = roomState.status === 'answer_reveal';
-  const isCorrect = submission?.isCorrect;
+  const isCorrect = submission
+    ? submission.manuallyGraded
+      ? !!submission.isCorrect
+      : answerMatchesQuestion(submission.answer, currentQ)
+    : false;
   const isKnockout = !!roomState.settings.knockoutMode;
   const isEliminated = !!team?.isEliminated;
 

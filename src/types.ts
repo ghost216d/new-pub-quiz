@@ -34,6 +34,7 @@ export interface TeamAnswerSubmission {
   submittedAt: number;
   isCorrect?: boolean;
   reviewedByHost?: boolean;
+  manuallyGraded?: boolean;
   pointsAwarded?: number;
 }
 
