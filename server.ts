@@ -18,6 +18,7 @@ import {
 
 import { DEFAULT_ROUNDS } from './src/data/defaultQuestions';
 import { hasFourValidOptions, questionHasBeenUsed, randomizeQuestionOptions } from './src/utils/questionQuality';
+import { answerMatchesQuestion } from './src/utils/answerGrading';
 
 import {
   createPresetTeams,
@@ -1766,33 +1767,7 @@ wss.on(
             return;
           }
 
-          const cleanGiven =
-            String(answer)
-              .trim()
-              .toLowerCase();
-
-          const cleanCorrect =
-            currentQuestion.correctAnswer
-              .trim()
-              .toLowerCase();
-
-          let isCorrect =
-            cleanGiven ===
-            cleanCorrect;
-
-          if (
-            !isCorrect &&
-            currentQuestion.acceptableAnswers
-          ) {
-            isCorrect =
-              currentQuestion.acceptableAnswers.some(
-                (accepted) =>
-                  accepted
-                    .trim()
-                    .toLowerCase() ===
-                  cleanGiven
-              );
-          }
+          const isCorrect = answerMatchesQuestion(String(answer), currentQuestion);
 
           const submission = {
             teamId,

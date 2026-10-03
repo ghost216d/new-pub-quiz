@@ -3,6 +3,7 @@ import { Home, ShoppingBag, Map, Zap, UserRound, Play } from 'lucide-react';
 import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
 import { randomizeQuestionOptions } from './utils/questionQuality';
+import { answerMatchesQuestion } from './utils/answerGrading';
 import { createPresetTeams, TEAM_AVATARS, TEAM_COLORS } from './data/teamPresets';
 import { Header } from './components/Header';
 import { LandingView, RoomLobbyPreview } from './components/LandingView';
@@ -817,7 +818,7 @@ export default function App() {
             const question = next.rounds[next.currentRoundIndex]?.questions[next.currentQuestionIndex];
             const questionKey = `${next.currentRoundIndex}:${next.currentQuestionIndex}:${question?.id || ''}`;
             incoming.filter((submission) => submission.questionKey === questionKey).forEach((submission) => {
-              const isCorrect = !!question && submission.answer.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
+              const isCorrect = answerMatchesQuestion(submission.answer, question);
               next.submissions[submission.teamId] = {
                 teamId: submission.teamId,
                 teamName: submission.teamName,
@@ -1084,7 +1085,7 @@ export default function App() {
       if (roomState) {
         const currentRound = roomState.rounds[roomState.currentRoundIndex];
         const currentQ = currentRound?.questions[roomState.currentQuestionIndex];
-        const isCorrect = currentQ ? answer === currentQ.correctAnswer : false;
+        const isCorrect = answerMatchesQuestion(answer, currentQ);
 
         const sub = {
           teamId: myTeamId,

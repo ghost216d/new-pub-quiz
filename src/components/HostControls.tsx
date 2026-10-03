@@ -1002,6 +1002,11 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                           <div className="truncate flex-1">
                             <span className="text-[10px] text-stone-600 block font-bold">Submitted Answer:</span>
                             <span className="font-black text-amber-950 truncate block">{sub.answer}</span>
+                            <span className={`mt-1 inline-flex w-fit items-center rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${sub.isCorrect
+                              ? 'bg-emerald-100 text-emerald-900 border border-emerald-500'
+                              : 'bg-rose-100 text-rose-900 border border-rose-400'}`}>
+                              {sub.reviewedByHost ? 'Host marked' : 'Auto-marked'} {sub.isCorrect ? 'correct' : 'incorrect'}
+                            </span>
                           </div>
 
                           <div className="flex items-center gap-1 shrink-0">
@@ -1015,7 +1020,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                                 })
                               }
                               className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-sm"
-                              title="Award Full Points"
+                              title={sub.isCorrect ? 'Confirm this correct answer and award full points' : 'Change this answer to correct and award full points'}
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                             </button>
@@ -1029,7 +1034,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                                 })
                               }
                               className="p-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white cursor-pointer shadow-sm"
-                              title="Reject Answer"
+                              title={sub.isCorrect ? 'Change this answer to incorrect' : 'Confirm this answer is incorrect'}
                             >
                               <XCircle className="w-3.5 h-3.5" />
                             </button>

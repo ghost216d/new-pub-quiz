@@ -299,17 +299,21 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
         {isAnswerRevealed && (
           <div
             className={`p-4 rounded-2xl border-4 text-center space-y-1.5 animate-rubberband duration-200 ${
-              isCorrect
-                ? 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-[0_5px_0_#064e3b]'
-                : 'bg-rose-50 border-rose-500 text-rose-950 shadow-[0_5px_0_#4c0519]'
+              !submission
+                ? 'bg-amber-50 border-amber-500 text-amber-950 shadow-[0_5px_0_#92400e]'
+                : isCorrect
+                  ? 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-[0_5px_0_#064e3b]'
+                  : 'bg-rose-50 border-rose-500 text-rose-950 shadow-[0_5px_0_#4c0519]'
             }`}
           >
-            <div className="text-3xl animate-boing">{isCorrect ? '🎉 🍻 🌟' : '🦉 💫'}</div>
+            <div className="text-3xl animate-boing">
+              {!submission ? '⏱️' : isCorrect ? '🎉 🍻 🌟' : '🦉 💫'}
+            </div>
             <div className="font-cartoon text-lg sm:text-xl">
-              {isCorrect ? 'CORRECT! FULL POINTS!' : 'NICE TRY, TEAM!'}
+              {!submission ? "TIME'S UP — NO ANSWER SUBMITTED" : isCorrect ? 'CORRECT! FULL POINTS!' : 'INCORRECT — NICE TRY!'}
             </div>
             <div className="text-xs font-bold text-stone-700">
-              Answer: <strong className="text-amber-950 text-sm font-cartoon">{currentQ?.correctAnswer}</strong>
+              Correct answer: <strong className="text-amber-950 text-sm font-cartoon">{currentQ?.correctAnswer}</strong>
             </div>
           </div>
         )}
