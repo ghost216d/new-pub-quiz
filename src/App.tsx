@@ -404,6 +404,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
+  const [resumeFeedback, setResumeFeedback] = useState<'reconnecting' | 'resumed' | 'error' | null>(null);
   const [initialRoomCode, setInitialRoomCode] = useState('');
   const [showCover, setShowCover] = useState(() => !new URLSearchParams(window.location.search).has('room'));
   const [coverProgress, setCoverProgress] = useState(0);
@@ -414,6 +415,40 @@ export default function App() {
   const firebaseRoomUnsubscribeRef = useRef<null | (() => void)>(null);
   const firebaseHostUnsubscribeRef = useRef<null | (() => void)>(null);
   const usingFirebaseRef = useRef(false);
+  const resumeFeedbackTimerRef = useRef<number | null>(null);
+
+  const showResumeFeedback = (status: 'reconnecting' | 'resumed' | 'error') => {
+    if (resumeFeedbackTimerRef.current !== null) {
+      window.clearTimeout(resumeFeedbackTimerRef.current);
+      resumeFeedbackTimerRef.current = null;
+    }
+    setResumeFeedback(status);
+    if (status !== 'reconnecting') {
+      resumeFeedbackTimerRef.current = window.setTimeout(() => {
+        setResumeFeedback(null);
+        resumeFeedbackTimerRef.current = null;
+      }, 3200);
+    }
+  };
+
+  useEffect(() => () => {
+    if (resumeFeedbackTimerRef.current !== null) {
+      window.clearTimeout(resumeFeedbackTimerRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (role !== 'host') return;
+    if (resumeFeedback === 'reconnecting') {
+      if (connectionStatus === 'connected' || connectionStatus === 'standalone') {
+        showResumeFeedback('resumed');
+      } else if (connectionStatus === 'disconnected') {
+        showResumeFeedback('error');
+      }
+    } else if (resumeFeedback === 'resumed' && connectionStatus === 'disconnected') {
+      showResumeFeedback('error');
+    }
+  }, [resumeFeedback, connectionStatus, role]);
 
   useEffect(() => {
     if (!showCover) return;
@@ -746,7 +781,11 @@ export default function App() {
             });
             return next;
           }),
-          (error) => setErrorMessage(error.message),
+          (error) => {
+            setErrorMessage(error.message);
+            setConnectionStatus('disconnected');
+            setIsLoading(false);
+          },
         );
       } else {
         if (teamData) await joinFirebaseTeam(targetCode, teamData);
@@ -780,6 +819,7 @@ export default function App() {
     if (!cleanCode) return;
     setIsLoading(true);
     setErrorMessage(null);
+    showResumeFeedback('reconnecting');
 
     // Keep the current host state in memory while Solo is open so an offline
     // Quiz Master session can be resumed without losing its teams or scores.
@@ -807,6 +847,7 @@ export default function App() {
       setIsLoading(false);
       setRoomState(null);
       setRole('landing');
+      showResumeFeedback('error');
       setErrorMessage('This offline quiz session ended when the page was closed. Start a new Quiz Master game to continue.');
       return;
     }
@@ -814,6 +855,7 @@ export default function App() {
     if (!isFirebaseMultiplayerConfigured) {
       setIsLoading(false);
       setRole('landing');
+      showResumeFeedback('error');
       setErrorMessage('The previous live Quiz Master session could not be restored.');
       return;
     }
@@ -836,6 +878,7 @@ export default function App() {
       setIsLoading(false);
       setErrorMessage(error instanceof Error ? error.message : 'Unable to restore the previous Quiz Master lobby.');
       setRole('landing');
+      showResumeFeedback('error');
     }
   };
 
@@ -1130,6 +1173,20 @@ export default function App() {
 
       {/* Main App Content Router */}
       <main className={role === 'solo' ? 'app-content flex-1 w-full max-w-full min-w-0 min-h-[100dvh] overflow-x-hidden' : 'app-content flex-1 w-full max-w-full min-w-0 overflow-x-hidden px-2.5 py-3 sm:px-4 md:px-6 md:py-6 flex flex-col justify-start'}>
+        {resumeFeedback && (
+          <div className={`resume-host-quiz-feedback resume-host-quiz-feedback-${resumeFeedback}`} role="status" aria-live="polite">
+            {resumeFeedback === 'reconnecting' && <span className="resume-host-quiz-spinner" aria-hidden="true" />}
+            <span>
+              <strong>
+                {resumeFeedback === 'reconnecting'
+                  ? 'Reconnecting to your quiz…'
+                  : resumeFeedback === 'resumed'
+                    ? connectionStatus === 'standalone' ? 'Quiz Master reopened in offline mode.' : 'Live Quiz Master reopened.'
+                    : 'Could not reconnect to the quiz. Check your connection.'}
+              </strong>
+            </span>
+          </div>
+        )}
         {(role === 'solo' || role === 'landing') && activeHostCode && hostSessionValidated && (
           <button
             id="resume-live-quiz-btn"
@@ -1140,7 +1197,12 @@ export default function App() {
             className={`resume-host-quiz-btn relative z-50 ml-auto mt-2 mr-2 flex w-fit items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
           >
             <span className="resume-host-quiz-icon" aria-hidden="true"><Play size={13} strokeWidth={3} /></span>
-            <span>{isLoading ? 'OPENING…' : `RESUME ${activeHostMode.toUpperCase()} QUIZ`}</span>
+            <span className={`resume-host-quiz-mode resume-host-quiz-mode-${activeHostMode}`}>
+              <span className="resume-host-quiz-dot" aria-hidden="true" />
+              {activeHostMode === 'live' ? 'LIVE' : 'OFFLINE'}
+            </span>
+            {isLoading && <span className="resume-host-quiz-spinner" aria-hidden="true" />}
+            <span>{isLoading ? (activeHostMode === 'live' ? 'RECONNECTING…' : 'OPENING…') : 'RESUME QUIZ'}</span>
           </button>
         )}
         {role === 'landing' && (

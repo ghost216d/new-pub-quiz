@@ -5509,6 +5509,76 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
   fill: currentColor;
 }
 
+.resume-host-quiz-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  font-size: 8px;
+  font-weight: 1000;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.resume-host-quiz-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.resume-host-quiz-mode-live .resume-host-quiz-dot {
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+}
+
+.resume-host-quiz-mode-offline .resume-host-quiz-dot {
+  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.2);
+}
+
+.resume-host-quiz-spinner {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: resume-host-quiz-spin 0.75s linear infinite;
+}
+
+@keyframes resume-host-quiz-spin {
+  to { transform: rotate(360deg); }
+}
+
+.resume-host-quiz-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  margin: 10px auto;
+  padding: 10px 15px;
+  border: 2px solid #191919;
+  border-radius: 15px;
+  color: #202020;
+  background: #e4f4eb;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.resume-host-quiz-feedback-error {
+  background: #f8e5e8;
+}
+
+.resume-host-quiz-feedback-reconnecting {
+  background: #fff1c9;
+}
+
 .role-host .app-content,
 .role-player .app-content,
 .role-landing .app-content {
