@@ -417,17 +417,23 @@ export default function App() {
   const [showCover, setShowCover] = useState(() => !new URLSearchParams(window.location.search).has('room'));
   const [coverProgress, setCoverProgress] = useState(0);
 
-  // Route changes should start at the top rather than exposing a stale scroll
-  // offset from the screen that was just closed.
+  // Keep the Quiz Master view on a normal document scroller on phones.
+  // Route changes also start at the top instead of restoring an old offset.
   useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('host-page-scroll-active', role === 'host');
     const frame = window.requestAnimationFrame(() => {
       if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
       window.scrollTo(0, 0);
     });
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      root.classList.remove('host-page-scroll-active');
+    };
   }, [role]);
 
   const wsRef = useRef<WebSocket | null>(null);
+  const hostActionRef = useRef<(action: HostActionPayload) => void>(() => {});
   const reconnectTimerRef = useRef<number | null>(null);
   const shouldReconnectRef = useRef(false);
   const firebaseRoomUnsubscribeRef = useRef<null | (() => void)>(null);
@@ -590,6 +596,31 @@ export default function App() {
 
     return () => window.clearInterval(timerId);
   }, [roomState?.isTimerRunning, roomState?.code]);
+
+  // In local/Firebase Quiz Master mode, show a timed-out answer briefly,
+  // then advance through the same action path as the Next Question button.
+  useEffect(() => {
+    if (
+      role !== 'host' ||
+      !roomState ||
+      roomState.status !== 'answer_reveal' ||
+      roomState.timerRemaining !== 0 ||
+      wsRef.current?.readyState === WebSocket.OPEN
+    ) return;
+
+    const timeoutId = window.setTimeout(() => {
+      hostActionRef.current({ actionType: 'next_question' });
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    role,
+    roomCode,
+    roomState?.status,
+    roomState?.timerRemaining,
+    roomState?.currentRoundIndex,
+    roomState?.currentQuestionIndex,
+  ]);
 
   useEffect(() => {
     if (role !== 'host' || !usingFirebaseRef.current || !roomState) return;
@@ -1106,6 +1137,8 @@ export default function App() {
       setRoomState((current) => current ? applyLocalHostAction(current, action) : current);
     }
   };
+
+  hostActionRef.current = handleHostAction;
 
   const handleHomeClick = () => {
     setShowFirstTimeAuth(false);

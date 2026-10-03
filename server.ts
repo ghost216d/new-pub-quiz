@@ -1416,9 +1416,28 @@ const timerInterval = setInterval(() => {
 
       if (room.timerRemaining <= 0) {
         room.timerRemaining = 0;
-        // Use the regular reveal path so timed-out questions show the answer
-        // and apply the same scoring and knockout rules as a manual reveal.
+        const timedOutRoundIndex = room.currentRoundIndex;
+        const timedOutQuestionIndex = room.currentQuestionIndex;
+        // Use the regular reveal path so timeouts keep the usual scoring rules.
         handleHostAction(room, { actionType: 'reveal_answer' });
+
+        if (room.status === 'answer_reveal') {
+          // Leave the answer visible for four seconds, then use normal
+          // navigation so round ends and milestone intermissions still work.
+          setTimeout(() => {
+            const activeRoom = rooms.get(code);
+            if (
+              !activeRoom ||
+              activeRoom.status !== 'answer_reveal' ||
+              activeRoom.currentRoundIndex !== timedOutRoundIndex ||
+              activeRoom.currentQuestionIndex !== timedOutQuestionIndex ||
+              activeRoom.timerRemaining !== 0
+            ) return;
+
+            handleHostAction(activeRoom, { actionType: 'next_question' });
+            broadcastRoomState(code);
+          }, 4000);
+        }
       }
 
       broadcastRoomState(code);

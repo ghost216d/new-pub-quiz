@@ -803,6 +803,9 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                   </button>
                 ))}
               </div>
+              <p className="text-[10px] font-semibold text-stone-600">
+                When time expires, the answer shows for 4 seconds before the next question opens.
+              </p>
             </div>
 
             {/* Primary Action Buttons */}

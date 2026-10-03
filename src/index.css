@@ -6707,3 +6707,48 @@ body,
     grid-auto-rows: minmax(62px, auto);
   }
 }
+
+
+/* Give Quiz Master one reliable, page-level scroll area on mobile. */
+@media (max-width: 899px) {
+  html.host-page-scroll-active,
+  html.host-page-scroll-active body,
+  html.host-page-scroll-active #root {
+    width: 100%;
+    height: auto !important;
+    min-height: 100dvh;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y;
+  }
+
+  html.host-page-scroll-active #root .role-host.app-shell {
+    position: relative !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+  }
+
+  html.host-page-scroll-active #root .role-host.app-shell > .app-content {
+    display: block !important;
+    width: 100%;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    touch-action: pan-y;
+  }
+
+  html.host-page-scroll-active #root .role-host .host-console-shell {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
