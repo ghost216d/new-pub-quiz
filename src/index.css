@@ -2349,16 +2349,14 @@ body,
     align-items: stretch;
     gap: 10px;
     width: 100%;
-    height: 100dvh;
-    min-height: 0;
-    max-height: 100dvh;
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
     padding: max(8px, env(safe-area-inset-top, 0px)) 8px
-      calc(100px + env(safe-area-inset-bottom, 0px));
-    overflow-x: hidden;
-    overflow-y: auto !important;
-    overscroll-behavior-y: contain;
+      calc(112px + env(safe-area-inset-bottom, 0px));
+    overflow: visible;
+    overscroll-behavior-y: auto;
     touch-action: pan-y;
-    -webkit-overflow-scrolling: touch;
   }
 
   #root .role-solo .solo-quiz-screen > * {
@@ -2521,16 +2519,17 @@ body,
   }
 }
 
-/* Full-screen mobile question round and wider Solo realm selector. */
+/* Mobile question screens grow with long prompts and answer lists. */
 @media (max-width: 639px) {
   .solo-quiz-screen {
-    height: 100dvh;
+    height: auto;
     min-height: 100dvh;
+    max-height: none;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: max(7px, env(safe-area-inset-top, 0px)) 7px max(8px, env(safe-area-inset-bottom, 0px));
-    overflow: hidden;
+    padding: max(7px, env(safe-area-inset-top, 0px)) 7px calc(112px + env(safe-area-inset-bottom, 0px));
+    overflow: visible;
   }
 
   .solo-quiz-screen > * {
