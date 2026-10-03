@@ -256,13 +256,14 @@ class AudioSynthManager {
     source.stop(startTime + duration);
   }
 
-  // Correct answer: a gentle double pint-glass clink.
+  // Correct answer: a bright, ascending major-chord chime.
   playCorrectFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      this.playGlassClink(ctx, now, 1, 0.1);
-      this.playGlassClink(ctx, now + 0.14, 1.16, 0.08);
+      this.playPubTone(ctx, 523.25, now, 0.2, 0.075, 'sine');
+      this.playPubTone(ctx, 659.25, now + 0.09, 0.22, 0.07, 'sine');
+      this.playPubTone(ctx, 783.99, now + 0.18, 0.3, 0.065, 'sine');
     } catch {
       // Audio autoplay guard
     }
@@ -319,11 +320,13 @@ class AudioSynthManager {
     }
   }
 
-  // Wrong answer: a soft table knock, with no harsh buzzer.
+  // Wrong answer: a short, low, descending "wah-wah" cue.
   playWrongFx() {
     try {
       const ctx = this.initCtx();
-      this.playWoodTap(ctx, ctx.currentTime, 0.075);
+      const now = ctx.currentTime;
+      this.playPubTone(ctx, 392, now, 0.2, 0.075, 'triangle', 330);
+      this.playPubTone(ctx, 311.13, now + 0.12, 0.26, 0.065, 'triangle', 261.63);
     } catch {
       // Audio autoplay guard
     }
