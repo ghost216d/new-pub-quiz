@@ -30,6 +30,7 @@ export default defineConfig({
 
       includeAssets: [
         'icon.svg',
+        'pub-quiz-main-music-soft-slow.mp3',
         'drink-frames/*.webp',
         'london-run-frames/*.webp',
         'london-run-sprite-2d.webp',

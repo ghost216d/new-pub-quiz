@@ -14,10 +14,10 @@ export interface BGMTrackInfo {
 export const BGM_TRACKS: BGMTrackInfo[] = [
   {
     id: 'sunny_tavern',
-    name: 'Sunny Tavern Lounge',
-    emoji: '🍻',
-    genre: 'Warm Acoustic & Rhodes Chords',
-    tempoBpm: 104,
+    name: 'Soft & Slow Pub Theme',
+    emoji: '🎵',
+    genre: 'Gentle, slowed instrumental',
+    tempoBpm: 83,
   },
   {
     id: 'cozy_lounge',
@@ -87,6 +87,7 @@ class FeelGoodBGMManager {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private filterNode: BiquadFilterNode | null = null;
+  private mainTrackAudio: HTMLAudioElement | null = null;
   private isMuted: boolean = false;
   private volume: number = 0.95; // boosted, rich audible volume
   private currentTrackId: BGMTrackId = 'sunny_tavern';
@@ -181,10 +182,28 @@ class FeelGoodBGMManager {
   }
 
   public start() {
+    if (this.isPlaying) return;
+
+    if (this.currentTrackId === 'sunny_tavern') {
+      if (typeof window === 'undefined' || typeof Audio === 'undefined') return;
+      if (!this.mainTrackAudio) {
+        this.mainTrackAudio = new Audio(`${import.meta.env.BASE_URL}pub-quiz-main-music-soft-slow.mp3`);
+        this.mainTrackAudio.loop = true;
+        this.mainTrackAudio.preload = 'none';
+      }
+
+      this.mainTrackAudio.volume = this.isMuted ? 0 : this.volume;
+      this.isPlaying = true;
+      this.mainTrackAudio.play().catch(() => {
+        this.isPlaying = false;
+        this.notify();
+      });
+      this.notify();
+      return;
+    }
+
     const ctx = this.initCtx();
     if (!ctx) return;
-
-    if (this.isPlaying) return;
     this.isPlaying = true;
     this.applyVolume();
 
@@ -199,6 +218,7 @@ class FeelGoodBGMManager {
       clearTimeout(this.loopTimer);
       this.loopTimer = null;
     }
+    this.mainTrackAudio?.pause();
     this.isPlaying = false;
     this.notify();
   }
@@ -235,17 +255,30 @@ class FeelGoodBGMManager {
   }
 
   public setTrack(trackId: BGMTrackId) {
+    if (trackId === this.currentTrackId) return;
+    const shouldResume = this.isPlaying;
+    this.pause();
     this.currentTrackId = trackId;
     this.currentStepIndex = 0;
+    if (trackId === 'sunny_tavern' && this.mainTrackAudio) {
+      this.mainTrackAudio.currentTime = 0;
+    }
     try {
       localStorage.setItem('pubquiz_bgm_track', trackId);
     } catch {
       // ignore
     }
-    this.notify();
+    if (shouldResume) {
+      this.start();
+    } else {
+      this.notify();
+    }
   }
 
   private applyVolume() {
+    if (this.mainTrackAudio) {
+      this.mainTrackAudio.volume = this.isMuted ? 0 : this.volume;
+    }
     if (!this.masterGain || !this.ctx) return;
     const now = this.ctx.currentTime;
     const target = this.isMuted ? 0.0001 : this.volume * 0.95;
