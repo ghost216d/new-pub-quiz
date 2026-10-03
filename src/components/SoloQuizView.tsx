@@ -519,6 +519,25 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
   const [drinkCelebration, setDrinkCelebration] = useState<{ id: number; streak: number } | null>(null);
 
+  // A new prompt can be much taller than the previous one. Start each question
+  // and level at the top so the player never lands in the middle of new content.
+  useEffect(() => {
+    if (viewMode !== 'quiz') return;
+    const frame = window.requestAnimationFrame(() => {
+      const scrollableRoots = [
+        document.scrollingElement,
+        document.querySelector<HTMLElement>('#root .role-solo.app-shell'),
+        document.querySelector<HTMLElement>('#root .role-solo .app-content'),
+        document.querySelector<HTMLElement>('#root .role-solo .solo-quiz-screen'),
+      ];
+      scrollableRoots.forEach((element) => {
+        if (element) element.scrollTop = 0;
+      });
+      window.scrollTo(0, 0);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [viewMode, currentIdx, activeLevel?.id, questions]);
+
   // Helper to persist progression state updates
   const updateProgression = (updated: SoloProgression) => {
     setProgression(updated);
