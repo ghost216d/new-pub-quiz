@@ -332,17 +332,28 @@ class AudioSynthManager {
     }
   }
 
-  // Milestone: a small round of glasses and a warm, low chord.
+  // Level complete: a warm pub-style major arpeggio that climbs to a bright finish.
   playMilestoneFanfare() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      [0, 0.16, 0.32].forEach((offset, index) => {
-        this.playGlassClink(ctx, now + offset, 0.94 + index * 0.08, 0.065);
+      const risingNotes = [
+        { frequency: 392, offset: 0, duration: 0.24 },
+        { frequency: 523.25, offset: 0.14, duration: 0.26 },
+        { frequency: 659.25, offset: 0.28, duration: 0.28 },
+        { frequency: 783.99, offset: 0.42, duration: 0.3 },
+        { frequency: 1046.5, offset: 0.56, duration: 0.46 },
+      ];
+
+      risingNotes.forEach(({ frequency, offset, duration }) => {
+        this.playPubTone(ctx, frequency, now + offset, duration, 0.075, 'sine');
       });
-      [196, 247, 294].forEach((frequency) => {
-        this.playPubTone(ctx, frequency, now + 0.18, 0.48, 0.025);
+
+      // A soft held G-major chord gives the final note a fuller, celebratory finish.
+      [392, 493.88, 587.33].forEach((frequency) => {
+        this.playPubTone(ctx, frequency, now + 0.62, 0.48, 0.025, 'triangle');
       });
+      this.playGlassClink(ctx, now + 0.72, 1.08, 0.045);
     } catch {
       // Audio guard
     }

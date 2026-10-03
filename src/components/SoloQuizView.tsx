@@ -945,7 +945,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       for (let i = 0; i < starsAwarded; i++) {
         setTimeout(() => {
           audioSynth.playStarFx(i);
-        }, (i + 1) * 350);
+        }, 1350 + i * 350);
       }
 
       // Bonus level completion reward
