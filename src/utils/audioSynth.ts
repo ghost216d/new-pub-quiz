@@ -268,13 +268,13 @@ class AudioSynthManager {
     }
   }
 
-  // Points earned: a small bar-top tap followed by a glass clink.
+  // Button press: a soft, cheerful two-note tone that rises in pitch.
   playCoinFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      this.playWoodTap(ctx, now, 0.055);
-      this.playGlassClink(ctx, now + 0.07, 0.92, 0.07);
+      this.playPubTone(ctx, 523.25, now, 0.12, 0.075, 'sine', 587.33);
+      this.playPubTone(ctx, 659.25, now + 0.075, 0.18, 0.065, 'sine', 783.99);
     } catch {
       // Audio autoplay guard
     }
