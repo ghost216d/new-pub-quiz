@@ -374,7 +374,11 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
 
 export default function App() {
   const [londonTheme, setLondonTheme] = useState(getLondonTheme);
-  const [role, setRole] = useState<AppRole>('solo');
+  const [role, setRole] = useState<AppRole>(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('room')) return 'solo';
+    return params.get('role') === 'tv' ? 'tv' : 'landing';
+  });
   const [soloNavigationRequest, setSoloNavigationRequest] = useState<{ target: SoloNavigationTarget; id: number } | null>(null);
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
   const [showFirstTimeAuth, setShowFirstTimeAuth] = useState<boolean>(() => {
@@ -386,7 +390,9 @@ export default function App() {
       return false;
     }
   });
-  const [roomCode, setRoomCode] = useState<string>('');
+  const [roomCode, setRoomCode] = useState<string>(() =>
+    (new URLSearchParams(window.location.search).get('room') || '').trim().toUpperCase()
+  );
   const [activeHostCode, setActiveHostCode] = useState<string>(() => {
     try {
       const savedMode = localStorage.getItem(HOST_SESSION_MODE_KEY);
@@ -405,9 +411,21 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'reconnecting' | 'standalone' | 'disconnected'>('disconnected');
   const [resumeFeedback, setResumeFeedback] = useState<'reconnecting' | 'resumed' | 'error' | null>(null);
-  const [initialRoomCode, setInitialRoomCode] = useState('');
+  const [initialRoomCode, setInitialRoomCode] = useState(() =>
+    (new URLSearchParams(window.location.search).get('room') || '').trim().toUpperCase()
+  );
   const [showCover, setShowCover] = useState(() => !new URLSearchParams(window.location.search).has('room'));
   const [coverProgress, setCoverProgress] = useState(0);
+
+  // Route changes should start at the top rather than exposing a stale scroll
+  // offset from the screen that was just closed.
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+      window.scrollTo(0, 0);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [role]);
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -458,7 +476,7 @@ export default function App() {
     let completedAssets = 0;
     const loadStartedAt = performance.now();
     const assets = [
-      `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=auto-loading`,
+      `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`,
       `${import.meta.env.BASE_URL}map-backgrounds/thames_riverside_crawl.webp?release=auto-loading`,
       `${import.meta.env.BASE_URL}level-01-cover.webp?release=auto-loading`,
     ];
@@ -1122,7 +1140,7 @@ export default function App() {
       <section className="pub-quiz-cover" aria-label="The Pub Quiz welcome screen">
         <img
           className="pub-quiz-cover-art"
-          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp?release=cover-loading-bar`}
+          src={`${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`}
           alt="Friends playing a pub quiz in a cozy London pub"
           onError={(event) => {
             const image = event.currentTarget;

@@ -6639,10 +6639,10 @@ body,
 }
 
 
-/* Android browsers lose nested touch scrolling when the quiz card grows.
-   Keep the app frame in normal document flow so long prompts scroll with the page. */
+/* Keep Solo pages in normal document flow on mobile so long screens and
+   page changes never depend on fragile nested touch scrolling. */
 @media (max-width: 899px) {
-  #root .role-solo.app-shell:has(.solo-quiz-screen) {
+  #root .role-solo.app-shell:has(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen) {
     display: block !important;
     height: auto !important;
     min-height: 100dvh;
@@ -6650,7 +6650,7 @@ body,
     overflow-y: visible !important;
   }
 
-  #root .role-solo.app-shell:has(.solo-quiz-screen) .app-content {
+  #root .role-solo.app-shell:has(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen) .app-content {
     flex: 0 0 auto !important;
     width: 100%;
     height: auto !important;
@@ -6660,14 +6660,13 @@ body,
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  #root .role-solo:has(.solo-quiz-screen) .solo-quiz-screen {
+  #root .role-solo:has(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen)
+    :is(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen) {
     box-sizing: border-box;
-    display: flex;
     height: auto !important;
     min-height: 100dvh;
     max-height: none !important;
-    overflow-x: visible !important;
-    overflow-y: visible !important;
+    overflow: visible !important;
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
     touch-action: auto;
   }
