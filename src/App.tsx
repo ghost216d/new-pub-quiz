@@ -3,7 +3,7 @@ import { Home, ShoppingBag, Map, Zap, UserRound, Play } from 'lucide-react';
 import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
 import { randomizeQuestionOptions } from './utils/questionQuality';
-import { answerMatchesQuestion } from './utils/answerGrading';
+import { answerMatchesQuestion, awardCurrentAnswers } from './utils/answerGrading';
 import { createPresetTeams, TEAM_AVATARS, TEAM_COLORS } from './data/teamPresets';
 import { Header } from './components/Header';
 import { LandingView, RoomLobbyPreview } from './components/LandingView';
@@ -119,6 +119,7 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
       }
       break;
     case 'next_round':
+      awardCurrentAnswers(room);
       if (room.currentRoundIndex + 1 < room.rounds.length) {
         room.currentRoundIndex += 1;
         room.currentQuestionIndex = 0;
@@ -140,6 +141,7 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
       }
       break;
     case 'next_question': {
+      awardCurrentAnswers(room);
       const round = room.rounds[room.currentRoundIndex];
       if (room.currentQuestionIndex + 1 < (round?.questions.length || 0)) {
         room.currentQuestionIndex += 1;
@@ -172,23 +174,7 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
     case 'reveal_answer': {
       room.status = 'answer_reveal';
       room.isTimerRunning = false;
-      const round = room.rounds[room.currentRoundIndex];
-      const question = round?.questions[room.currentQuestionIndex];
-      Object.entries(room.submissions).forEach(([teamId, submission]) => {
-        const team = room.teams[teamId];
-        if (!team || submission.reviewedByHost) return;
-        const awarded = submission.isCorrect ? (submission.pointsAwarded || question?.points || 0) : 0;
-        team.score += awarded;
-        team.scoreHistory.push({
-          questionIndex: room.currentQuestionIndex + 1,
-          roundNumber: round?.roundNumber || 1,
-          delta: awarded,
-          cumulativeScore: team.score,
-          isCorrect: !!submission.isCorrect,
-        });
-        submission.pointsAwarded = awarded;
-        submission.reviewedByHost = true;
-      });
+      awardCurrentAnswers(room);
       break;
     }
     case 'toggle_timer':
@@ -1119,7 +1105,7 @@ export default function App() {
       setRoomState((current) => {
         if (!current) return current;
         const next = applyLocalHostAction(current, action);
-        if (['reveal_answer', 'grade_answer', 'adjust_score'].includes(action.actionType)) {
+        if (['reveal_answer', 'next_question', 'next_round', 'grade_answer', 'adjust_score'].includes(action.actionType)) {
           void publishFirebaseRoom(next).catch((error) => {
             console.error('Unable to save the updated scores:', error);
             setConnectionStatus('reconnecting');

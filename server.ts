@@ -18,7 +18,7 @@ import {
 
 import { DEFAULT_ROUNDS } from './src/data/defaultQuestions';
 import { hasFourValidOptions, questionHasBeenUsed, randomizeQuestionOptions } from './src/utils/questionQuality';
-import { answerMatchesQuestion } from './src/utils/answerGrading';
+import { answerMatchesQuestion, awardCurrentAnswers } from './src/utils/answerGrading';
 
 import {
   createPresetTeams,
@@ -2046,6 +2046,7 @@ function handleHostAction(
     -------------------------------------------------------- */
 
     case 'next_round': {
+      awardCurrentAnswers(room);
       if (
         room.settings
           .knockoutMode &&
@@ -2420,69 +2421,7 @@ function handleHostAction(
       room.isTimerRunning =
         false;
 
-      const round =
-        room.rounds[
-          room.currentRoundIndex
-        ];
-
-      const question =
-        round?.questions[
-          room
-            .currentQuestionIndex
-        ];
-
-      if (question) {
-        for (
-          const [
-            teamId,
-            submission,
-          ] of Object.entries(
-            room.submissions
-          )
-        ) {
-          const team =
-            room.teams[teamId];
-
-          if (!team) continue;
-
-          if (
-            submission.reviewedByHost
-          ) {
-            continue;
-          }
-
-          const awarded =
-            submission.isCorrect
-              ? submission.pointsAwarded ||
-                question.points
-              : 0;
-
-          team.score += awarded;
-
-          team.scoreHistory.push({
-            questionIndex:
-              room.currentQuestionIndex +
-              1,
-
-            roundNumber:
-              round.roundNumber,
-
-            delta: awarded,
-
-            cumulativeScore:
-              team.score,
-
-            isCorrect:
-              submission.isCorrect,
-          });
-
-          submission.pointsAwarded =
-            awarded;
-
-          submission.reviewedByHost =
-            true;
-        }
-      }
+      awardCurrentAnswers(room);
 
       /* Knockout processing */
 
@@ -2594,6 +2533,7 @@ function handleHostAction(
     -------------------------------------------------------- */
 
     case 'next_question': {
+      awardCurrentAnswers(room);
       const currentRound =
         room.rounds[
           room.currentRoundIndex
