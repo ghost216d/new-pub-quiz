@@ -192,7 +192,7 @@ class AudioSynthManager {
     return this.ctx;
   }
 
-  // Short, restrained pub-style cues: glass, wood, door bell and a soft pour.
+  // Pub fruit-machine cues: soft buttons, struck-glass prize bells and pint clinks.
   private playPubTone(
     ctx: AudioContext,
     frequency: number,
@@ -218,20 +218,26 @@ class AudioSynthManager {
     oscillator.stop(startTime + duration + 0.01);
   }
 
-  private playGlassClink(ctx: AudioContext, startTime: number, pitch = 1, volume = 0.09) {
-    // Inharmonic partials give the cue a light glass rim instead of an arcade chime.
-    [[1120, 1], [1760, 0.48], [2480, 0.22]].forEach(([frequency, level]) => {
-      this.playPubTone(ctx, frequency * pitch, startTime, 0.24, volume * level);
+  private playMachineBell(ctx: AudioContext, startTime: number, pitch = 1, volume = 0.075) {
+    // A soft, bright bell with short upper partials like a classic pub fruit machine.
+    [[784, 1], [1175, 0.34], [1640, 0.16]].forEach(([frequency, level]) => {
+      this.playPubTone(ctx, frequency * pitch, startTime, 0.22, volume * level);
     });
   }
 
-  private playWoodTap(ctx: AudioContext, startTime: number, volume = 0.08) {
-    this.playPubTone(ctx, 175, startTime, 0.15, volume, 'sine', 92);
-    this.playPubTone(ctx, 620, startTime, 0.035, volume * 0.22);
+  private playGlassClink(ctx: AudioContext, startTime: number, pitch = 1, volume = 0.08) {
+    [[1120, 1], [1760, 0.4], [2480, 0.16]].forEach(([frequency, level]) => {
+      this.playPubTone(ctx, frequency * pitch, startTime, 0.2, volume * level);
+    });
+  }
+
+  private playWoodTap(ctx: AudioContext, startTime: number, volume = 0.07) {
+    this.playPubTone(ctx, 175, startTime, 0.14, volume, 'sine', 92);
+    this.playPubTone(ctx, 620, startTime, 0.035, volume * 0.18);
   }
 
   private playSoftPour(ctx: AudioContext, startTime: number) {
-    const duration = 0.42;
+    const duration = 0.38;
     const frameCount = Math.ceil(ctx.sampleRate * duration);
     const buffer = ctx.createBuffer(1, frameCount, ctx.sampleRate);
     const samples = buffer.getChannelData(0);
@@ -244,10 +250,10 @@ class AudioSynthManager {
     const envelope = ctx.createGain();
     source.buffer = buffer;
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(780, startTime);
-    filter.Q.setValueAtTime(0.7, startTime);
+    filter.frequency.setValueAtTime(820, startTime);
+    filter.Q.setValueAtTime(0.75, startTime);
     envelope.gain.setValueAtTime(0.0001, startTime);
-    envelope.gain.linearRampToValueAtTime(0.025, startTime + 0.05);
+    envelope.gain.linearRampToValueAtTime(0.02, startTime + 0.05);
     envelope.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
     source.connect(filter);
     filter.connect(envelope);
@@ -256,147 +262,159 @@ class AudioSynthManager {
     source.stop(startTime + duration);
   }
 
-  // Correct answer: a gentle double pint-glass clink.
+  // Correct answer: a two-note prize bell with a pint-glass tail.
   playCorrectFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      this.playGlassClink(ctx, now, 1, 0.1);
-      this.playGlassClink(ctx, now + 0.14, 1.16, 0.08);
+      this.playMachineBell(ctx, now, 1.15, 0.075);
+      this.playMachineBell(ctx, now + 0.14, 1.38, 0.07);
+      this.playGlassClink(ctx, now + 0.23, 0.92, 0.035);
     } catch {
       // Audio autoplay guard
     }
   }
 
-  // Points earned: a small bar-top tap followed by a glass clink.
+  // Points earned: a short coin cascade settling on the bar.
   playCoinFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      this.playWoodTap(ctx, now, 0.055);
-      this.playGlassClink(ctx, now + 0.07, 0.92, 0.07);
+      this.playWoodTap(ctx, now, 0.045);
+      [1.35, 1.12, 0.94].forEach((pitch, index) => {
+        this.playMachineBell(ctx, now + 0.07 + index * 0.095, pitch, 0.055 - index * 0.006);
+      });
     } catch {
-      // Audio autoplay guard
+      // Audio guard
     }
   }
 
-  // Life lost: a muted wooden thud with a low, soft descending tone.
+  // Life lost: a quiet reel-stop thunk with a descending note.
   playLifeLostFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      this.playWoodTap(ctx, now, 0.09);
-      this.playPubTone(ctx, 190, now + 0.015, 0.28, 0.055, 'sine', 118);
+      this.playWoodTap(ctx, now, 0.075);
+      this.playPubTone(ctx, 220, now + 0.02, 0.28, 0.045, 'triangle', 147);
     } catch {
       // Audio guard
     }
   }
 
-  // Star earned: three light glass taps.
+  // Star earned: three rising prize bells.
   playStarFx(index: number = 0) {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      const pitch = [0.92, 1, 1.12][index % 3] || 1;
-      this.playGlassClink(ctx, now, pitch, 0.075);
-      this.playGlassClink(ctx, now + 0.12, pitch * 1.08, 0.065);
-      this.playGlassClink(ctx, now + 0.24, pitch * 1.16, 0.055);
+      const pitch = [0.86, 0.98, 1.1][index % 3] || 1;
+      [pitch, pitch * 1.18, pitch * 1.38].forEach((bellPitch, noteIndex) => {
+        this.playMachineBell(ctx, now + noteIndex * 0.115, bellPitch, 0.068 - noteIndex * 0.008);
+      });
     } catch {
       // Audio guard
     }
   }
 
-  // Purchase: a quiet till-like wooden click and two quick pint clinks.
+  // Purchase: a wooden button click and a small prize-tray jingle.
   playPurchaseFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      this.playWoodTap(ctx, now, 0.07);
-      this.playGlassClink(ctx, now + 0.1, 0.94, 0.07);
-      this.playGlassClink(ctx, now + 0.23, 1.08, 0.06);
+      this.playWoodTap(ctx, now, 0.06);
+      [0.95, 1.18, 1.42].forEach((pitch, index) => {
+        this.playMachineBell(ctx, now + 0.09 + index * 0.12, pitch, 0.055);
+      });
     } catch {
       // Audio guard
     }
   }
 
-  // Wrong answer: a soft table knock, with no harsh buzzer.
+  // Wrong answer: a muted button thunk and a low fruit-machine tone.
   playWrongFx() {
     try {
       const ctx = this.initCtx();
-      this.playWoodTap(ctx, ctx.currentTime, 0.075);
+      const now = ctx.currentTime;
+      this.playWoodTap(ctx, now, 0.07);
+      this.playPubTone(ctx, 294, now + 0.03, 0.19, 0.035, 'triangle', 220);
     } catch {
       // Audio autoplay guard
     }
   }
 
-  // Milestone: a small round of glasses and a warm, low chord.
+  // Milestone: a short payout run and warm pub chord.
   playMilestoneFanfare() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      [0, 0.16, 0.32].forEach((offset, index) => {
-        this.playGlassClink(ctx, now + offset, 0.94 + index * 0.08, 0.065);
+      [0.92, 1.08, 1.28, 1.48].forEach((pitch, index) => {
+        this.playMachineBell(ctx, now + index * 0.12, pitch, 0.06);
       });
       [196, 247, 294].forEach((frequency) => {
-        this.playPubTone(ctx, frequency, now + 0.18, 0.48, 0.025);
+        this.playPubTone(ctx, frequency, now + 0.2, 0.42, 0.025);
       });
+      this.playGlassClink(ctx, now + 0.46, 1.05, 0.045);
     } catch {
       // Audio guard
     }
   }
 
-  // Knockout: a quiet three-note last-orders bell.
+  // Knockout: last-orders chimes over a quiet machine reel slowing to a stop.
   playKnockoutGong() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      [880, 740, 587].forEach((frequency, index) => {
-        const at = now + index * 0.32;
-        this.playPubTone(ctx, frequency, at, 0.48, 0.045);
-        this.playPubTone(ctx, frequency * 2.01, at, 0.35, 0.018);
+      [988, 831, 659].forEach((frequency, index) => {
+        const at = now + index * 0.28;
+        this.playPubTone(ctx, frequency, at, 0.42, 0.04);
+        this.playPubTone(ctx, frequency * 2, at, 0.3, 0.014);
       });
+      this.playWoodTap(ctx, now + 0.68, 0.035);
     } catch {
       // Audio guard
     }
   }
 
-  // Champion: warm pub-chord notes under a celebratory group clink.
+  // Champion: a concise jackpot flourish, still warm enough for a pub.
   playChampionFanfare() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      [196, 247, 294, 392].forEach((frequency, index) => {
-        this.playPubTone(ctx, frequency, now + index * 0.09, 0.68, 0.045);
+      [0.8, 0.95, 1.12, 1.33, 1.58].forEach((pitch, index) => {
+        this.playMachineBell(ctx, now + index * 0.105, pitch, 0.072 - index * 0.005);
       });
-      [0.08, 0.22, 0.36].forEach((offset, index) => {
-        this.playGlassClink(ctx, now + offset, 0.92 + index * 0.12, 0.075);
+      [196, 247, 294, 392].forEach((frequency) => {
+        this.playPubTone(ctx, frequency, now + 0.22, 0.52, 0.022);
       });
+      this.playGlassClink(ctx, now + 0.55, 1.18, 0.05);
     } catch {
       // Audio guard
     }
   }
 
-  // Entering the map: a pub-door bell followed by a quiet pint clink.
+  // Map entrance: a pub-door bell followed by two bright machine notes.
   playFunnyEntranceSfx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      this.playPubTone(ctx, 1046, now, 0.28, 0.045);
-      this.playPubTone(ctx, 1318, now + 0.11, 0.34, 0.04);
-      this.playGlassClink(ctx, now + 0.32, 0.96, 0.06);
+      this.playPubTone(ctx, 1046, now, 0.25, 0.038);
+      this.playPubTone(ctx, 1318, now + 0.1, 0.3, 0.033);
+      this.playMachineBell(ctx, now + 0.29, 1.12, 0.05);
     } catch {
       // Audio guard
     }
   }
 
-  // Life restored: a soft pour and the sound of a glass being set down.
+  // Life restored: a small pour followed by a prize-bell lift.
   playLifeRegenSfx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
       this.playSoftPour(ctx, now);
-      this.playWoodTap(ctx, now + 0.25, 0.035);
-      this.playGlassClink(ctx, now + 0.34, 1.08, 0.07);
+      this.playWoodTap(ctx, now + 0.2, 0.028);
+      [0.96, 1.16, 1.38].forEach((pitch, index) => {
+        this.playMachineBell(ctx, now + 0.31 + index * 0.11, pitch, 0.052);
+      });
+      this.playGlassClink(ctx, now + 0.54, 1.02, 0.035);
     } catch {
       // Audio guard
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   Sparkles,
   Trophy,
@@ -471,11 +471,19 @@ const buildUnseenFallbackQuestions = (
 
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, navigationRequest }) => {
   // Navigation mode: 'map' = cartoon world map, 'quiz' = active question screen, 'custom_setup' = online custom topic
-  const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup' | 'journey'>('map');
+  const [viewMode, setViewMode] = useState<'map' | 'quiz' | 'custom_setup' | 'journey'>(() => navigationRequest?.target === 'quiz' ? 'custom_setup' : 'map');
+
+  // Mark Solo content views before paint so mobile browsers use the document
+  // as the only scroller instead of trapping touch gestures in nested panels.
+  useLayoutEffect(() => {
+    const shouldScrollPage = viewMode === 'quiz' || viewMode === 'custom_setup';
+    document.documentElement.classList.toggle('solo-page-scroll-active', shouldScrollPage);
+    return () => document.documentElement.classList.remove('solo-page-scroll-active');
+  }, [viewMode]);
 
   // Progression & Economy state (saved in localStorage)
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
-  const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(() => navigationRequest?.target === 'shop');
   const [shopTab, setShopTab] = useState<'lives' | 'bundles' | 'free'>('bundles');
 
   useEffect(() => {
@@ -519,25 +527,24 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [routeJourney, setRouteJourney] = useState<{ destinationName: string } | null>(null);
   const [drinkCelebration, setDrinkCelebration] = useState<{ id: number; streak: number } | null>(null);
 
-  // Keep every solo screen transition aligned to the top, including long setup,
-  // question and result screens; also reset the map's own mobile scroll viewport.
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const scrollableRoots = [
-        document.scrollingElement,
-        document.querySelector<HTMLElement>('#root .role-solo.app-shell'),
-        document.querySelector<HTMLElement>('#root .role-solo .app-content'),
-        document.querySelector<HTMLElement>('#root .role-solo .solo-quiz-screen'),
-        document.querySelector<HTMLElement>('#root .role-solo .solo-setup-screen'),
-        document.querySelector<HTMLElement>('#root .role-solo .solo-result-screen'),
-        document.querySelector<HTMLElement>('#root .role-solo .game-map-shell'),
-      ];
-      scrollableRoots.forEach((element) => {
-        if (element) element.scrollTop = 0;
-      });
-      window.scrollTo(0, 0);
+  // Reset scroll before paint on transitions so a new question, result, map, or
+  // setup page never flashes at the previous screen's scroll offset.
+  useLayoutEffect(() => {
+    const scrollableRoots = [
+      document.scrollingElement,
+      document.documentElement,
+      document.body,
+      document.querySelector<HTMLElement>('#root .role-solo.app-shell'),
+      document.querySelector<HTMLElement>('#root .role-solo .app-content'),
+      document.querySelector<HTMLElement>('#root .role-solo .solo-quiz-screen'),
+      document.querySelector<HTMLElement>('#root .role-solo .solo-setup-screen'),
+      document.querySelector<HTMLElement>('#root .role-solo .solo-result-screen'),
+      document.querySelector<HTMLElement>('#root .role-solo .game-map-shell'),
+    ];
+    scrollableRoots.forEach((element) => {
+      if (element) element.scrollTop = 0;
     });
-    return () => window.cancelAnimationFrame(frame);
+    window.scrollTo(0, 0);
   }, [viewMode, currentIdx, activeLevel?.id, questions, gameOver]);
 
   // Helper to persist progression state updates

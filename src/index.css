@@ -6639,28 +6639,46 @@ body,
 }
 
 
-/* Keep Solo pages in normal document flow on mobile so long screens and
-   page changes never depend on fragile nested touch scrolling. */
+/* On Solo setup, quiz and result screens, use the document as the single
+   mobile scroll owner. The state class avoids relying on :has() support. */
 @media (max-width: 899px) {
-  #root .role-solo.app-shell:has(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen) {
-    display: block !important;
+  html.solo-page-scroll-active,
+  html.solo-page-scroll-active body,
+  html.solo-page-scroll-active #root {
+    width: 100%;
     height: auto !important;
     min-height: 100dvh;
+    max-height: none !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y;
+  }
+
+  html.solo-page-scroll-active #root .role-solo.app-shell {
+    position: relative !important;
+    display: block !important;
+    width: 100%;
+    height: auto !important;
+    min-height: 100dvh;
+    max-height: none !important;
     overflow-x: clip !important;
     overflow-y: visible !important;
   }
 
-  #root .role-solo.app-shell:has(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen) .app-content {
-    flex: 0 0 auto !important;
+  html.solo-page-scroll-active #root .role-solo.app-shell > .app-content {
+    display: block !important;
     width: 100%;
     height: auto !important;
     min-height: 0 !important;
+    max-height: none !important;
     overflow-x: clip !important;
     overflow-y: visible !important;
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+    touch-action: pan-y;
   }
 
-  #root .role-solo:has(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen)
+  html.solo-page-scroll-active #root .role-solo
     :is(.solo-quiz-screen, .solo-result-screen, .solo-setup-screen) {
     box-sizing: border-box;
     height: auto !important;
@@ -6668,12 +6686,24 @@ body,
     max-height: none !important;
     overflow: visible !important;
     padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)) !important;
-    touch-action: auto;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y;
   }
 
-  #root .role-solo:has(.solo-quiz-screen) .solo-question-card {
+  html.solo-page-scroll-active #root .role-solo .solo-quiz-screen {
+    display: flex;
+    flex-direction: column;
+  }
+
+  html.solo-page-scroll-active #root .role-solo .solo-question-card {
     height: auto !important;
+    min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
+  }
+
+  html.solo-page-scroll-active #root .role-solo .solo-question-card > .grid {
+    grid-template-rows: none !important;
+    grid-auto-rows: minmax(62px, auto);
   }
 }

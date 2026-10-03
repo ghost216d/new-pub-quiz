@@ -14,30 +14,30 @@ export interface BGMTrackInfo {
 export const BGM_TRACKS: BGMTrackInfo[] = [
   {
     id: 'sunny_tavern',
-    name: 'Sunny Tavern Lounge',
-    emoji: '🍻',
-    genre: 'Warm Acoustic & Rhodes Chords',
-    tempoBpm: 104,
+    name: 'Lucky Pint Fruit Machine',
+    emoji: '🎰',
+    genre: 'Pub organ, bouncing bass & prize bells',
+    tempoBpm: 112,
   },
   {
     id: 'cozy_lounge',
-    name: 'Cozy Fireside Vibes',
-    emoji: '☕',
-    genre: 'Mellow Jazzy Lo-Fi Grooves',
+    name: 'Quiet Booth',
+    emoji: '🍺',
+    genre: 'Soft pub organ and warm bar-room chords',
     tempoBpm: 88,
   },
   {
     id: 'celtic_jig',
-    name: 'Upbeat Pub Jig',
-    emoji: '🍀',
-    genre: 'Cheerful Irish Tavern Bounce',
+    name: 'Last Orders Reel',
+    emoji: '🔔',
+    genre: 'Jaunty tavern shuffle with lucky bells',
     tempoBpm: 120,
   },
 ];
 
 // Note frequencies
 const F_MAP: Record<string, number> = {
-  C2: 65.41, E2: 82.41, F2: 87.31, G2: 98.00, A2: 110.00, B2: 123.47,
+  C2: 65.41, D2: 73.42, E2: 82.41, F2: 87.31, G2: 98.00, A2: 110.00, B2: 123.47,
   C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
   C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
   C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77,
@@ -53,16 +53,16 @@ interface ChordStep {
   arpeggio: number[];
 }
 
-// Track 1: Sunny Tavern (Cmaj7 -> Am7 -> Dm7 -> G7 -> Em7 -> A7 -> Dm7 -> G11)
+// Track 1: Lucky Pint Fruit Machine (a bright G-major pub shuffle)
 const TRACK_SUNNY_CHORDS: ChordStep[] = [
-  { bass: F_MAP.C3, chords: [F_MAP.E4, F_MAP.G4, F_MAP.B4], arpeggio: [F_MAP.C4, F_MAP.E4, F_MAP.G4, F_MAP.B4] },
-  { bass: F_MAP.A2, chords: [F_MAP.C4, F_MAP.E4, F_MAP.G4], arpeggio: [F_MAP.A3, F_MAP.C4, F_MAP.E4, F_MAP.G4] },
-  { bass: F_MAP.F2, chords: [F_MAP.A3, F_MAP.C4, F_MAP.E4], arpeggio: [F_MAP.F3, F_MAP.A3, F_MAP.C4, F_MAP.E4] },
-  { bass: F_MAP.G2, chords: [F_MAP.B3, F_MAP.D4, F_MAP.F4], arpeggio: [F_MAP.G3, F_MAP.B3, F_MAP.D4, F_MAP.F4] },
-  { bass: F_MAP.E2, chords: [F_MAP.G3, F_MAP.B3, F_MAP.D4], arpeggio: [F_MAP.E3, F_MAP.G3, F_MAP.B3, F_MAP.D4] },
-  { bass: F_MAP.A2, chords: [F_MAP.G3, F_MAP.Db4, F_MAP.E4], arpeggio: [F_MAP.A3, F_MAP.Db4, F_MAP.E4, F_MAP.G4] },
-  { bass: F_MAP.D3, chords: [F_MAP.F3, F_MAP.A3, F_MAP.C4], arpeggio: [F_MAP.D3, F_MAP.F3, F_MAP.A3, F_MAP.C4] },
-  { bass: F_MAP.G2, chords: [F_MAP.F3, F_MAP.A3, F_MAP.D4], arpeggio: [F_MAP.G3, F_MAP.C4, F_MAP.D4, F_MAP.G4] },
+  { bass: F_MAP.G2, chords: [F_MAP.G3, F_MAP.B3, F_MAP.D4], arpeggio: [F_MAP.D4, F_MAP.G4, F_MAP.B4, F_MAP.D5] },
+  { bass: F_MAP.D2, chords: [F_MAP.A3, F_MAP.D4, F_MAP.G4], arpeggio: [F_MAP.A3, F_MAP.D4, F_MAP.G4, F_MAP.A4] },
+  { bass: F_MAP.E2, chords: [F_MAP.G3, F_MAP.B3, F_MAP.E4], arpeggio: [F_MAP.B3, F_MAP.E4, F_MAP.G4, F_MAP.B4] },
+  { bass: F_MAP.C2, chords: [F_MAP.G3, F_MAP.C4, F_MAP.E4], arpeggio: [F_MAP.G3, F_MAP.C4, F_MAP.E4, F_MAP.G4] },
+  { bass: F_MAP.G2, chords: [F_MAP.G3, F_MAP.B3, F_MAP.D4], arpeggio: [F_MAP.B3, F_MAP.D4, F_MAP.G4, F_MAP.B4] },
+  { bass: F_MAP.D2, chords: [F_MAP.A3, F_MAP.D4, F_MAP.G4], arpeggio: [F_MAP.D4, F_MAP.G4, F_MAP.A4, F_MAP.D5] },
+  { bass: F_MAP.C2, chords: [F_MAP.G3, F_MAP.C4, F_MAP.E4], arpeggio: [F_MAP.C4, F_MAP.E4, F_MAP.G4, F_MAP.C5] },
+  { bass: F_MAP.D2, chords: [F_MAP.A3, F_MAP.D4, F_MAP.G4], arpeggio: [F_MAP.A3, F_MAP.D4, F_MAP.G4, F_MAP.A4] },
 ];
 
 // Track 2: Cozy Lounge (Fmaj7 -> Em7 -> Dm7 -> Cmaj7)
@@ -144,7 +144,7 @@ class FeelGoodBGMManager {
       // Master lowpass filter to keep synthesizer mellow and cozy
       this.filterNode = this.ctx.createBiquadFilter();
       this.filterNode.type = 'lowpass';
-      this.filterNode.frequency.setValueAtTime(1600, this.ctx.currentTime);
+      this.filterNode.frequency.setValueAtTime(this.currentTrackId === 'sunny_tavern' ? 2600 : 1800, this.ctx.currentTime);
       this.filterNode.Q.setValueAtTime(1.0, this.ctx.currentTime);
 
       this.masterGain = this.ctx.createGain();
@@ -237,6 +237,13 @@ class FeelGoodBGMManager {
   public setTrack(trackId: BGMTrackId) {
     this.currentTrackId = trackId;
     this.currentStepIndex = 0;
+    if (this.filterNode && this.ctx) {
+      this.filterNode.frequency.setTargetAtTime(
+        trackId === 'sunny_tavern' ? 2600 : 1800,
+        this.ctx.currentTime,
+        0.08,
+      );
+    }
     try {
       localStorage.setItem('pubquiz_bgm_track', trackId);
     } catch {
@@ -295,6 +302,13 @@ class FeelGoodBGMManager {
     }
   }
 
+  private playMachineBell(freq: number, startTime: number, duration: number, gainLevel: number) {
+    // Soft struck-glass partials add a classic fruit-machine ring.
+    this.playTone(freq, startTime, duration, gainLevel, 'sine');
+    this.playTone(freq * 2.76, startTime + 0.003, duration * 0.72, gainLevel * 0.24, 'sine');
+    this.playTone(freq * 4.18, startTime + 0.006, duration * 0.5, gainLevel * 0.1, 'sine');
+  }
+
   private scheduleNextStep() {
     if (!this.isPlaying) return;
 
@@ -306,19 +320,27 @@ class FeelGoodBGMManager {
     const stepDuration = this.getTempoSeconds();
     const now = ctx.currentTime;
 
-    // 1. Play Warm Bass note
-    this.playTone(chord.bass, now, stepDuration * 0.85, 0.45, 'sine');
+    const luckyMachine = this.currentTrackId === 'sunny_tavern';
 
-    // 2. Play gentle warm chord pads
-    chord.chords.forEach((freq) => {
-      this.playTone(freq, now + 0.02, stepDuration * 0.8, 0.15, 'triangle');
+    // Rounded bass pulses keep the tune rooted in a warm pub sound.
+    this.playTone(chord.bass, now, stepDuration * 0.78, luckyMachine ? 0.3 : 0.38, 'sine');
+
+    // Short off-beat chord stabs give the main track a lively bar-room shuffle.
+    chord.chords.forEach((freq, index) => {
+      const chordStart = luckyMachine && index === 2 ? now + stepDuration * 0.48 : now + 0.02;
+      this.playTone(freq, chordStart, stepDuration * 0.43, luckyMachine ? 0.075 : 0.12, 'triangle');
     });
 
-    // 3. Play cheerful playful arpeggio notes across the step
+    // Plucky notes replace the old lounge arpeggio with a cheerful machine-like bounce.
     const subStep = stepDuration / chord.arpeggio.length;
     chord.arpeggio.forEach((freq, idx) => {
-      this.playTone(freq, now + idx * subStep, subStep * 0.7, 0.22, 'sine');
+      this.playTone(freq, now + idx * subStep, subStep * 0.58, luckyMachine ? 0.13 : 0.18, 'triangle');
     });
+
+    if (luckyMachine) {
+      const bellNote = chord.arpeggio[(this.currentStepIndex + 1) % chord.arpeggio.length] * 2;
+      this.playMachineBell(bellNote, now + stepDuration * 0.7, 0.17, 0.025);
+    }
 
     this.currentStepIndex++;
 
