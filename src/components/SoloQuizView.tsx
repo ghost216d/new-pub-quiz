@@ -402,7 +402,7 @@ const generateMixedOnDeviceQuestions = async (
 
 const generateMediumGeneralKnowledgeQuestions = async (
   count: number,
-  onProgress: (message: string) => void,
+  onProgress: (progress: number, message: string) => void,
 ): Promise<Question[]> => {
   const questions = await generateOnDeviceQuizQuestions({
     category: 'General Knowledge',
@@ -411,7 +411,7 @@ const generateMediumGeneralKnowledgeQuestions = async (
     roundType: 'trivia',
     roundNumber: 1,
     excludedPrompts: getQuestionHistory(),
-    onProgress: (_progress, message) => onProgress(message),
+    onProgress,
   });
   const mediumQuestions = dedupeSimilarQuestions(questions).map((question) => ({
     ...question,
@@ -496,6 +496,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('medium');
   const [isLoading, setIsLoading] = useState(false);
   const [levelLaunchStatus, setLevelLaunchStatus] = useState('Loading your questions…');
+  const [levelLaunchProgress, setLevelLaunchProgress] = useState<number | null>(null);
   const [levelLaunchError, setLevelLaunchError] = useState<string | null>(null);
   const isStartingLevelRef = useRef(false);
   const prefetchedQuestionSetsRef = useRef(new Map<string, Promise<Question[]>>());
@@ -649,6 +650,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setIsLoading(true);
     setLevelLaunchError(null);
     setLevelLaunchStatus('Getting fresh questions…');
+    setLevelLaunchProgress(null);
 
     try {
       const count = level.questionCount || 5;
@@ -683,9 +685,15 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       if (!questionsToPlay && supportsOnDeviceQuizAI()) {
         try {
           setLevelLaunchStatus('Creating fresh questions on this device…');
+          setLevelLaunchProgress(0);
           const deviceQuestions = await generateMediumGeneralKnowledgeQuestions(
             onlineQuestionCount,
-            (message) => setLevelLaunchStatus(message || 'Creating fresh questions on this device…'),
+            (progress, message) => {
+              // The model reports actual download progress, then question
+              // generation continues without a measurable percentage.
+              setLevelLaunchProgress(progress >= 100 ? null : progress);
+              setLevelLaunchStatus(message || 'Creating fresh questions on this device…');
+            },
           );
           questionsToPlay = prepareAttemptQuestions(deviceQuestions, count);
         } catch (err) {
@@ -695,6 +703,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
       // 2. Curated fallback
       if (!questionsToPlay) {
+        setLevelLaunchProgress(null);
         const allQuestions = getSoloQuestionVault();
         const qPool = allQuestions.filter((question) =>
           question.category !== 'Emoji Picture Puzzles' &&
@@ -1096,10 +1105,26 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               <small>Fresh questions are being prepared</small>
             </div>
             <div className="solo-pub-loading-panel">
-              <span className="solo-level-loading-spinner" aria-hidden="true" />
-              <span>
+              <div className="solo-pub-loading-copy">
                 <strong>Preparing your questions</strong>
                 <small>{levelLaunchStatus}</small>
+              </div>
+              <div
+                className="solo-question-loading-track"
+                role="progressbar"
+                aria-label="Loading quiz questions"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={levelLaunchProgress === null ? undefined : Math.round(levelLaunchProgress)}
+                aria-valuetext={levelLaunchProgress === null ? 'Loading quiz questions' : `${Math.round(levelLaunchProgress)}% loaded`}
+              >
+                <span
+                  className={`solo-question-loading-fill${levelLaunchProgress === null ? ' is-indeterminate' : ''}`}
+                  style={levelLaunchProgress === null ? undefined : { width: `${Math.max(0, Math.min(100, levelLaunchProgress))}%` }}
+                />
+              </div>
+              <span className="solo-question-loading-percent">
+                {levelLaunchProgress === null ? 'Loading' : `${Math.round(levelLaunchProgress)}%`}
               </span>
             </div>
           </div>

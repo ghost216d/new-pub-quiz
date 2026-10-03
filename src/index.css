@@ -6154,17 +6154,23 @@ html[data-time-theme] .role-solo .game-title p {
   right: max(18px, env(safe-area-inset-right, 0px));
   bottom: max(100px, calc(88px + env(safe-area-inset-bottom, 0px) + 12px));
   left: max(18px, env(safe-area-inset-left, 0px));
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 10px 12px;
   width: min(84vw, 460px);
   margin: 0 auto;
   padding: 14px 18px;
   border: 2px solid #191919;
   border-radius: 18px;
-  background: rgba(255, 250, 240, 0.96);
+  background: rgba(255, 250, 240, 0.98);
   color: #202020;
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+}
+
+.solo-pub-loading-copy {
+  grid-column: 1 / -1;
+  min-width: 0;
 }
 
 .solo-pub-loading-panel strong,
@@ -6183,6 +6189,43 @@ html[data-time-theme] .role-solo .game-title p {
   font-size: clamp(11px, 3vw, 13px);
   font-weight: 700;
   line-height: 1.2;
+}
+
+.solo-question-loading-track {
+  height: 18px;
+  overflow: hidden;
+  border: 2px solid #191919;
+  border-radius: 999px;
+  background: #e3eff5;
+  box-shadow: inset 0 1px 2px rgba(25, 25, 25, 0.14);
+}
+
+.solo-question-loading-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f6c453, #f59e0b, #f6c453);
+  transition: width 180ms ease-out;
+}
+
+.solo-question-loading-fill.is-indeterminate {
+  width: 42%;
+  min-width: 42%;
+  animation: solo-question-loading-sweep 1.2s ease-in-out infinite;
+}
+
+.solo-question-loading-percent {
+  min-width: 4.5ch;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: right;
+}
+
+@keyframes solo-question-loading-sweep {
+  0% { transform: translateX(-110%); }
+  50% { transform: translateX(140%); }
+  100% { transform: translateX(300%); }
 }
 
 .solo-stage-transition-cover {
