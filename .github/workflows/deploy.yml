@@ -34,6 +34,9 @@ jobs:
       - name: Check Solo question repeat rules
         run: npm run test:questions
 
+      - name: Check AI question novelty and retry
+        run: npm run test:ai-questions
+
       - name: Build app
         run: npm run build
         env:
