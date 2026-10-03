@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, ShoppingBag, Map, Zap, UserRound } from 'lucide-react';
+import { Home, ShoppingBag, Map, Zap, UserRound, Play } from 'lucide-react';
 import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
 import { randomizeQuestionOptions } from './utils/questionQuality';
@@ -1135,11 +1135,11 @@ export default function App() {
             id="resume-live-quiz-btn"
             onClick={() => void handleResumeHostGame()}
             disabled={isLoading}
-            aria-label={`Return to ${activeHostMode} Quiz Master game`}
-            title={`Return to ${activeHostMode} Quiz Master game`}
+            aria-label={`Resume ${activeHostMode} Quiz Master game`}
+            title={`Resume ${activeHostMode} Quiz Master game`}
             className={`resume-host-quiz-btn fixed z-50 top-safe left-2 mt-2 flex items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
           >
-            <span className="resume-host-quiz-icon" aria-hidden="true">↩</span>
+            <span className="resume-host-quiz-icon" aria-hidden="true"><Play size={13} strokeWidth={3} /></span>
             <span>{isLoading ? 'OPENING…' : `RESUME ${activeHostMode.toUpperCase()} QUIZ`}</span>
           </button>
         )}
