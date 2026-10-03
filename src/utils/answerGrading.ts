@@ -27,6 +27,10 @@ export const awardCurrentAnswers = (room: RoomState): void => {
     const team = room.teams[teamId];
     if (!team || submission.reviewedByHost) return;
 
+    // Recheck the submitted answer against the revealed question before
+    // publishing the result. This prevents stale or inconsistent client-side
+    // grading from showing a correct answer as incorrect.
+    submission.isCorrect = answerMatchesQuestion(submission.answer, question);
     const awarded = submission.isCorrect
       ? submission.pointsAwarded || question.points || 0
       : 0;
