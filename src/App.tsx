@@ -804,7 +804,13 @@ export default function App() {
             const next = structuredClone(current);
             const question = next.rounds[next.currentRoundIndex]?.questions[next.currentQuestionIndex];
             const questionKey = `${next.currentRoundIndex}:${next.currentQuestionIndex}:${question?.id || ''}`;
-            incoming.filter((submission) => submission.questionKey === questionKey).forEach((submission) => {
+            incoming
+              .filter((submission) => submission.questionKey === questionKey)
+              .sort((a, b) => a.submittedAt - b.submittedAt)
+              .forEach((submission) => {
+              // A team has one locked answer per question. Keep the first one
+              // so another team member cannot replace it with a later response.
+              if (next.submissions[submission.teamId]) return;
               const isCorrect = answerMatchesQuestion(submission.answer, question);
               next.submissions[submission.teamId] = {
                 teamId: submission.teamId,

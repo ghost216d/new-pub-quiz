@@ -331,7 +331,7 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
               <span>ANSWER LOCKED IN!</span>
             </div>
             <div className="text-xs text-stone-800">
-              Your guess: <strong className="text-amber-900 font-bold">{submission.answer}</strong>
+              Team answer locked: <strong className="text-amber-900 font-bold">{submission.answer}</strong>
             </div>
             <p className="text-[11px] text-stone-600 font-medium">
               Look up at the TV screen for real-time pub scoreboard updates! 📺
