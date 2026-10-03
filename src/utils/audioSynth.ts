@@ -192,353 +192,211 @@ class AudioSynthManager {
     return this.ctx;
   }
 
-  // Play cartoon sound effect: Correct Answer
+  // Short, restrained pub-style cues: glass, wood, door bell and a soft pour.
+  private playPubTone(
+    ctx: AudioContext,
+    frequency: number,
+    startTime: number,
+    duration: number,
+    volume = 0.07,
+    waveform: OscillatorType = 'sine',
+    endFrequency?: number,
+  ) {
+    const oscillator = ctx.createOscillator();
+    const envelope = ctx.createGain();
+    oscillator.type = waveform;
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+    if (endFrequency && endFrequency > 0) {
+      oscillator.frequency.exponentialRampToValueAtTime(endFrequency, startTime + duration);
+    }
+    envelope.gain.setValueAtTime(0.0001, startTime);
+    envelope.gain.linearRampToValueAtTime(volume, startTime + Math.min(0.012, duration * 0.2));
+    envelope.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    oscillator.connect(envelope);
+    envelope.connect(ctx.destination);
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration + 0.01);
+  }
+
+  private playGlassClink(ctx: AudioContext, startTime: number, pitch = 1, volume = 0.09) {
+    // Inharmonic partials give the cue a light glass rim instead of an arcade chime.
+    [[1120, 1], [1760, 0.48], [2480, 0.22]].forEach(([frequency, level]) => {
+      this.playPubTone(ctx, frequency * pitch, startTime, 0.24, volume * level);
+    });
+  }
+
+  private playWoodTap(ctx: AudioContext, startTime: number, volume = 0.08) {
+    this.playPubTone(ctx, 175, startTime, 0.15, volume, 'sine', 92);
+    this.playPubTone(ctx, 620, startTime, 0.035, volume * 0.22);
+  }
+
+  private playSoftPour(ctx: AudioContext, startTime: number) {
+    const duration = 0.42;
+    const frameCount = Math.ceil(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, frameCount, ctx.sampleRate);
+    const samples = buffer.getChannelData(0);
+    for (let index = 0; index < frameCount; index += 1) {
+      samples[index] = (Math.random() * 2 - 1) * (1 - index / frameCount);
+    }
+
+    const source = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    const envelope = ctx.createGain();
+    source.buffer = buffer;
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(780, startTime);
+    filter.Q.setValueAtTime(0.7, startTime);
+    envelope.gain.setValueAtTime(0.0001, startTime);
+    envelope.gain.linearRampToValueAtTime(0.025, startTime + 0.05);
+    envelope.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    source.connect(filter);
+    filter.connect(envelope);
+    envelope.connect(ctx.destination);
+    source.start(startTime);
+    source.stop(startTime + duration);
+  }
+
+  // Correct answer: a gentle double pint-glass clink.
   playCorrectFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(523.25, now); // C5
-      osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
-      osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
-      osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.3); // C6
-
-      gain.gain.setValueAtTime(0.95, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.5);
+      this.playGlassClink(ctx, now, 1, 0.1);
+      this.playGlassClink(ctx, now + 0.14, 1.16, 0.08);
     } catch {
       // Audio autoplay guard
     }
   }
 
-  // Play cartoon sound effect: Coin Pickup / Reward
+  // Points earned: a small bar-top tap followed by a glass clink.
   playCoinFx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(987.77, now); // B5
-      osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
-
-      gain.gain.setValueAtTime(0.95, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.35);
-    } catch {
-      // Audio guard
-    }
-  }
-
-  // Play cartoon sound effect: Heart / Life Lost
-  playLifeLostFx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(329.63, now); // E4
-      osc.frequency.linearRampToValueAtTime(220.0, now + 0.15); // A3
-      osc.frequency.linearRampToValueAtTime(164.81, now + 0.35); // E3
-
-      gain.gain.setValueAtTime(0.95, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.4);
-    } catch {
-      // Audio guard
-    }
-  }
-
-  // Play cartoon sound effect: Star Earned
-  playStarFx(index: number = 0) {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      const baseFreq = [523.25, 659.25, 783.99][index % 3] || 783.99;
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(baseFreq, now);
-      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + 0.18);
-
-      gain.gain.setValueAtTime(0.95, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.4);
-    } catch {
-      // Audio guard
-    }
-  }
-
-  // Play cartoon sound effect: Cash Register / Bundle Purchase
-  playPurchaseFx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      const notes = [
-        { f: 587.33, d: 0.08 }, // D5
-        { f: 783.99, d: 0.08 }, // G5
-        { f: 1174.66, d: 0.25 }, // D6 ring
-      ];
-
-      let t = now;
-      notes.forEach((n) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(n.f, t);
-
-        gain.gain.setValueAtTime(0.95, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(t);
-        osc.stop(t + n.d);
-        t += n.d * 0.9;
-      });
-    } catch {
-      // Audio guard
-    }
-  }
-
-  // Play cartoon sound effect: Wrong Answer / Buzzer
-  playWrongFx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(180, now);
-      osc.frequency.linearRampToValueAtTime(110, now + 0.35);
-
-      gain.gain.setValueAtTime(0.92, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.4);
+      this.playWoodTap(ctx, now, 0.055);
+      this.playGlassClink(ctx, now + 0.07, 0.92, 0.07);
     } catch {
       // Audio autoplay guard
     }
   }
 
-  // Play cartoon Milestone Fanfare (every 10 questions)
+  // Life lost: a muted wooden thud with a low, soft descending tone.
+  playLifeLostFx() {
+    try {
+      const ctx = this.initCtx();
+      const now = ctx.currentTime;
+      this.playWoodTap(ctx, now, 0.09);
+      this.playPubTone(ctx, 190, now + 0.015, 0.28, 0.055, 'sine', 118);
+    } catch {
+      // Audio guard
+    }
+  }
+
+  // Star earned: three light glass taps.
+  playStarFx(index: number = 0) {
+    try {
+      const ctx = this.initCtx();
+      const now = ctx.currentTime;
+      const pitch = [0.92, 1, 1.12][index % 3] || 1;
+      this.playGlassClink(ctx, now, pitch, 0.075);
+      this.playGlassClink(ctx, now + 0.12, pitch * 1.08, 0.065);
+      this.playGlassClink(ctx, now + 0.24, pitch * 1.16, 0.055);
+    } catch {
+      // Audio guard
+    }
+  }
+
+  // Purchase: a quiet till-like wooden click and two quick pint clinks.
+  playPurchaseFx() {
+    try {
+      const ctx = this.initCtx();
+      const now = ctx.currentTime;
+      this.playWoodTap(ctx, now, 0.07);
+      this.playGlassClink(ctx, now + 0.1, 0.94, 0.07);
+      this.playGlassClink(ctx, now + 0.23, 1.08, 0.06);
+    } catch {
+      // Audio guard
+    }
+  }
+
+  // Wrong answer: a soft table knock, with no harsh buzzer.
+  playWrongFx() {
+    try {
+      const ctx = this.initCtx();
+      this.playWoodTap(ctx, ctx.currentTime, 0.075);
+    } catch {
+      // Audio autoplay guard
+    }
+  }
+
+  // Milestone: a small round of glasses and a warm, low chord.
   playMilestoneFanfare() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      const notes = [
-        { f: 523.25, d: 0.12 }, // C5
-        { f: 523.25, d: 0.12 }, // C5
-        { f: 523.25, d: 0.12 }, // C5
-        { f: 659.25, d: 0.25 }, // E5
-        { f: 783.99, d: 0.2 },  // G5
-        { f: 1046.5, d: 0.6 },  // C6
-      ];
-
-      let t = now;
-      notes.forEach((n) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(n.f, t);
-
-        gain.gain.setValueAtTime(0.85, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(t);
-        osc.stop(t + n.d);
-        t += n.d + 0.04;
+      [0, 0.16, 0.32].forEach((offset, index) => {
+        this.playGlassClink(ctx, now + offset, 0.94 + index * 0.08, 0.065);
+      });
+      [196, 247, 294].forEach((frequency) => {
+        this.playPubTone(ctx, frequency, now + 0.18, 0.48, 0.025);
       });
     } catch {
       // Audio guard
     }
   }
 
-  // Play dramatic Knockout / Sudden Death Gong
+  // Knockout: a quiet three-note last-orders bell.
   playKnockoutGong() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-
-      // Low dramatic gong oscillator
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(110, now); // A2
-      osc.frequency.exponentialRampToValueAtTime(55, now + 0.8); // Drop pitch
-
-      gain.gain.setValueAtTime(0.85, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 1.2);
+      [880, 740, 587].forEach((frequency, index) => {
+        const at = now + index * 0.32;
+        this.playPubTone(ctx, frequency, at, 0.48, 0.045);
+        this.playPubTone(ctx, frequency * 2.01, at, 0.35, 0.018);
+      });
     } catch {
       // Audio guard
     }
   }
 
-  // Play Grand Champion Sole Winner Fanfare
+  // Champion: warm pub-chord notes under a celebratory group clink.
   playChampionFanfare() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      // Grand celebratory brass-style fanfare
-      const notes = [
-        { f: 523.25, d: 0.15 }, // C5
-        { f: 659.25, d: 0.15 }, // E5
-        { f: 783.99, d: 0.15 }, // G5
-        { f: 1046.5, d: 0.3 },  // C6
-        { f: 880.00, d: 0.2 },  // A5
-        { f: 1046.5, d: 0.6 },  // C6 grand hold
-      ];
-
-      let t = now;
-      notes.forEach((n) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(n.f, t);
-
-        gain.gain.setValueAtTime(0.85, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(t);
-        osc.stop(t + n.d);
-        t += n.d + 0.05;
+      [196, 247, 294, 392].forEach((frequency, index) => {
+        this.playPubTone(ctx, frequency, now + index * 0.09, 0.68, 0.045);
+      });
+      [0.08, 0.22, 0.36].forEach((offset, index) => {
+        this.playGlassClink(ctx, now + offset, 0.92 + index * 0.12, 0.075);
       });
     } catch {
       // Audio guard
     }
   }
 
-  // Funny Cartoon Quest Map Entrance Sound (Boing + Slide + Clinking mugs!)
+  // Entering the map: a pub-door bell followed by a quiet pint clink.
   playFunnyEntranceSfx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-
-      // 1. Funny Boing / Spring bounce
-      const boingOsc = ctx.createOscillator();
-      const boingGain = ctx.createGain();
-      boingOsc.type = 'sine';
-      boingOsc.frequency.setValueAtTime(160, now);
-      boingOsc.frequency.exponentialRampToValueAtTime(650, now + 0.18);
-      boingOsc.frequency.exponentialRampToValueAtTime(320, now + 0.35);
-
-      boingGain.gain.setValueAtTime(0.85, now);
-      boingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-
-      boingOsc.connect(boingGain);
-      boingGain.connect(ctx.destination);
-      boingOsc.start(now);
-      boingOsc.stop(now + 0.38);
-
-      // 2. Cartoon slide whistle whoosh
-      const whooshOsc = ctx.createOscillator();
-      const whooshGain = ctx.createGain();
-      whooshOsc.type = 'triangle';
-      whooshOsc.frequency.setValueAtTime(300, now + 0.2);
-      whooshOsc.frequency.exponentialRampToValueAtTime(950, now + 0.55);
-
-      whooshGain.gain.setValueAtTime(0.001, now + 0.2);
-      whooshGain.gain.linearRampToValueAtTime(0.75, now + 0.35);
-      whooshGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-
-      whooshOsc.connect(whooshGain);
-      whooshGain.connect(ctx.destination);
-      whooshOsc.start(now + 0.2);
-      whooshOsc.stop(now + 0.6);
-
-      // 3. Cheerful tavern chime chord (C - E - G - C)
-      const chimes = [523.25, 659.25, 783.99, 1046.5];
-      chimes.forEach((freq, idx) => {
-        const cOsc = ctx.createOscillator();
-        const cGain = ctx.createGain();
-        const startTime = now + 0.45 + idx * 0.08;
-
-        cOsc.type = 'triangle';
-        cOsc.frequency.setValueAtTime(freq, startTime);
-
-        cGain.gain.setValueAtTime(0.8, startTime);
-        cGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
-
-        cOsc.connect(cGain);
-        cGain.connect(ctx.destination);
-        cOsc.start(startTime);
-        cOsc.stop(startTime + 0.4);
-      });
+      this.playPubTone(ctx, 1046, now, 0.28, 0.045);
+      this.playPubTone(ctx, 1318, now + 0.11, 0.34, 0.04);
+      this.playGlassClink(ctx, now + 0.32, 0.96, 0.06);
     } catch {
       // Audio guard
     }
   }
 
-  // Heart life restored sparkle
+  // Life restored: a soft pour and the sound of a glass being set down.
   playLifeRegenSfx() {
     try {
       const ctx = this.initCtx();
       const now = ctx.currentTime;
-      const notes = [392.0, 523.25, 659.25, 783.99]; // G4, C5, E5, G5
-      notes.forEach((f, idx) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const t = now + idx * 0.1;
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(f, t);
-        gain.gain.setValueAtTime(0.85, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.3);
-      });
+      this.playSoftPour(ctx, now);
+      this.playWoodTap(ctx, now + 0.25, 0.035);
+      this.playGlassClink(ctx, now + 0.34, 1.08, 0.07);
     } catch {
       // Audio guard
     }
