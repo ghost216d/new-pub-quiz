@@ -804,27 +804,23 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const onlineQuestionCount = Math.max(0, triviaCount - curatedCount);
       let questionsToPlay: Question[] | null = cachedQuestions.length >= count ? cachedQuestions.slice(0, count) : null;
 
-      // Replays use the already bundled pub question bank first. This keeps
-      // a previously opened pub from waiting on an online trivia service.
+      // Replays use a broad bundled reserve before making any network or
+      // device-AI request. Requiring a fresh question of every visual category
+      // can strand a player after a small category pack has been used up.
       if (!questionsToPlay && hasSavedQuestionSet) {
         setLevelLaunchStatus('Choosing unseen saved questions…');
-        const localQuestions = getSoloQuestionVault().filter((question) => !question.id?.includes('_fixed_'));
-        const localTrivia = localQuestions.filter((question) =>
-          question.category !== 'Emoji Picture Puzzles' &&
-          question.category !== 'Photo Round: World Landmarks' &&
-          question.category !== 'World Flags' &&
-          question.category !== 'Animals & Nature' &&
-          !question.musicData
+        const localReserve = getSoloQuestionVault().filter((question) =>
+          !question.id?.includes('_fixed_') && !question.musicData
         );
         try {
-          const mediumQuestions = buildMediumGeneralKnowledgeFallback(localTrivia, Math.max(onlineQuestionCount, count - cachedQuestions.length));
-          const localAttempt = prepareAttemptQuestions(mediumQuestions, count);
+          const missingCount = Math.max(0, count - cachedQuestions.length);
+          const localQuestions = chooseUnseenFallbackQuestions(localReserve, missingCount);
           const preparedQuestions = orderCampaignQuestions(
-            dedupeSimilarQuestions([...cachedQuestions, ...localAttempt]).slice(0, count),
+            dedupeSimilarQuestions([...cachedQuestions, ...localQuestions]).slice(0, count),
           );
           if (preparedQuestions.length >= count) questionsToPlay = preparedQuestions;
         } catch (error) {
-          console.warn('Saved questions were exhausted for this pub. Trying another source.', error);
+          console.warn('Saved questions were exhausted for this pub. Trying the online bank.', error);
         }
       }
 
@@ -850,7 +846,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       // If the public trivia bank has run out of unseen questions, create a
       // fresh set locally on browsers with WebGPU support. The model is cached
       // by WebLLM after its first download on that device.
-      if (!questionsToPlay && supportsOnDeviceQuizAI()) {
+      if (!questionsToPlay && !hasSavedQuestionSet && supportsOnDeviceQuizAI()) {
         try {
           setLevelLaunchStatus('Creating fresh questions on this device…');
           setLevelLaunchProgress(0);
