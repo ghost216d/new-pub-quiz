@@ -155,7 +155,7 @@ const saveSeen = (prompts: string[]) => {
 };
 
 const getSecureQuestionEndpoint = (): string | null => {
-  const configured = String(import.meta.env.VITE_QUESTION_API_URL || '').trim();
+  const configured = String(import.meta.env?.VITE_QUESTION_API_URL || '').trim();
   return configured ? configured.replace(/\/$/, '') : null;
 };
 
@@ -204,16 +204,18 @@ const shuffled = <T,>(items: T[]): T[] => {
   return copy;
 };
 
-const getSessionToken = async (): Promise<string> => {
-  const stored = readStoredValue(TOKEN_KEY);
-  if (stored) return stored;
-
+const requestSessionToken = async (): Promise<string> => {
   const response = await fetch('https://opentdb.com/api_token.php?command=request');
   if (!response.ok) throw new Error('Unable to start online trivia session.');
   const data = (await response.json()) as OpenTriviaResponse;
   if (!data.token) throw new Error('Online trivia session did not return a token.');
   writeStoredValue(TOKEN_KEY, data.token);
   return data.token;
+};
+
+const getSessionToken = async (): Promise<string> => {
+  const stored = readStoredValue(TOKEN_KEY);
+  return stored || requestSessionToken();
 };
 
 const resetSessionToken = async (token: string): Promise<void> => {
@@ -245,7 +247,7 @@ export const getOnlineTriviaQuestions = async ({
     }
   }
 
-  const token = await getSessionToken();
+  let token = await getSessionToken();
   const categoryId = broadPool ? undefined : CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1];
   const mathsTopic = /\b(math|maths|mathematics|arithmetic|numbers?)\b/i.test(category);
   const onlineDifficulty = mixed
@@ -270,7 +272,14 @@ export const getOnlineTriviaQuestions = async ({
   let response = await fetch(buildUrl(), { cache: 'no-store' });
   if (!response.ok) throw new Error('Online trivia service is unavailable.');
   let data = (await response.json()) as OpenTriviaResponse;
-  if (data.response_code === 4) {
+  if (data.response_code === 3) {
+    // Open Trivia DB deletes tokens after six hours of inactivity. Replace a
+    // stale browser-stored token once so returning players can keep loading.
+    token = await requestSessionToken();
+    response = await fetch(buildUrl(), { cache: 'no-store' });
+    if (!response.ok) throw new Error('Online trivia service is unavailable.');
+    data = (await response.json()) as OpenTriviaResponse;
+  } else if (data.response_code === 4) {
     await resetSessionToken(token);
     await new Promise((resolve) => window.setTimeout(resolve, 5100));
     response = await fetch(buildUrl(), { cache: 'no-store' });
