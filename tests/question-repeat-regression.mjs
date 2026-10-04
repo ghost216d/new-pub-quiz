@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
+import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 
 const storage = new Map();
 globalThis.localStorage = {
@@ -31,6 +31,59 @@ const pool = [
 ];
 
 assert.equal(dedupeSimilarQuestions(pool).length, 7, 'near-duplicate prompts should collapse');
+
+const originalFetch = globalThis.fetch;
+const originalDocument = globalThis.document;
+storage.set('pubquiz_opentdb_token_v1', 'expired-token');
+const apiRequests = [];
+globalThis.document = {
+  createElement: () => {
+    let html = '';
+    return {
+      set innerHTML(value) { html = value; },
+      get value() { return html; },
+    };
+  },
+};
+globalThis.fetch = async (input) => {
+  const url = String(input);
+  apiRequests.push(url);
+  if (url.includes('api.php') && url.includes('token=expired-token')) {
+    return { ok: true, json: async () => ({ response_code: 3 }) };
+  }
+  if (url.includes('api_token.php?command=request')) {
+    return { ok: true, json: async () => ({ token: 'fresh-token' }) };
+  }
+  if (url.includes('api.php') && url.includes('token=fresh-token')) {
+    return {
+      ok: true,
+      json: async () => ({
+        response_code: 0,
+        results: [{
+          category: 'General Knowledge',
+          difficulty: 'easy',
+          question: 'What is the capital of Portugal?',
+          correct_answer: 'Lisbon',
+          incorrect_answers: ['Paris', 'Rome', 'Madrid'],
+        }],
+      }),
+    };
+  }
+  throw new Error(`Unexpected question request: ${url}`);
+};
+
+const recoveredQuestions = await getOnlineTriviaQuestions({
+  category: 'General Knowledge',
+  count: 1,
+  difficulty: 'medium',
+});
+assert.equal(recoveredQuestions.length, 1, 'questions should load after replacing an expired token');
+assert.equal(apiRequests.length, 3, 'expired token should trigger one new token request and one retry');
+assert.match(apiRequests[2], /token=fresh-token/, 'retry should use the new token');
+globalThis.fetch = originalFetch;
+if (originalDocument === undefined) delete globalThis.document;
+else globalThis.document = originalDocument;
+storage.delete('pubquiz_opentdb_token_v1');
 
 const firstRound = chooseUnseenFallbackQuestions(pool, 3);
 const secondRound = chooseUnseenFallbackQuestions(pool, 3);
