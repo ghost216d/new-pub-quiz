@@ -109,7 +109,7 @@ const ONLINE_QUESTION_TIMEOUT_MS = 8500;
 const DEVICE_QUESTION_TIMEOUT_MS = 15000;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
-const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_v1';
+const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_gk_20261005';
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
 const PUB_LOADING_SCREEN_DURATION_MS = 3000;
 
@@ -773,7 +773,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setLevelLaunchError(null);
     setActiveLevel(level);
     setActiveMap(map);
-    setSelectedCategory(level.category);
+    setSelectedCategory('General Knowledge');
     setDifficulty('medium');
     setCustomTopic('');
     setUseAI(true); // Enable the online topic field, with an unseen offline fallback
@@ -796,14 +796,16 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         ? readFixedLevelQuestions(level.id)
         : authoredQuestions || readFixedLevelQuestions(level.id);
       const questionHistory = getQuestionHistory();
-      // Once a pub has its own saved set, replay that set from local
-      // storage immediately. Cross-pub history still filters questions when
-      // a new pub needs to be generated.
-      const cachedQuestions = hasSavedQuestionSet
-        ? dedupeSimilarQuestions(storedQuestions)
-        : storedQuestions.filter((question) =>
-            !questionHistory.some((previous) => areQuestionPromptsSimilar(question.prompt, previous)),
-          );
+      // Bundled packs are the current content authority. They are unique across
+      // pubs and remain immediately available even when storage or networking
+      // is unavailable. Only non-campaign fallback generation uses history.
+      const cachedQuestions = authoredQuestions
+        ? dedupeSimilarQuestions(authoredQuestions)
+        : hasSavedQuestionSet
+          ? dedupeSimilarQuestions(storedQuestions)
+          : storedQuestions.filter((question) =>
+              !questionHistory.some((previous) => areQuestionPromptsSimilar(question.prompt, previous)),
+            );
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
@@ -911,9 +913,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         throw new Error('No quiz questions were available for this pub.');
       }
 
-      const fixedQuestions = orderCampaignQuestions(
-        dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
-      );
+      const fixedQuestions = authoredQuestions
+        ? dedupeSimilarQuestions(authoredQuestions).slice(0, count)
+        : orderCampaignQuestions(
+            dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
+          );
       if (fixedQuestions.length < count) throw new Error('This pub does not have enough distinct questions yet.');
       setLevelLaunchStatus('Your questions are ready — opening the quiz…');
       await new Promise<void>((resolve) => window.setTimeout(resolve, PUB_LOADING_SCREEN_DURATION_MS));

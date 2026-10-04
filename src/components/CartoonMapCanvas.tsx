@@ -814,7 +814,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           <div className="game-level-details">
             <div>
               <span>Quiz</span>
-              <strong>{selectedLevel.category}</strong>
+              <strong>Mixed General Knowledge</strong>
             </div>
 
             <div>

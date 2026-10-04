@@ -1,0 +1,14 @@
+Campaign General Knowledge — refreshed 5 October 2026
+
+Mixed general-knowledge questions from Open Trivia Database by PIXELTAIL GAMES LLC and contributors:
+https://opentdb.com/
+Licensed under Creative Commons Attribution-ShareAlike 4.0 International.
+https://creativecommons.org/licenses/by-sa/4.0/
+Adaptations: selected mixed topics, removed time-sensitive wording and specialist gaming/maths questions, decoded text, filtered similar prompts, shuffled options, and assigned campaign packs. The adapted question bank is distributed under the same CC BY-SA 4.0 licence.
+
+Recent sports questions checked against FIFA and Olympic host announcements:
+https://www.fifa.com/en/articles/fifa-world-cup-2026-hosts-cities-dates-usa-mexico-canada
+https://inside.fifa.com/organisation/congress/media-releases/extraordinary-congress-appoints-hosts-of-2030-and-2034-editions-of-fifa-world-cup
+https://www.unodc.org/documents/Safeguardingsport/Publications/FIFA_2026_OLYMPIC_2026.pdf
+
+Visual questions retained from the existing app bank, each assigned to one pub only.

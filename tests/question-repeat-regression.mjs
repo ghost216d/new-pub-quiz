@@ -53,15 +53,11 @@ campaignLevels.forEach(({ level }) => {
   assert.deepEqual(questions.map((question) => question.difficulty), [
     'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard',
   ], `${level.name} should increase difficulty through the ten questions`);
-  assert.ok(questions.some((question) => question.category === 'Photo Round: World Landmarks'),
-    `${level.name} should have a built-in photo question`);
-  assert.ok(questions.some((question) => question.category === 'Emoji Picture Puzzles'),
-    `${level.name} should have a built-in picture question`);
-  assert.ok(questions.some((question) => /Animals & Nature|World Flags/.test(question.category)),
-    `${level.name} should have a built-in animals or flags question`);
+  assert.equal(questions.some((question) => /postcode|pub trail|route entry|emblem marks/.test(question.prompt)), false,
+    `${level.name} should ask general knowledge instead of map metadata`);
 });
 assert.equal(new Set(campaignLevels.map(({ level }) => CAMPAIGN_LEVEL_QUESTIONS[level.id][0].prompt)).size, campaignLevels.length,
-  'each pub should start with a different pub-specific question');
+  'each pub should start with a different general-knowledge question');
 campaignLevels.forEach(({ level }) => {
   const questions = CAMPAIGN_LEVEL_QUESTIONS[level.id];
   assert.equal(dedupeSimilarQuestions(questions).length, questions.length,
@@ -75,18 +71,11 @@ assert.ok(pictureRound, 'Quiz Master should include a picture round');
 assert.equal(pictureRound.questions.length, 3, 'picture round should contain three picture questions');
 assert.equal(pictureRound.questions.every((question) => !!question.pictureClue || !!question.imageUrl), true,
   'every question in the picture round should show a picture clue');
-for (const [levelId, category] of [
-  ['c1_george', 'Waterloo, South Bank & London Transport'],
-  ['c1_anchor', 'Brixton, Effra Hall & Brixton Market'],
-]) {
-  const questions = CAMPAIGN_LEVEL_QUESTIONS[levelId];
-  assert.equal(questions.length, 10, `${levelId} should have ten fixed campaign questions`);
-  assert.equal(questions.filter((question) => question.category === category).length >= 7, true,
-    `${levelId} should keep its pub questions alongside the visual round mix`);
-  assert.deepEqual(questions.map((question) => question.difficulty), [
-    'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard',
-  ], `${levelId} questions should progress from easy to hard`);
-}
+const allCampaignQuestions = Object.values(CAMPAIGN_LEVEL_QUESTIONS).flat();
+assert.equal(dedupeSimilarQuestions(allCampaignQuestions).length, 700,
+  'all 70 pubs must have distinct questions without closely reworded repeats');
+assert.equal(allCampaignQuestions.every(q => q.options.length === 4 && new Set(q.options).size === 4 && q.options.includes(q.correctAnswer)), true,
+  'every saved question needs four distinct options and a valid answer');
 
 assert.equal(SOLO_PUB_CLASSICS_QUESTIONS.length >= 10, true,
   'Pub Classics should have enough dedicated questions to make a full quiz');
