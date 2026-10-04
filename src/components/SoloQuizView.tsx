@@ -1702,6 +1702,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           <span className={`max-w-full text-[10px] sm:text-xs font-cartoon px-2.5 sm:px-3 py-1 rounded-full border-2 ${diffObj.bgClass} ${diffObj.borderClass} ${diffObj.textClass} shadow-sm whitespace-normal`}>
             {diffObj.icon} {diffObj.label.toUpperCase()} MODE • {currentQ?.points || 15} PTS
           </span>
+          <span
+            className="shrink-0 rounded-full border border-stone-300 bg-white/80 px-2 py-1 text-[10px] sm:text-xs font-black text-stone-700"
+            aria-label={`Question ${currentIdx + 1} of ${questions.length}`}
+          >
+            {currentIdx + 1} / {questions.length}
+          </span>
           <button
             onClick={() => setViewMode('map')}
             className="shrink-0 text-[10px] sm:text-xs font-cartoon text-amber-800 hover:text-amber-950 transition cursor-pointer"
