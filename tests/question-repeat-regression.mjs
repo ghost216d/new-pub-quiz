@@ -43,6 +43,9 @@ const missedPrompt = firstRound[1].prompt;
 const missedRound = chooseUnseenFallbackQuestions(pool, 3, [missedPrompt]);
 assert.equal(missedRound.some((question) => question.prompt === missedPrompt), true,
   'a previously missed question may return');
+const seenUnmasteredQuestion = chooseUnseenFallbackQuestions([firstRound[1]], 1, [], true);
+assert.equal(seenUnmasteredQuestion.length, 1,
+  'an unmastered auxiliary question may be reused after its small pack is exhausted');
 assert.equal(missedRound.some((question) => question.prompt === firstRound[0].prompt), false,
   'a mastered question must stay retired');
 
