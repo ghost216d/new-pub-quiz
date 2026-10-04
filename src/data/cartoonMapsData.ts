@@ -781,9 +781,7 @@ export const CARTOON_MAPS: CartoonMap[] = LONDON_MAPS.map((map, mapIndex) => ({
       mapArtwork: artworkLevelNumber <= 20
         ? `level-${artworkLevelId}-map-no-route.webp`
         : map.mapArtwork,
-      coverArtwork: artworkLevelNumber <= 20
-        ? `level-${artworkLevelId}-cover.webp`
-        : `level-${artworkLevelId}-cover.svg`,
+      coverArtwork: `level-${String(artworkLevelNumber <= 20 ? artworkLevelNumber : ((artworkLevelNumber - 21) % 14) + 21).padStart(2, '0')}-cover.webp`,
     };
   }),
 }));
