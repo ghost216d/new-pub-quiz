@@ -278,6 +278,11 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
         )}
 
         {/* Music Clue or Picture round display on phone */}
+        {currentQ?.pictureClue && (
+          <div className="rounded-2xl border-2 border-amber-800/30 bg-amber-50 px-4 py-5 text-center text-5xl" role="img" aria-label={`Picture clue: ${currentQ.pictureClue}`}>
+            {currentQ.pictureClue}
+          </div>
+        )}
         {(currentQ?.imageUrl || currentQ?.musicData?.cluePictures?.[0]) && (
           <div className="rounded-2xl overflow-hidden border-3 border-amber-800/40 max-h-44 shadow-md">
             <img
