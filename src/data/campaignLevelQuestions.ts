@@ -1,4 +1,6 @@
-import { Question } from '../types';
+import { CartoonMap, MapLevel, Question } from '../types';
+import { CARTOON_MAPS } from './cartoonMapsData';
+import { SOLO_ANIMAL_QUESTIONS, SOLO_FLAG_QUESTIONS, SOLO_PHOTO_QUESTIONS, SOLO_PICTURE_QUESTIONS } from './defaultQuestions';
 
 const levelQuestions = (
   levelId: string,
@@ -23,7 +25,7 @@ const levelQuestions = (
 // These opening stops were previously filled with unrelated general trivia.
 // Keep their ten-question sets stable, local, and tied to the places named by
 // the stage. Each pack follows the campaign's easy / medium / hard ramp.
-export const CAMPAIGN_LEVEL_QUESTIONS: Record<string, Question[]> = {
+const AUTHORED_CAMPAIGN_LEVEL_QUESTIONS: Record<string, Question[]> = {
   c1_george: levelQuestions('c1_george', 'Waterloo, South Bank & London Transport', [
     ['Which river runs beside the South Bank and the London Eye?', 'The Thames', ['The Thames', 'The Severn', 'The Mersey', 'The Tyne'], 'The London Eye stands beside the River Thames.', 'waterloo river', 'easy'],
     ['In which city is Waterloo railway station?', 'London', ['London', 'Manchester', 'Bristol', 'York'], 'Waterloo station is in central London.', 'waterloo station', 'easy'],
@@ -49,3 +51,148 @@ export const CAMPAIGN_LEVEL_QUESTIONS: Record<string, Question[]> = {
     ['The River Effra, which gave Effra Hall its name, is now mostly what beneath London?', 'Underground', ['Underground', 'A canal', 'A railway line', 'A reservoir'], 'The Effra is a historic South London river that now runs mostly in culverts beneath the city.', 'river effra', 'hard'],
   ]),
 };
+
+const DIFFICULTY_RAMP: Array<'easy' | 'medium' | 'hard'> = [
+  'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard',
+];
+const ALL_CAMPAIGN_LEVELS = CARTOON_MAPS.flatMap((map) =>
+  map.levels.map((level) => ({ map, level })),
+);
+const PUB_NAMES = ALL_CAMPAIGN_LEVELS.map(({ level }) => level.pubName || level.name);
+const MAP_NAMES = CARTOON_MAPS.map((map) => map.name);
+const PUB_POSTCODES = ALL_CAMPAIGN_LEVELS.map(({ level }) => level.postcode || 'London');
+const PUB_CATEGORIES = ALL_CAMPAIGN_LEVELS.map(({ level }) => level.category || 'London pub history');
+const PUB_POSTCODE_AREAS = PUB_POSTCODES.map((postcode) => postcode.match(/^[A-Z]{1,2}/i)?.[0] || 'London');
+const SPECIAL_QUESTIONS = [...SOLO_FLAG_QUESTIONS, ...SOLO_ANIMAL_QUESTIONS];
+
+const stableOptions = (answer: string, pool: string[], seed: number): string[] => {
+  const normalizedAnswer = answer.trim().toLowerCase();
+  const options = [answer];
+  if (pool.length) {
+    const start = Math.abs(seed * 17) % pool.length;
+    for (let offset = 0; offset < pool.length && options.length < 4; offset += 1) {
+      const candidate = String(pool[(start + offset) % pool.length] || '').trim();
+      if (candidate && candidate.toLowerCase() !== normalizedAnswer &&
+        !options.some((option) => option.toLowerCase() === candidate.toLowerCase())) {
+        options.push(candidate);
+      }
+    }
+  }
+  while (options.length < 4) options.push(`London option ${options.length + 1}`);
+  const correctIndex = Math.abs(seed) % 4;
+  const distractors = options.slice(1);
+  distractors.splice(correctIndex, 0, options[0]);
+  return distractors;
+};
+
+const withFixedDifficulty = (
+  question: Question,
+  level: MapLevel,
+  slot: number,
+  seed: number,
+): Question => {
+  const difficulty = DIFFICULTY_RAMP[slot];
+  const answer = question.correctAnswer;
+  return {
+    ...question,
+    id: `${level.id}_fixed_${slot + 1}`,
+    roundNumber: 1,
+    difficulty,
+    points: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20,
+    timeLimitSec: difficulty === 'easy' ? 30 : difficulty === 'medium' ? 35 : 40,
+    options: stableOptions(answer, question.options || [], seed),
+  };
+};
+
+const buildLocalQuestions = (
+  map: CartoonMap,
+  level: MapLevel,
+  levelIndex: number,
+): Question[] => {
+  const name = level.pubName || level.name;
+  const address = level.address || level.name;
+  const postcode = level.postcode || 'London';
+  const category = level.category || 'London pub history';
+  const description = level.description || `${name} is one of the pubs on the ${map.name} route.`;
+  const funFact = level.funFact || `${name} is a stop on the London pub trail.`;
+  const postcodeArea = postcode.match(/^[A-Z]{1,2}/i)?.[0] || 'London';
+  const make = (
+    prompt: string,
+    answer: string,
+    optionPool: string[],
+    slot: number,
+  ): Question => {
+    const difficulty = DIFFICULTY_RAMP[slot];
+    return {
+      id: `${level.id}_local_${slot + 1}`,
+      roundNumber: 1,
+      category,
+      prompt,
+      type: 'multiple_choice',
+      options: stableOptions(answer, optionPool, levelIndex * 10 + slot),
+      correctAnswer: answer,
+      acceptableAnswers: [answer.toLowerCase()],
+      explanation: `The route entry for ${name} lists ${answer}.`,
+      difficulty,
+      points: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20,
+      timeLimitSec: difficulty === 'easy' ? 30 : difficulty === 'medium' ? 35 : 40,
+    };
+  };
+
+  const authored = AUTHORED_CAMPAIGN_LEVEL_QUESTIONS[level.id];
+  if (authored?.length >= 10) {
+    return [0, 1, 3, 4, 7, 8, 9].map((sourceIndex, index) =>
+      withFixedDifficulty(authored[sourceIndex], level, index, levelIndex * 10 + index),
+    );
+  }
+
+  return [
+    make(`Which postcode is listed for ${name} on the ${map.name} route?`, postcode, PUB_POSTCODES, 0),
+    make(`The pub ${name} is part of which route?`, map.name, MAP_NAMES, 1),
+    make(`Which London postcode area is listed for ${name}?`, postcodeArea, PUB_POSTCODE_AREAS, 2),
+    make(`The address “${address}” belongs to which pub?`, name, PUB_NAMES, 3),
+    make(`Which local topic is paired with ${name}?`, category, PUB_CATEGORIES, 4),
+    make(`Which pub matches this local description? “${description}”`, name, PUB_NAMES, 5),
+    make(`Which pub is linked to this local fact? “${funFact}”`, name, PUB_NAMES, 6),
+  ];
+};
+
+const buildFixedPubPack = (
+  map: CartoonMap,
+  level: MapLevel,
+  levelIndex: number,
+): Question[] => {
+  const local = buildLocalQuestions(map, level, levelIndex);
+  const picture = SOLO_PICTURE_QUESTIONS[levelIndex % SOLO_PICTURE_QUESTIONS.length];
+  const photo = SOLO_PHOTO_QUESTIONS[(levelIndex + 5) % SOLO_PHOTO_QUESTIONS.length];
+  const special = SPECIAL_QUESTIONS[(levelIndex * 3) % SPECIAL_QUESTIONS.length];
+  const visual = (question: Question, slot: number): Question => withFixedDifficulty({
+    ...question,
+    options: [...question.options],
+  }, level, slot, levelIndex * 10 + slot);
+  const localAt = (question: Question, slot: number): Question =>
+    withFixedDifficulty(question, level, slot, levelIndex * 10 + slot);
+
+  return [
+    localAt(local[0], 0),
+    visual(picture, 1),
+    localAt(local[1], 2),
+    localAt(local[2], 3),
+    visual(photo, 4),
+    localAt(local[3], 5),
+    visual(special, 6),
+    localAt(local[4], 7),
+    localAt(local[5], 8),
+    localAt(local[6], 9),
+  ];
+};
+
+// Ship a fixed, pub-specific 10-question pack for every stop. These packs are
+// available immediately on the map and don't need a network request or a
+// first-play local cache.
+export const CAMPAIGN_LEVEL_QUESTIONS: Record<string, Question[]> = Object.fromEntries(
+  ALL_CAMPAIGN_LEVELS.map(({ map, level }, index) => [
+    level.id,
+    buildFixedPubPack(map, level, index),
+  ]),
+);

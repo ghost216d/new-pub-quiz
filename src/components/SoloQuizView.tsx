@@ -651,6 +651,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     if (!navigator.onLine || prefetchedQuestionSetsRef.current.has(level.id)) return;
 
     const totalCount = level.questionCount || 10;
+    if ((CAMPAIGN_LEVEL_QUESTIONS[level.id]?.length || 0) >= totalCount) return;
     if (readFixedLevelQuestions(level.id).length >= totalCount) return;
     const cachedCount = readFixedLevelQuestions(level.id).length;
     const pictureCount = Math.min(totalCount, Math.max(1, Math.floor(totalCount / 5)));

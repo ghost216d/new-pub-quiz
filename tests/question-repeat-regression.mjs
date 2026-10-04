@@ -42,6 +42,26 @@ campaignLevels.forEach(({ map, level }, index) => {
 
 assert.equal(normalizeSoloCategory('Brixton, Effra Hall & Brixton Market', CATEGORY_VAULT), CATEGORY_VAULT[0].name,
   'a campaign location must not persist as an invalid Solo category');
+
+assert.equal(Object.keys(CAMPAIGN_LEVEL_QUESTIONS).length, campaignLevels.length,
+  'every pub should ship its own saved question pack');
+campaignLevels.forEach(({ level }) => {
+  const questions = CAMPAIGN_LEVEL_QUESTIONS[level.id];
+  assert.equal(questions?.length, 10, `${level.name} should have ten questions ready before the pub is opened`);
+  assert.equal(new Set(questions.map((question) => question.prompt)).size, 10,
+    `${level.name} should not repeat a prompt inside its pack`);
+  assert.deepEqual(questions.map((question) => question.difficulty), [
+    'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard',
+  ], `${level.name} should increase difficulty through the ten questions`);
+  assert.ok(questions.some((question) => question.category === 'Photo Round: World Landmarks'),
+    `${level.name} should have a built-in photo question`);
+  assert.ok(questions.some((question) => question.category === 'Emoji Picture Puzzles'),
+    `${level.name} should have a built-in picture question`);
+  assert.ok(questions.some((question) => /Animals & Nature|World Flags/.test(question.category)),
+    `${level.name} should have a built-in animals or flags question`);
+});
+assert.equal(new Set(campaignLevels.map(({ level }) => CAMPAIGN_LEVEL_QUESTIONS[level.id][0].prompt)).size, campaignLevels.length,
+  'each pub should start with a different pub-specific question');
 const pictureRound = DEFAULT_ROUNDS.find((round) => round.type === 'picture');
 assert.ok(pictureRound, 'Quiz Master should include a picture round');
 assert.equal(pictureRound.questions.length, 3, 'picture round should contain three picture questions');
@@ -52,9 +72,9 @@ for (const [levelId, category] of [
   ['c1_anchor', 'Brixton, Effra Hall & Brixton Market'],
 ]) {
   const questions = CAMPAIGN_LEVEL_QUESTIONS[levelId];
-  assert.equal(questions.length, 10, `${levelId} should have ten authored campaign questions`);
-  assert.equal(questions.every((question) => question.category === category), true,
-    `${levelId} questions should match the stage category`);
+  assert.equal(questions.length, 10, `${levelId} should have ten fixed campaign questions`);
+  assert.equal(questions.filter((question) => question.category === category).length >= 7, true,
+    `${levelId} should keep its pub questions alongside the visual round mix`);
   assert.deepEqual(questions.map((question) => question.difficulty), [
     'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard',
   ], `${levelId} questions should progress from easy to hard`);
