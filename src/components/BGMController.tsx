@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Music, ChevronDown, Sparkles } from 'lucide-react';
-import { bgmEngine, BGM_TRACKS, BGMTrackId } from '../utils/bgmSynth';
+import { Volume2, VolumeX, Music, ChevronDown } from 'lucide-react';
+import { bgmEngine } from '../utils/bgmSynth';
 import { audioSynth } from '../utils/audioSynth';
 
 interface BGMControllerProps {
@@ -24,20 +24,6 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
     bgmEngine.toggleMute();
   };
 
-  const handleTrackSelect = (id: BGMTrackId) => {
-    bgmEngine.setTrack(id);
-    if (status.isMuted) {
-      bgmEngine.toggleMute();
-    }
-  };
-
-  const handleMaxVolume = () => {
-    bgmEngine.setVolume(1.0);
-    if (status.isMuted) {
-      bgmEngine.toggleMute();
-    }
-    audioSynth.playCoinFx();
-  };
 
   return (
     <div className={`bgm-control relative inline-flex items-center ${isMenuOpen ? 'is-open' : ''} ${compact ? 'is-compact' : ''} ${className}`}>
@@ -87,7 +73,7 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
           <div className="flex items-center justify-between border-b-2 border-amber-200 pb-2">
             <div className="flex items-center gap-1.5 text-xs font-cartoon text-amber-950">
               <Music className="w-4 h-4 text-amber-700" />
-              <span>FEEL-GOOD PUB TUNES</span>
+              <span>PUB MUSIC</span>
             </div>
             <button
               onClick={() => setIsMenuOpen(false)}
@@ -97,69 +83,27 @@ export const BGMController: React.FC<BGMControllerProps> = ({ compact = false, c
             </button>
           </div>
 
-          {/* Track options */}
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-black uppercase tracking-wider text-stone-600">
-              Select Tavern Soundtrack
-            </label>
-            {BGM_TRACKS.map((t) => {
-              const isSelected = t.id === status.currentTrackId;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => handleTrackSelect(t.id)}
-                  className={`w-full p-2 rounded-xl text-left flex items-center justify-between transition cursor-pointer border-2 ${
-                    isSelected
-                      ? 'bg-amber-100 border-amber-800 text-amber-950 shadow-sm font-bold'
-                      : 'bg-amber-50/70 border-amber-800/30 hover:bg-amber-100 text-stone-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{t.emoji}</span>
-                    <div>
-                      <div className="text-xs font-cartoon text-amber-950">{t.name}</div>
-                      <div className="text-[10px] text-stone-600 font-medium">{t.genre}</div>
-                    </div>
-                  </div>
-                  {isSelected && <Sparkles className="w-3.5 h-3.5 text-amber-700 shrink-0" />}
-                </button>
-              );
-            })}
+          <div className="rounded-xl border-2 border-amber-800/30 bg-amber-50/70 p-3 text-center">
+            <div className="text-xs font-cartoon text-amber-950">One gentle soundtrack</div>
+            <div className="mt-1 text-[10px] text-stone-600 font-medium">Plays softly through all 3 levels</div>
           </div>
 
-          {/* Volume Slider & Boost Button */}
+          {/* Quiet background music volume */}
           <div className="space-y-2 pt-1 border-t-2 border-amber-200">
             <div className="flex items-center justify-between text-[11px] font-bold text-stone-700">
-              <span>Volume Level</span>
+              <span>Music volume</span>
               <span className="font-mono text-amber-950 font-black">{Math.round(status.volume * 100)}%</span>
             </div>
             <input
               type="range"
               min={0}
-              max={1}
+              max={0.25}
               step={0.05}
               value={status.volume}
               onChange={(e) => bgmEngine.setVolume(parseFloat(e.target.value))}
               className="w-full accent-amber-600 h-2 bg-amber-200 rounded-lg cursor-pointer"
             />
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handleMaxVolume}
-                className="flex-1 py-1 px-2 rounded-xl cartoon-btn-amber text-[10px] font-cartoon flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <Volume2 className="w-3.5 h-3.5" />
-                <span>MAX VOLUME (100%)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => audioSynth.playCoinFx()}
-                className="py-1 px-2 rounded-xl bg-amber-100 hover:bg-amber-200 border-2 border-amber-800/50 text-[10px] font-bold text-stone-800 cursor-pointer"
-                title="Test SFX"
-              >
-                🔔 Test SFX
-              </button>
-            </div>
+
           </div>
 
         </div>

@@ -1,7 +1,7 @@
 // Procedural feel-good Web Audio background music engine for The Pub Quiz
 // 100% self-contained, no external MP3 dependencies, smooth looped progressions with on-screen mute control
 
-export type BGMTrackId = 'sunny_tavern' | 'cozy_lounge' | 'celtic_jig';
+export type BGMTrackId = 'sunny_tavern';
 
 export interface BGMTrackInfo {
   id: BGMTrackId;
@@ -14,10 +14,10 @@ export interface BGMTrackInfo {
 export const BGM_TRACKS: BGMTrackInfo[] = [
   {
     id: 'sunny_tavern',
-    name: 'Soft & Slow Pub Theme',
+    name: 'Main Pub Theme',
     emoji: '🎵',
     genre: 'Gentle, slowed instrumental',
-    tempoBpm: 83,
+    tempoBpm: 72,
   },
   {
     id: 'cozy_lounge',
@@ -89,7 +89,7 @@ class FeelGoodBGMManager {
   private filterNode: BiquadFilterNode | null = null;
   private mainTrackAudio: HTMLAudioElement | null = null;
   private isMuted: boolean = false;
-  private volume: number = 0.95; // boosted, rich audible volume
+  private volume: number = 0.12; // Quiet default so the soundtrack stays in the background
   private currentTrackId: BGMTrackId = 'sunny_tavern';
   private isPlaying: boolean = false;
   private loopTimer: number | null = null;
@@ -108,11 +108,11 @@ class FeelGoodBGMManager {
         if (storedVolume !== null) {
           const v = parseFloat(storedVolume);
           if (!isNaN(v) && v >= 0 && v <= 1) {
-            this.volume = Math.max(0.8, v); // Ensure healthy default volume
+            this.volume = Math.min(0.18, v); // Keep saved settings within a quiet range
           }
         }
         const storedTrack = localStorage.getItem('pubquiz_bgm_track');
-        if (storedTrack && (storedTrack === 'sunny_tavern' || storedTrack === 'cozy_lounge' || storedTrack === 'celtic_jig')) {
+        if (storedTrack && (storedTrack === 'sunny_tavern')) {
           this.currentTrackId = storedTrack;
         }
       } catch {
@@ -149,7 +149,7 @@ class FeelGoodBGMManager {
       this.filterNode.Q.setValueAtTime(1.0, this.ctx.currentTime);
 
       this.masterGain = this.ctx.createGain();
-      const effectiveVol = this.isMuted ? 0 : this.volume * 0.95; // increased, crystal clear volume
+      const effectiveVol = this.isMuted ? 0 : this.volume * 0.95; // Keep synthesized fallback music quiet
       this.masterGain.gain.setValueAtTime(effectiveVol, this.ctx.currentTime);
 
       this.filterNode.connect(this.masterGain);
@@ -189,6 +189,7 @@ class FeelGoodBGMManager {
       if (!this.mainTrackAudio) {
         this.mainTrackAudio = new Audio(`${import.meta.env.BASE_URL}pub-quiz-main-music-soft-slow.mp3`);
         this.mainTrackAudio.loop = true;
+        this.mainTrackAudio.playbackRate = 0.78;
         this.mainTrackAudio.preload = 'none';
       }
 
@@ -281,7 +282,7 @@ class FeelGoodBGMManager {
     }
     if (!this.masterGain || !this.ctx) return;
     const now = this.ctx.currentTime;
-    const target = this.isMuted ? 0.0001 : this.volume * 0.95;
+    const target = this.isMuted ? 0.0001 : this.volume;
     this.masterGain.gain.cancelScheduledValues(now);
     this.masterGain.gain.linearRampToValueAtTime(target, now + 0.15);
   }
