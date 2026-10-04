@@ -106,6 +106,7 @@ const DIFFICULTY_OPTIONS: {
 // blocked by the player's network. Fall back quickly instead of leaving the
 // launch animation looking like a button that did nothing.
 const ONLINE_QUESTION_TIMEOUT_MS = 8500;
+const DEVICE_QUESTION_TIMEOUT_MS = 15000;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_v1';
@@ -851,22 +852,36 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       // If the public trivia bank has run out of unseen questions, create a
       // fresh set locally on browsers with WebGPU support. The model is cached
       // by WebLLM after its first download on that device.
-      if (!questionsToPlay && !hasSavedQuestionSet && supportsOnDeviceQuizAI()) {
+      if (!questionsToPlay && supportsOnDeviceQuizAI()) {
+        let generationTimedOut = false;
+        let timeoutId: number | undefined;
         try {
           setLevelLaunchStatus('Creating fresh questions on this device…');
           setLevelLaunchProgress(0);
-          const deviceQuestions = await generateMediumGeneralKnowledgeQuestions(
-            onlineQuestionCount,
-            (progress, message) => {
-              // The model reports actual download progress, then question
-              // generation continues without a measurable percentage.
-              setLevelLaunchProgress(progress >= 100 ? null : progress);
-              setLevelLaunchStatus(message || 'Creating fresh questions on this device…');
-            },
-          );
+          const deviceQuestions = await Promise.race([
+            generateMediumGeneralKnowledgeQuestions(
+              onlineQuestionCount,
+              (progress, message) => {
+                if (generationTimedOut) return;
+                // The model reports actual download progress, then question
+                // generation continues without a measurable percentage.
+                setLevelLaunchProgress(progress >= 100 ? null : progress);
+                setLevelLaunchStatus(message || 'Creating fresh questions on this device…');
+              },
+            ),
+            new Promise<Question[]>((_, reject) => {
+              timeoutId = window.setTimeout(() => {
+                generationTimedOut = true;
+                reject(new Error('On-device question generation timed out.'));
+              }, DEVICE_QUESTION_TIMEOUT_MS);
+            }),
+          ]);
           questionsToPlay = prepareAttemptQuestions(deviceQuestions, count);
         } catch (err) {
           console.warn('On-device questions unavailable, using the offline question vault.', err);
+        } finally {
+          generationTimedOut = true;
+          if (timeoutId !== undefined) window.clearTimeout(timeoutId);
         }
       }
 
