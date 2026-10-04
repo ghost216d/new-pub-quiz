@@ -15,6 +15,7 @@ import {
 import { ShopBundle, SoloProgression } from '../types';
 import { SHOP_BUNDLES } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
+import { hasClaimedDailyReward } from '../utils/dailyReward';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -36,6 +37,7 @@ export const TavernShopModal: React.FC<Props> = ({
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const dailyGiftClaimed = hasClaimedDailyReward(progression.lastDailyBonus);
 
   useEffect(() => {
     if (isOpen) setActiveTab(initialTab);
@@ -44,6 +46,10 @@ export const TavernShopModal: React.FC<Props> = ({
   if (!isOpen) return null;
 
   const handleBuyBundle = (bundle: ShopBundle) => {
+    if (bundle.id === 'free_daily_keg' && dailyGiftClaimed) {
+      setSuccessNotice('You have already claimed today’s gift. Come back tomorrow!');
+      return;
+    }
     setPurchasingId(bundle.id);
 
     // If costs coins (e.g. buying lives with coins)
@@ -414,13 +420,14 @@ export const TavernShopModal: React.FC<Props> = ({
                   </div>
 
                   <button
+                    disabled={dailyGiftClaimed || purchasingId === 'free_daily_keg'}
                     onClick={() => {
                       const daily = SHOP_BUNDLES.find((b) => b.id === 'free_daily_keg');
                       if (daily) handleBuyBundle(daily);
                     }}
-                    className="w-full sm:w-auto px-3 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md border border-emerald-800 transition cursor-pointer whitespace-normal text-center"
+                    className="w-full sm:w-auto px-3 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-stone-300 disabled:text-stone-600 text-slate-950 font-black text-xs shadow-md border border-emerald-800 transition cursor-pointer disabled:cursor-not-allowed whitespace-normal text-center"
                   >
-                    Claim Free Gift
+                    {dailyGiftClaimed ? 'Claimed today' : purchasingId === 'free_daily_keg' ? 'Crediting...' : 'Claim Free Gift'}
                   </button>
                 </div>
               </div>
