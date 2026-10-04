@@ -111,6 +111,7 @@ const buildLocalQuestions = (
   const name = level.pubName || level.name;
   const address = level.address || level.name;
   const postcode = level.postcode || 'London';
+  const routeIcons = CARTOON_MAPS.flatMap((route) => route.levels.map((stop) => stop.icon));
   const category = level.category || 'London pub history';
   const description = level.description || `${name} is one of the pubs on the ${map.name} route.`;
   const funFact = level.funFact || `${name} is a stop on the London pub trail.`;
@@ -131,7 +132,9 @@ const buildLocalQuestions = (
       options: stableOptions(answer, optionPool, levelIndex * 10 + slot),
       correctAnswer: answer,
       acceptableAnswers: [answer.toLowerCase()],
-      explanation: `The route entry for ${name} lists ${answer}.`,
+      explanation: slot === 2
+        ? `The pub trail map marks ${name} with ${answer}.`
+        : `The route entry for ${name} lists ${answer}.`,
       difficulty,
       points: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20,
       timeLimitSec: difficulty === 'easy' ? 30 : difficulty === 'medium' ? 35 : 40,
@@ -148,7 +151,7 @@ const buildLocalQuestions = (
   return [
     make(`Which postcode is listed for ${name} on the ${map.name} route?`, postcode, PUB_POSTCODES, 0),
     make(`The pub ${name} is part of which route?`, map.name, MAP_NAMES, 1),
-    make(`Which London postcode area is listed for ${name}?`, postcodeArea, PUB_POSTCODE_AREAS, 2),
+    make(`What emblem marks ${name} on the pub trail map?`, level.icon, routeIcons, 2),
     make(`The address “${address}” belongs to which pub?`, name, PUB_NAMES, 3),
     make(`Which local topic is paired with ${name}?`, category, PUB_CATEGORIES, 4),
     make(`Which pub matches this local description? “${description}”`, name, PUB_NAMES, 5),
