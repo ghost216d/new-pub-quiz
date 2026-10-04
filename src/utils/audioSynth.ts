@@ -256,164 +256,78 @@ class AudioSynthManager {
     source.stop(startTime + duration);
   }
 
-  // Correct answer: a bright, ascending major-chord chime.
-  playCorrectFx() {
+  private effectAudio = new Map<string, HTMLAudioElement>();
+
+  private playAsset(file: string, volume: number = 0.55) {
     try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      this.playPubTone(ctx, 523.25, now, 0.2, 0.075, 'sine');
-      this.playPubTone(ctx, 659.25, now + 0.09, 0.22, 0.07, 'sine');
-      this.playPubTone(ctx, 783.99, now + 0.18, 0.3, 0.065, 'sine');
+      if (typeof Audio === 'undefined') return;
+      let audio = this.effectAudio.get(file);
+      if (!audio) {
+        audio = new Audio(`${import.meta.env.BASE_URL}audio/${file}`);
+        audio.preload = 'auto';
+        this.effectAudio.set(file, audio);
+      }
+      audio.volume = volume;
+      audio.currentTime = 0;
+      void audio.play().catch(() => {});
     } catch {
-      // Audio autoplay guard
+      // Keep sound effects optional when audio is unavailable.
     }
+  }
+
+  // Correct answer: a short bonus reward sound.
+  playCorrectFx() {
+    this.playAsset('mixkit-bonus-earned-in-video-game-2058.mp3', 0.55);
   }
 
   // Button press: a soft, cheerful two-note tone that rises in pitch.
   playCoinFx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      this.playPubTone(ctx, 523.25, now, 0.12, 0.075, 'sine', 587.33);
-      this.playPubTone(ctx, 659.25, now + 0.075, 0.18, 0.065, 'sine', 783.99);
-    } catch {
-      // Audio autoplay guard
-    }
+    this.playAsset('mixkit-extra-bonus-in-a-video-game-2045.mp3', 0.32);
   }
 
   // Life lost: a muted wooden thud with a low, soft descending tone.
   playLifeLostFx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      this.playWoodTap(ctx, now, 0.09);
-      this.playPubTone(ctx, 190, now + 0.015, 0.28, 0.055, 'sine', 118);
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-negative-guitar-tone-2324.mp3', 0.48);
   }
 
   // Star earned: three light glass taps.
   playStarFx(index: number = 0) {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      const pitch = [0.92, 1, 1.12][index % 3] || 1;
-      this.playGlassClink(ctx, now, pitch, 0.075);
-      this.playGlassClink(ctx, now + 0.12, pitch * 1.08, 0.065);
-      this.playGlassClink(ctx, now + 0.24, pitch * 1.16, 0.055);
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-casino-bling-achievement-2067.mp3', 0.55);
   }
 
   // Purchase: a quiet till-like wooden click and two quick pint clinks.
   playPurchaseFx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      this.playWoodTap(ctx, now, 0.07);
-      this.playGlassClink(ctx, now + 0.1, 0.94, 0.07);
-      this.playGlassClink(ctx, now + 0.23, 1.08, 0.06);
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-video-game-treasure-2066.mp3', 0.55);
   }
 
   // Wrong answer: a short, low, descending "wah-wah" cue.
   playWrongFx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      this.playPubTone(ctx, 392, now, 0.2, 0.075, 'triangle', 330);
-      this.playPubTone(ctx, 311.13, now + 0.12, 0.26, 0.065, 'triangle', 261.63);
-    } catch {
-      // Audio autoplay guard
-    }
+    this.playAsset('mixkit-negative-guitar-tone-2324.mp3', 0.48);
   }
 
   // Level complete: a warm pub-style major arpeggio that climbs to a bright finish.
   playMilestoneFanfare() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      const risingNotes = [
-        { frequency: 392, offset: 0, duration: 0.24 },
-        { frequency: 523.25, offset: 0.14, duration: 0.26 },
-        { frequency: 659.25, offset: 0.28, duration: 0.28 },
-        { frequency: 783.99, offset: 0.42, duration: 0.3 },
-        { frequency: 1046.5, offset: 0.56, duration: 0.46 },
-      ];
-
-      risingNotes.forEach(({ frequency, offset, duration }) => {
-        this.playPubTone(ctx, frequency, now + offset, duration, 0.075, 'sine');
-      });
-
-      // A soft held G-major chord gives the final note a fuller, celebratory finish.
-      [392, 493.88, 587.33].forEach((frequency) => {
-        this.playPubTone(ctx, frequency, now + 0.62, 0.48, 0.025, 'triangle');
-      });
-      this.playGlassClink(ctx, now + 0.72, 1.08, 0.045);
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-game-level-completed-2059.mp3', 0.55);
   }
 
   // Knockout: a quiet three-note last-orders bell.
   playKnockoutGong() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      [880, 740, 587].forEach((frequency, index) => {
-        const at = now + index * 0.32;
-        this.playPubTone(ctx, frequency, at, 0.48, 0.045);
-        this.playPubTone(ctx, frequency * 2.01, at, 0.35, 0.018);
-      });
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-ominous-drums-227.mp3', 0.55);
   }
 
   // Champion: warm pub-chord notes under a celebratory group clink.
   playChampionFanfare() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      [196, 247, 294, 392].forEach((frequency, index) => {
-        this.playPubTone(ctx, frequency, now + index * 0.09, 0.68, 0.045);
-      });
-      [0.08, 0.22, 0.36].forEach((offset, index) => {
-        this.playGlassClink(ctx, now + offset, 0.92 + index * 0.12, 0.075);
-      });
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-completion-of-a-level-2063.mp3', 0.55);
   }
 
   // Entering the map: a pub-door bell followed by a quiet pint clink.
   playFunnyEntranceSfx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      this.playPubTone(ctx, 1046, now, 0.28, 0.045);
-      this.playPubTone(ctx, 1318, now + 0.11, 0.34, 0.04);
-      this.playGlassClink(ctx, now + 0.32, 0.96, 0.06);
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-unlock-game-notification-253.mp3', 0.55);
   }
 
   // Life restored: a soft pour and the sound of a glass being set down.
   playLifeRegenSfx() {
-    try {
-      const ctx = this.initCtx();
-      const now = ctx.currentTime;
-      this.playSoftPour(ctx, now);
-      this.playWoodTap(ctx, now + 0.25, 0.035);
-      this.playGlassClink(ctx, now + 0.34, 1.08, 0.07);
-    } catch {
-      // Audio guard
-    }
+    this.playAsset('mixkit-game-experience-level-increased-2062.mp3', 0.55);
   }
 
   // Stop currently playing melody
