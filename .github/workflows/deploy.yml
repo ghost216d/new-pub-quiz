@@ -37,6 +37,9 @@ jobs:
       - name: Check AI question novelty and retry
         run: npm run test:ai-questions
 
+      - name: Check daily reward limit
+        run: npm run test:daily-reward
+
       - name: Build app
         run: npm run build
         env:
