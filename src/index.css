@@ -1090,6 +1090,12 @@ button, a, input, select {
   box-shadow: 0 3px 0 #78716c;
 }
 
+.game-realm-tab small {
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .game-realm-tab.is-selected {
   border-color: #92400e;
   background: linear-gradient(180deg, #fbbf24, #d97706);

@@ -118,16 +118,17 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     [allMaps, progression.completedLevels]
   );
 
-  // Future stages are not rendered at all until every level in the stages
-  // before them has been completed.
-  const visibleMaps = allMaps.filter(isMapUnlocked);
+  // Keep locked routes visible so players can see the full 20-stop journey.
+  // They remain unselectable until the previous route is complete.
+  const unlockedMaps = allMaps.filter(isMapUnlocked);
+  const visibleMaps = allMaps;
   const activeMap =
-    visibleMaps.find((map) => map.id === activeMapId) ||
-    visibleMaps[visibleMaps.length - 1] ||
+    unlockedMaps.find((map) => map.id === activeMapId) ||
+    unlockedMaps[unlockedMaps.length - 1] ||
     allMaps[0] ||
     CARTOON_MAPS[0];
 
-  const activeMapIndex = visibleMaps.findIndex(
+  const activeMapIndex = allMaps.findIndex(
     (map) => map.id === activeMap.id
   );
   const londonTheme = getLondonTheme();
@@ -200,6 +201,15 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     return 1;
   })();
+  const campaignRouteIndex = CARTOON_MAPS.findIndex((map) => map.id === activeMap.id);
+  const campaignLevelTotal = CARTOON_MAPS.reduce((count, map) => count + map.levels.length, 0);
+  const campaignLevelOffset = CARTOON_MAPS
+    .slice(0, Math.max(0, campaignRouteIndex))
+    .reduce((count, map) => count + map.levels.length, 0);
+  const campaignCurrentLevel = campaignRouteIndex >= 0
+    ? Math.min(campaignLevelTotal, campaignLevelOffset + currentLevelNumber)
+    : currentLevelNumber;
+  const campaignRouteNumber = campaignRouteIndex >= 0 ? campaignRouteIndex + 1 : activeMapIndex + 1;
   const currentPositionLevel = activeMap.levels.find(
     (level) => level.levelNumber === currentLevelNumber
   ) || activeMap.levels[activeMap.levels.length - 1];
@@ -310,7 +320,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     const nextIndex = activeMapIndex + direction;
     const nextMap = visibleMaps[nextIndex];
 
-    if (!nextMap) return;
+    if (!nextMap || !isMapUnlocked(nextMap)) return;
 
     setActiveMapId(nextMap.id);
     setSelectedLevel(null);
@@ -318,6 +328,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   };
 
   const selectMap = (map: CartoonMap) => {
+    if (!isMapUnlocked(map)) return;
     setActiveMapId(map.id);
     setSelectedLevel(null);
     audioSynth.playCoinFx();
@@ -534,7 +545,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
             className="game-realm-toggle"
             onClick={() => setIsRealmPanelExpanded((expanded) => !expanded)}
             aria-expanded={isRealmPanelExpanded}
-            aria-label={isRealmPanelExpanded ? 'Minimise map information' : 'Expand map information'}
+            aria-label={isRealmPanelExpanded ? 'Minimise map information' : `Level ${campaignCurrentLevel} of ${campaignLevelTotal} across ${CARTOON_MAPS.length} routes`}
           >
             {isRealmPanelExpanded ? (
               <>
@@ -542,21 +553,22 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                 <span className="game-realm-title-copy">
                   <strong>{activeMap.name}</strong>
                   <small>{activeMap.subtitle}</small>
+                  <small>Level {campaignCurrentLevel} of {campaignLevelTotal} · Route {campaignRouteNumber} of {CARTOON_MAPS.length}</small>
                 </span>
                 <ChevronDown aria-hidden="true" />
               </>
             ) : (
-              <><span className="game-realm-collapsed-label">MAP</span><ChevronUp aria-hidden="true" /></>
+              <><span className="game-realm-collapsed-label">{campaignCurrentLevel} / {campaignLevelTotal}</span><ChevronUp aria-hidden="true" /></>
             )}
           </button>
 
           <button
             onClick={() => changeMap(1)}
             disabled={
-              activeMapIndex >= visibleMaps.length - 1
+              activeMapIndex >= visibleMaps.length - 1 || !isMapUnlocked(visibleMaps[activeMapIndex + 1])
             }
             className="game-map-arrow"
-            aria-label="Next world area" title={activeMapIndex < visibleMaps.length - 1 ? `Next: ${visibleMaps[activeMapIndex + 1].name}` : "No next area"}
+            aria-label="Next world area" title={activeMapIndex < visibleMaps.length - 1 && isMapUnlocked(visibleMaps[activeMapIndex + 1]) ? `Next: ${visibleMaps[activeMapIndex + 1].name}` : "Complete this route to unlock the next area"}
           >
             <ChevronRight className="w-5 h-5" aria-hidden="true" /><span className="game-map-arrow-label">NEXT</span>
           </button>
@@ -565,18 +577,24 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         {isRealmPanelExpanded && <div className="game-realm-tabs">
           {visibleMaps.map((map) => {
             const selected = map.id === activeMap.id;
+            const unlocked = isMapUnlocked(map);
 
             return (
               <button
                 key={map.id}
+                type="button"
+                disabled={!unlocked}
                 onClick={() => selectMap(map)}
                 className={[
                   'game-realm-tab',
                   selected ? 'is-selected' : '',
+                  !unlocked ? 'is-locked' : '',
                 ].join(' ')}
-                aria-label={map.name}
+                aria-label={`${map.name}, ${unlocked ? 'unlocked' : 'locked'}, ${map.levels.length} levels`}
+                title={`${map.name} · ${map.levels.length} levels · ${unlocked ? 'unlocked' : 'locked'}`}
               >
                 <span>{map.icon}</span>
+                <small>{map.levels.length}</small>
               </button>
             );
           })}
@@ -584,7 +602,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
         {isRealmPanelExpanded && <p className="game-auto-difficulty-note">
           <Sparkles className="w-4 h-4" />
-          Tap a pub marker to play. Questions stay fresh and never repeat.
+          20 pub stops across 4 London routes. Finish each route’s 5 levels to unlock the next.
         </p>}
       </section>
       </aside>
@@ -673,8 +691,8 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                 type="button"
                 aria-label={
                   unlocked
-                    ? `Play ${level.pubName || level.name}`
-                    : `Locked level ${level.levelNumber}: ${level.pubName || level.name}`
+                    ? `Play level ${campaignLevelOffset + level.levelNumber} of ${campaignLevelTotal}: ${level.pubName || level.name}`
+                    : `Locked level ${campaignLevelOffset + level.levelNumber} of ${campaignLevelTotal}: ${level.pubName || level.name}`
                 }
                 onPointerDown={(event) => {
                   // The current node gently bounces. Starting on pointer-down
@@ -768,8 +786,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
             <div>
               <small>
-                Pub stop {selectedLevel.levelNumber} of{' '}
-                {activeMap.levels.length}
+                Level {campaignLevelOffset + selectedLevel.levelNumber} of {campaignLevelTotal} · Pub stop {selectedLevel.levelNumber} of {activeMap.levels.length}
               </small>
 
               <h3>
