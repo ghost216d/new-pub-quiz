@@ -6836,3 +6836,62 @@ body,
     overflow: visible !important;
   }
 }
+
+/* Final mobile title/transition fixes after the app-wide theme cascade. */
+@media (max-width: 899px) {
+  #root .app-shell.role-solo .game-top-bar {
+    padding-right: clamp(190px, 44vw, 230px) !important;
+  }
+}
+
+#root .app-shell.role-solo .solo-stage-transition-title-card {
+  top: 27% !important;
+  width: min(88vw, 520px) !important;
+  padding: clamp(18px, 5vw, 30px) clamp(16px, 5vw, 28px) !important;
+  border: 4px solid #191919 !important;
+  border-radius: 28px !important;
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.98), rgba(255, 236, 190, 0.97)) !important;
+  box-shadow: 0 7px 0 #7f1d1d, 0 14px 28px rgba(15, 23, 42, 0.28) !important;
+}
+
+#root .app-shell.role-solo .solo-stage-transition-title-card > span:first-child {
+  color: #7f1d1d !important;
+  font-size: clamp(11px, 3vw, 15px) !important;
+}
+
+#root .app-shell.role-solo .solo-stage-transition-title-card strong {
+  color: #202020 !important;
+  font-size: clamp(28px, 8vw, 48px) !important;
+}
+
+#root .app-shell.role-solo .solo-stage-transition-title-card small {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 9px !important;
+  color: #45220f !important;
+  font-size: clamp(15px, 4.2vw, 22px) !important;
+}
+
+#root .app-shell.role-solo .solo-stage-transition-title-card small:last-child {
+  margin-top: 4px !important;
+  color: #70421f !important;
+  font-size: clamp(11px, 3vw, 15px) !important;
+}
+
+#root .app-shell.role-solo .solo-stage-transition-icon {
+  display: inline !important;
+  margin: 0 !important;
+  font-size: 1.25em !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+@media (max-width: 899px) {
+  #root .app-shell.role-solo .solo-stage-transition-title-card {
+    top: 25% !important;
+    border-width: 3px !important;
+    border-radius: 22px !important;
+  }
+}
