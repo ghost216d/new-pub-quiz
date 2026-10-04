@@ -105,6 +105,7 @@ const DIFFICULTY_OPTIONS: {
 const ONLINE_QUESTION_TIMEOUT_MS = 8500;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
+const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_v1';
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
 
 type CompletionTransition = {
@@ -170,6 +171,33 @@ const readMissedQuestions = (): MissedQuestion[] => {
 
 const saveMissedQuestions = (questions: MissedQuestion[]) => {
   localStorage.setItem(MISSED_QUESTIONS_KEY, JSON.stringify(questions.slice(-100)));
+};
+
+const readFixedLevelQuestions = (levelId: string): Question[] => {
+  try {
+    const sets = JSON.parse(localStorage.getItem(FIXED_LEVEL_QUESTIONS_KEY) || '{}');
+    const questions = sets && typeof sets === 'object' ? sets[levelId] : undefined;
+    return Array.isArray(questions)
+      ? questions.filter((question): question is Question => Boolean(question && typeof question.prompt === 'string' && Array.isArray(question.options)))
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveFixedLevelQuestions = (levelId: string, questions: Question[]) => {
+  try {
+    const sets = JSON.parse(localStorage.getItem(FIXED_LEVEL_QUESTIONS_KEY) || '{}');
+    const safeSets = sets && typeof sets === 'object' ? sets : {};
+    localStorage.setItem(FIXED_LEVEL_QUESTIONS_KEY, JSON.stringify({ ...safeSets, [levelId]: questions.slice(0, 10) }));
+  } catch {
+    // A pub still starts normally when browser storage is unavailable.
+  }
+};
+
+const retireFixedLevelQuestion = (levelId: string, question: Question) => {
+  const key = questionKey(question);
+  saveFixedLevelQuestions(levelId, readFixedLevelQuestions(levelId).filter((item) => questionKey(item) !== key));
 };
 
 const rememberMissedQuestion = (question: Question, levelId: string) => {
@@ -245,6 +273,34 @@ const prepareAttemptQuestions = (
 
 // Solo mode never serves audio-dependent questions. Quiz Master keeps its
 // music rounds, while Solo uses standard trivia and dedicated picture puzzles.
+const orderCampaignQuestions = (questions: Question[]): Question[] => {
+  const isPicture = (question: Question) => /emoji picture|photo round/i.test(question.category);
+  const isSpecial = (question: Question) => /world flags|animals & nature/i.test(question.category);
+  const regular = shuffleItems(questions.filter((question) => !isPicture(question) && !isSpecial(question)));
+  const pictures = shuffleItems(questions.filter(isPicture));
+  const special = shuffleItems(questions.filter(isSpecial));
+  const ordered: Question[] = [];
+  const take = (pool: Question[]) => { const question = pool.shift(); if (question) ordered.push(question); };
+
+  // Keep the same relaxed-to-challenging arc at every pub, while spreading
+  // picture and special rounds through the first two difficulty bands.
+  take(regular); take(pictures); take(regular);
+  take(regular); take(special); take(pictures); take(regular);
+  take(regular); take(regular); take(regular);
+  ordered.push(...regular, ...pictures, ...special);
+
+  return ordered.slice(0, 10).map((question, index) => {
+    const difficulty: QuizDifficulty = index < 3 ? 'easy' : index < 7 ? 'medium' : 'hard';
+    return {
+      ...question,
+      difficulty,
+      points: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20,
+      timeLimitSec: difficulty === 'easy' ? 30 : difficulty === 'medium' ? 35 : 40,
+      options: question.options ? shuffleItems(question.options) : question.options,
+    };
+  });
+};
+
 const getProceduralBackupQuestions = (): Question[] => Array.from({ length: 400 }, (_, index) => {
   const hard = index % 2 === 1;
   // Keep emergency maths suitable for a social pub quiz. Cycling through
@@ -583,10 +639,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     preloadPhotoRoundImages();
     if (!navigator.onLine || prefetchedQuestionSetsRef.current.has(level.id)) return;
 
-    const totalCount = level.questionCount || 5;
+    const totalCount = level.questionCount || 10;
+    if (readFixedLevelQuestions(level.id).length >= totalCount) return;
+    const cachedCount = readFixedLevelQuestions(level.id).length;
     const pictureCount = Math.min(totalCount, Math.max(1, Math.floor(totalCount / 5)));
     const curatedCount = Math.min(1, Math.max(0, totalCount - pictureCount));
-    const request = loadMediumGeneralKnowledgeQuestions(totalCount - pictureCount - curatedCount);
+    const missingCount = Math.min(totalCount - pictureCount - curatedCount, Math.max(0, totalCount - cachedCount));
+    if (missingCount <= 0) return;
+    const request = loadMediumGeneralKnowledgeQuestions(missingCount);
     prefetchedQuestionSetsRef.current.set(level.id, request);
     void request.catch(() => {
       if (prefetchedQuestionSetsRef.current.get(level.id) === request) {
@@ -705,21 +765,22 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setLevelLaunchProgress(null);
 
     try {
-      const count = level.questionCount || 5;
+      const count = level.questionCount || 10;
+      const cachedQuestions = readFixedLevelQuestions(level.id);
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
       const onlineQuestionCount = Math.max(0, triviaCount - curatedCount);
-      let questionsToPlay: Question[] | null = null;
+      let questionsToPlay: Question[] | null = cachedQuestions.length >= count ? cachedQuestions.slice(0, count) : null;
 
       // 1. Fetch fresh Internet questions. The online session token and local
       // seen-question history prevent repeats across levels and later visits.
-      if (navigator.onLine) {
+      if (!questionsToPlay && navigator.onLine) {
         try {
           const pendingQuestions = prefetchedQuestionSetsRef.current.get(level.id);
           const onlineQuestions = pendingQuestions
             ? await pendingQuestions
-            : await loadMediumGeneralKnowledgeQuestions(onlineQuestionCount);
+            : await loadMediumGeneralKnowledgeQuestions(Math.min(onlineQuestionCount, Math.max(1, count - cachedQuestions.length)));
           prefetchedQuestionSetsRef.current.delete(level.id);
           const attemptQuestions = prepareAttemptQuestions(onlineQuestions, count);
           if (attemptQuestions.length >= count) questionsToPlay = attemptQuestions;
@@ -779,8 +840,15 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         throw new Error('No quiz questions were available for this pub.');
       }
 
-      setQuestions(questionsToPlay);
-      initGame(questionsToPlay);
+      const fixedQuestions = cachedQuestions.length >= count
+        ? cachedQuestions.slice(0, count)
+        : orderCampaignQuestions(
+            dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
+          );
+      if (fixedQuestions.length < count) throw new Error('This pub does not have enough distinct questions yet.');
+      saveFixedLevelQuestions(level.id, fixedQuestions);
+      setQuestions(fixedQuestions);
+      initGame(fixedQuestions);
       setViewMode('quiz');
     } catch (error) {
       console.error('Unable to start this pub quiz.', error);
@@ -914,6 +982,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       setScore((s) => s + pts);
       setCorrectCount((count) => count + 1);
       forgetMasteredQuestion(currentQ);
+      if (activeLevel) retireFixedLevelQuestion(activeLevel.id, currentQ);
       markQuestionMastered(currentQ.prompt);
       setStreak((st) => st + 1);
 
