@@ -1027,12 +1027,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const targetLevel = nextTarget
         ? targetMap?.levels.find((level) => level.id === nextTarget.levelId)
         : undefined;
-      // Levels 1–20 have designed portrait covers. Later levels use their
-      // own route artwork behind a matching level/pub title card.
+      // Every campaign stop has its own illustrated pub cover.
       const hasMatchingCoverArtwork = Boolean(
-        targetLevel?.coverArtwork &&
-        targetLevel.artworkLevelNumber &&
-        targetLevel.artworkLevelNumber <= 20
+        targetLevel?.coverArtwork && targetLevel.artworkLevelNumber
       );
       const nextArtwork = hasMatchingCoverArtwork
         ? targetLevel?.coverArtwork
