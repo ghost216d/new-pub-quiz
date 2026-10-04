@@ -795,9 +795,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         ? readFixedLevelQuestions(level.id)
         : authoredQuestions || readFixedLevelQuestions(level.id);
       const questionHistory = getQuestionHistory();
-      const cachedQuestions = storedQuestions.filter((question) =>
-        !questionHistory.some((previous) => areQuestionPromptsSimilar(question.prompt, previous)),
-      );
+      // Once a pub has its own saved set, replay that set from local
+      // storage immediately. Cross-pub history still filters questions when
+      // a new pub needs to be generated.
+      const cachedQuestions = hasSavedQuestionSet
+        ? dedupeSimilarQuestions(storedQuestions)
+        : storedQuestions.filter((question) =>
+            !questionHistory.some((previous) => areQuestionPromptsSimilar(question.prompt, previous)),
+          );
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
@@ -1041,7 +1046,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       setScore((s) => s + pts);
       setCorrectCount((count) => count + 1);
       forgetMasteredQuestion(currentQ);
-      if (activeLevel) retireFixedLevelQuestion(activeLevel.id, currentQ);
+      // Keep this pub’s fixed set saved so later visits open without generation.
       markQuestionMastered(currentQ.prompt);
       setStreak((st) => st + 1);
 
