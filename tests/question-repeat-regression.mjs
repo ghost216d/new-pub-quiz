@@ -138,7 +138,7 @@ const recoveredQuestions = await getOnlineTriviaQuestions({
 assert.equal(recoveredQuestions.length, 1, 'questions should load after replacing an expired token');
 assert.equal(apiRequests.length, 3, 'expired token should trigger one new token request and one retry');
 assert.match(apiRequests[2], /token=fresh-token/, 'retry should use the new token');
-assert.match(apiRequests[1], /category=9/, 'unknown categories should be constrained to General Knowledge rather than every trivia category');
+assert.match(apiRequests[0], /category=9/, 'unknown categories should be constrained to General Knowledge rather than every trivia category');
 globalThis.fetch = originalFetch;
 if (originalDocument === undefined) delete globalThis.document;
 else globalThis.document = originalDocument;
