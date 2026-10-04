@@ -52,7 +52,7 @@ for (const [levelId, category] of [
   assert.equal(questions.every((question) => question.category === category), true,
     `${levelId} questions should match the stage category`);
   assert.deepEqual(questions.map((question) => question.difficulty), [
-    'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard',
+    'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard', 'hard',
   ], `${levelId} questions should progress from easy to hard`);
 }
 
