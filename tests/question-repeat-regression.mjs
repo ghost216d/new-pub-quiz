@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { CARTOON_MAPS } from '../src/data/cartoonMapsData.ts';
 import { DEFAULT_ROUNDS } from '../src/data/defaultQuestions.ts';
+import { CATEGORY_VAULT } from '../src/data/defaultQuestions.ts';
+import { normalizeSoloCategory } from '../src/utils/soloCategories.ts';
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../src/data/pubClassicsQuestions.ts';
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../src/data/campaignLevelQuestions.ts';
 import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
@@ -38,6 +40,8 @@ campaignLevels.forEach(({ map, level }, index) => {
   }
 });
 
+assert.equal(normalizeSoloCategory('Brixton, Effra Hall & Brixton Market', CATEGORY_VAULT), CATEGORY_VAULT[0].name,
+  'a campaign location must not persist as an invalid Solo category');
 const pictureRound = DEFAULT_ROUNDS.find((round) => round.type === 'picture');
 assert.ok(pictureRound, 'Quiz Master should include a picture round');
 assert.equal(pictureRound.questions.length, 3, 'picture round should contain three picture questions');
@@ -127,13 +131,14 @@ globalThis.fetch = async (input) => {
 };
 
 const recoveredQuestions = await getOnlineTriviaQuestions({
-  category: 'General Knowledge',
+  category: 'Brixton, Effra Hall & Brixton Market',
   count: 1,
   difficulty: 'medium',
 });
 assert.equal(recoveredQuestions.length, 1, 'questions should load after replacing an expired token');
 assert.equal(apiRequests.length, 3, 'expired token should trigger one new token request and one retry');
 assert.match(apiRequests[2], /token=fresh-token/, 'retry should use the new token');
+assert.match(apiRequests[1], /category=9/, 'unknown categories should be constrained to General Knowledge rather than every trivia category');
 globalThis.fetch = originalFetch;
 if (originalDocument === undefined) delete globalThis.document;
 else globalThis.document = originalDocument;
