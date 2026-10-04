@@ -110,6 +110,7 @@ const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_v1';
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
+const PUB_LOADING_SCREEN_DURATION_MS = 3000;
 
 type CompletionTransition = {
   phase: 'loading';
@@ -773,7 +774,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     isStartingLevelRef.current = true;
     setIsLoading(true);
     setLevelLaunchError(null);
-    setLevelLaunchStatus('Getting fresh questions…');
+    setLevelLaunchStatus('Opening your pub…');
     setLevelLaunchProgress(null);
 
     try {
@@ -861,6 +862,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
             );
       if (fixedQuestions.length < count) throw new Error('This pub does not have enough distinct questions yet.');
+      setLevelLaunchStatus('Your questions are ready — opening the quiz…');
+      await new Promise<void>((resolve) => window.setTimeout(resolve, PUB_LOADING_SCREEN_DURATION_MS));
       saveFixedLevelQuestions(level.id, fixedQuestions);
       setQuestions(fixedQuestions);
       initGame(fixedQuestions);
@@ -992,7 +995,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   };
 
   const handleSelectAnswer = (option: string) => {
-    if (isAnswerRevealed || gameOver || isOutOfLivesModalOpen) return;
+    if (isStartingLevelRef.current || isAnswerRevealed || gameOver || isOutOfLivesModalOpen) return;
     const currentQ = questions[currentIdx];
     setSelectedAnswer(option);
     setIsAnswerRevealed(true);
@@ -1282,7 +1285,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             <div className="solo-stage-transition-title">
               <span>Loading pub quiz</span>
               <strong>{activeLevel.pubName || activeLevel.name}</strong>
-              <small>Fresh questions are being prepared</small>
+              <small>Loading this pub’s saved questions</small>
             </div>
             <div className="solo-pub-loading-panel">
               <div className="solo-pub-loading-copy">
