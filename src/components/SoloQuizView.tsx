@@ -768,7 +768,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
     try {
       const count = level.questionCount || 10;
-      const cachedQuestions = CAMPAIGN_LEVEL_QUESTIONS[level.id] || readFixedLevelQuestions(level.id);
+      const authoredQuestions = CAMPAIGN_LEVEL_QUESTIONS[level.id];
+      const cachedQuestions = authoredQuestions || readFixedLevelQuestions(level.id);
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
@@ -842,11 +843,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         throw new Error('No quiz questions were available for this pub.');
       }
 
-      const fixedQuestions = cachedQuestions.length >= count
-        ? cachedQuestions.slice(0, count)
-        : orderCampaignQuestions(
-            dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
-          );
+      const fixedQuestions = authoredQuestions
+        ? authoredQuestions.slice(0, count)
+        : cachedQuestions.length >= count
+          ? cachedQuestions.slice(0, count)
+          : orderCampaignQuestions(
+              dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
+            );
       if (fixedQuestions.length < count) throw new Error('This pub does not have enough distinct questions yet.');
       saveFixedLevelQuestions(level.id, fixedQuestions);
       setQuestions(fixedQuestions);
