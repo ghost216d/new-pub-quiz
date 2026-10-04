@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { CARTOON_MAPS } from '../src/data/cartoonMapsData.ts';
 import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 
 const storage = new Map();
@@ -6,6 +8,31 @@ globalThis.localStorage = {
   getItem: (key) => storage.get(key) ?? null,
   setItem: (key, value) => storage.set(key, String(value)),
 };
+
+const campaignLevels = CARTOON_MAPS.flatMap((map) => map.levels.map((level) => ({ map, level })));
+assert.equal(campaignLevels.length, 70, 'all 70 campaign levels should have transition artwork');
+campaignLevels.forEach(({ map, level }, index) => {
+  const artworkId = String(index + 1).padStart(2, '0');
+  assert.equal(level.artworkLevelNumber, index + 1, 'artwork numbering should follow campaign order');
+  assert.ok(level.name && level.pubName, `level ${index + 1} should have both area and pub names`);
+  assert.ok(level.mapArtwork, `level ${index + 1} should have matching destination artwork`);
+  assert.ok(level.coverArtwork, `level ${index + 1} should have a transition artwork source`);
+  assert.ok(existsSync(new URL(`../public/${level.mapArtwork}`, import.meta.url)),
+    `level ${index + 1} map artwork should exist: ${level.mapArtwork}`);
+  assert.ok(existsSync(new URL(`../public/${level.coverArtwork}`, import.meta.url)),
+    `level ${index + 1} cover artwork should exist: ${level.coverArtwork}`);
+  if (index < 20) {
+    assert.equal(level.coverArtwork, `level-${artworkId}-cover.webp`,
+      `level ${index + 1} should use its matching designed cover`);
+    assert.equal(level.mapArtwork, `level-${artworkId}-map-no-route.webp`,
+      `level ${index + 1} should use its matching map artwork`);
+  } else {
+    assert.equal(level.coverArtwork, map.mapArtwork,
+      `level ${index + 1} should use artwork from its own route`);
+    assert.equal(level.mapArtwork, map.mapArtwork,
+      `level ${index + 1} map artwork should match its own route`);
+  }
+});
 
 const makeQuestion = (id, prompt) => ({
   id,
