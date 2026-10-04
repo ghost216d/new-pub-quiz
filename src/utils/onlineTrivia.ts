@@ -248,7 +248,7 @@ export const getOnlineTriviaQuestions = async ({
   }
 
   let token = await getSessionToken();
-  const categoryId = broadPool ? undefined : CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1];
+  const categoryId = broadPool ? undefined : (CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1] ?? 9);
   const mathsTopic = /\b(math|maths|mathematics|arithmetic|numbers?)\b/i.test(category);
   const onlineDifficulty = mixed
     ? undefined
