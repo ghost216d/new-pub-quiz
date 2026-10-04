@@ -189,7 +189,8 @@ class FeelGoodBGMManager {
       if (!this.mainTrackAudio) {
         this.mainTrackAudio = new Audio(`${import.meta.env.BASE_URL}pub-quiz-main-music-soft-slow.mp3`);
         this.mainTrackAudio.loop = true;
-        this.mainTrackAudio.playbackRate = 0.78;
+        // The supplied main track is already rendered 20% slower; play it at native file speed.
+        this.mainTrackAudio.playbackRate = 1.0;
         this.mainTrackAudio.preload = 'none';
       }
 
