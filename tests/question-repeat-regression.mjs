@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { CARTOON_MAPS } from '../src/data/cartoonMapsData.ts';
+import { DEFAULT_ROUNDS } from '../src/data/defaultQuestions.ts';
+import { SOLO_PUB_CLASSICS_QUESTIONS } from '../src/data/pubClassicsQuestions.ts';
 import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 
 const storage = new Map();
@@ -34,6 +36,16 @@ campaignLevels.forEach(({ map, level }, index) => {
       `level ${index + 1} map artwork should match its own route`);
   }
 });
+
+const pictureRound = DEFAULT_ROUNDS.find((round) => round.type === 'picture');
+assert.ok(pictureRound, 'Quiz Master should include a picture round');
+assert.equal(pictureRound.questions.length, 3, 'picture round should contain three picture questions');
+assert.equal(pictureRound.questions.every((question) => !!question.pictureClue || !!question.imageUrl), true,
+  'every question in the picture round should show a picture clue');
+assert.equal(SOLO_PUB_CLASSICS_QUESTIONS.length >= 10, true,
+  'Pub Classics should have enough dedicated questions to make a full quiz');
+assert.equal(SOLO_PUB_CLASSICS_QUESTIONS.every((question) => /pub|beer|ale|dart|billiards|pub sign/i.test(`${question.category} ${question.prompt}`)), true,
+  'Pub Classics question bank must stay on theme');
 
 const makeQuestion = (id, prompt) => ({
   id,
