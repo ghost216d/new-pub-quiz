@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { CARTOON_MAPS } from '../src/data/cartoonMapsData.ts';
 import { DEFAULT_ROUNDS } from '../src/data/defaultQuestions.ts';
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../src/data/pubClassicsQuestions.ts';
+import { CAMPAIGN_LEVEL_QUESTIONS } from '../src/data/campaignLevelQuestions.ts';
 import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 
 const storage = new Map();
@@ -42,6 +43,19 @@ assert.ok(pictureRound, 'Quiz Master should include a picture round');
 assert.equal(pictureRound.questions.length, 3, 'picture round should contain three picture questions');
 assert.equal(pictureRound.questions.every((question) => !!question.pictureClue || !!question.imageUrl), true,
   'every question in the picture round should show a picture clue');
+for (const [levelId, category] of [
+  ['c1_george', 'Waterloo, South Bank & London Transport'],
+  ['c1_anchor', 'Brixton, Effra Hall & Brixton Market'],
+]) {
+  const questions = CAMPAIGN_LEVEL_QUESTIONS[levelId];
+  assert.equal(questions.length, 10, `${levelId} should have ten authored campaign questions`);
+  assert.equal(questions.every((question) => question.category === category), true,
+    `${levelId} questions should match the stage category`);
+  assert.deepEqual(questions.map((question) => question.difficulty), [
+    'easy', 'easy', 'easy', 'medium', 'medium', 'medium', 'medium', 'medium', 'hard', 'hard',
+  ], `${levelId} questions should progress from easy to hard`);
+}
+
 assert.equal(SOLO_PUB_CLASSICS_QUESTIONS.length >= 10, true,
   'Pub Classics should have enough dedicated questions to make a full quiz');
 assert.equal(SOLO_PUB_CLASSICS_QUESTIONS.every((question) => /pub|beer|ale|dart|billiards|pub sign/i.test(`${question.category} ${question.prompt}`)), true,
