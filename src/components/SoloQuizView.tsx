@@ -893,9 +893,17 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           try {
             generatedQuestions = await generateMixedOnDeviceQuestions(topic, 10, setCustomTopicProgress);
           } catch (deviceError) {
-            console.warn('On-device topic generation failed; trying online questions.', deviceError);
-            setCustomTopicProgress('Device AI is unavailable. Trying the online question service…');
-            generatedQuestions = await loadMixedOnlineQuestions(topic, 10);
+            console.warn('On-device topic generation failed; using an online or curated fallback.', deviceError);
+            setCustomTopicProgress('Device AI is unavailable. Loading questions from the selected category…');
+            if (selectedCategory === 'Pub Classics & Beer Lore') {
+              generatedQuestions = chooseUnseenFallbackQuestions(SOLO_PUB_CLASSICS_QUESTIONS, 10, [], true);
+            } else {
+              try {
+                generatedQuestions = await loadMixedOnlineQuestions(topic, 10);
+              } catch {
+                generatedQuestions = await loadMixedOnlineQuestions(selectedCategory, 10);
+              }
+            }
           }
         } else {
           setCustomTopicProgress('This device cannot run on-device AI. Using questions from the selected category…');
