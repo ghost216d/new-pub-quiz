@@ -200,21 +200,38 @@ const prepareAttemptQuestions = (
     })),
     ...SOLO_PHOTO_QUESTIONS,
   ];
-  const pictureQuestions = chooseUnseenFallbackQuestions(
-    visualQuestions,
-    pictureCount,
-    readMissedQuestions().map((item) => item.question.prompt),
-  );
-  const specialKnowledge = chooseUnseenFallbackQuestions(
+  const missedPrompts = readMissedQuestions().map((item) => item.question.prompt);
+  const selectSupplement = (pool: Question[], desired: number): Question[] => {
+    if (desired <= 0) return [];
+    try {
+      // When a small picture, flag, or animal pack has been used before, reuse
+      // an unmastered item only after unseen and previously missed items run out.
+      return chooseUnseenFallbackQuestions(pool, desired, missedPrompts, true);
+    } catch {
+      // Supplement packs are optional. A spent pack should never block a pub.
+      return [];
+    }
+  };
+  const pictureQuestions = selectSupplement(visualQuestions, pictureCount);
+  const specialKnowledge = selectSupplement(
     [...SOLO_FLAG_QUESTIONS, ...SOLO_ANIMAL_QUESTIONS],
     Math.min(1, triviaCount),
-    readMissedQuestions().map((item) => item.question.prompt),
   );
-  const regularQuestions = dedupeSimilarQuestions(freshQuestions).slice(
-    0,
-    Math.max(0, triviaCount - specialKnowledge.length),
-  );
-  const combined = [...regularQuestions, ...specialKnowledge, ...pictureQuestions];
+  const regularCount = Math.max(0, triviaCount - specialKnowledge.length);
+  const regularQuestions = dedupeSimilarQuestions(freshQuestions).slice(0, regularCount);
+  const missingRegularCount = Math.max(0, regularCount - regularQuestions.length);
+  const regularVault = dedupeSimilarQuestions([
+    ...regularQuestions,
+    ...getSoloQuestionVault().filter((question) =>
+      question.category !== 'Emoji Picture Puzzles' &&
+      question.category !== 'Photo Round: World Landmarks' &&
+      question.category !== 'World Flags' &&
+      question.category !== 'Animals & Nature' &&
+      !question.musicData
+    ),
+  ]).slice(regularQuestions.length);
+  const extraRegularQuestions = selectSupplement(regularVault, missingRegularCount);
+  const combined = [...regularQuestions, ...extraRegularQuestions, ...specialKnowledge, ...pictureQuestions];
 
   return shuffleItems(combined).map((question) => ({
     ...question,
