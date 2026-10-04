@@ -804,6 +804,30 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const onlineQuestionCount = Math.max(0, triviaCount - curatedCount);
       let questionsToPlay: Question[] | null = cachedQuestions.length >= count ? cachedQuestions.slice(0, count) : null;
 
+      // Replays use the already bundled pub question bank first. This keeps
+      // a previously opened pub from waiting on an online trivia service.
+      if (!questionsToPlay && hasSavedQuestionSet) {
+        setLevelLaunchStatus('Choosing unseen saved questions…');
+        const localQuestions = getSoloQuestionVault();
+        const localTrivia = localQuestions.filter((question) =>
+          question.category !== 'Emoji Picture Puzzles' &&
+          question.category !== 'Photo Round: World Landmarks' &&
+          question.category !== 'World Flags' &&
+          question.category !== 'Animals & Nature' &&
+          !question.musicData
+        );
+        try {
+          const mediumQuestions = buildMediumGeneralKnowledgeFallback(localTrivia, Math.max(onlineQuestionCount, count - cachedQuestions.length));
+          const localAttempt = prepareAttemptQuestions(mediumQuestions, count);
+          const preparedQuestions = orderCampaignQuestions(
+            dedupeSimilarQuestions([...cachedQuestions, ...localAttempt]).slice(0, count),
+          );
+          if (preparedQuestions.length >= count) questionsToPlay = preparedQuestions;
+        } catch (error) {
+          console.warn('Saved questions were exhausted for this pub. Trying another source.', error);
+        }
+      }
+
       // 1. Fetch fresh Internet questions. The online session token and local
       // seen-question history prevent repeats across levels and later visits.
       if (!questionsToPlay && navigator.onLine) {
