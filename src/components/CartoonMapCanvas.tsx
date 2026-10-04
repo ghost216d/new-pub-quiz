@@ -48,6 +48,16 @@ const MAP_AREA_LABELS: Record<string, string> = {
   west_london_crawl: 'West End & Hyde Park',
   north_london_crawl: 'Central & North London',
   east_london_crawl: 'East & South London',
+  city_clerkenwell_crawl: 'The City & Clerkenwell',
+  islington_crawl: 'Islington & Angel',
+  hampstead_highgate_crawl: 'Hampstead & Highgate',
+  richmond_thames_crawl: 'Richmond & the Thames',
+  notting_hill_crawl: 'Notting Hill & Kensington',
+  hackney_crawl: 'Hackney & Broadway Market',
+  greenwich_deptford_crawl: 'Deptford, Greenwich & Nunhead',
+  putney_wandsworth_crawl: 'Putney & Wandsworth',
+  chiswick_hammersmith_crawl: 'Chiswick & Hammersmith',
+  wapping_rotherhithe_crawl: 'Wapping & Rotherhithe',
 };
 
 const MAP_ROUTE_LABELS: Record<string, string> = {
@@ -55,6 +65,16 @@ const MAP_ROUTE_LABELS: Record<string, string> = {
   west_london_crawl: 'Covent Garden → Hyde Park',
   north_london_crawl: 'Trafalgar Square → London Bridge',
   east_london_crawl: 'Tower Hill → Greenwich',
+  city_clerkenwell_crawl: 'Blackfriars → Clerkenwell',
+  islington_crawl: 'Barnsbury → Angel',
+  hampstead_highgate_crawl: 'Hampstead → Highgate',
+  richmond_thames_crawl: 'Richmond → Teddington',
+  notting_hill_crawl: 'Kensington → Notting Hill',
+  hackney_crawl: 'Broadway Market → Columbia Road',
+  greenwich_deptford_crawl: 'Deptford → Greenwich',
+  putney_wandsworth_crawl: 'Putney → Wandsworth',
+  chiswick_hammersmith_crawl: 'Chiswick → Hammersmith',
+  wapping_rotherhithe_crawl: 'Wapping → Rotherhithe',
 };
 
 const LEVEL_COORDS = [
@@ -118,7 +138,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     [allMaps, progression.completedLevels]
   );
 
-  // Keep locked routes visible so players can see the full 20-stop journey.
+  // Keep all 70 campaign stops visible so players can see the full journey.
   // They remain unselectable until the previous route is complete.
   const unlockedMaps = allMaps.filter(isMapUnlocked);
   const visibleMaps = allMaps;
@@ -602,7 +622,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
         {isRealmPanelExpanded && <p className="game-auto-difficulty-note">
           <Sparkles className="w-4 h-4" />
-          20 pub stops across 4 London routes. Finish each route’s 5 levels to unlock the next.
+          {campaignLevelTotal} pub stops across {CARTOON_MAPS.length} London routes. Finish each route’s five levels to unlock the next.
         </p>}
       </section>
       </aside>

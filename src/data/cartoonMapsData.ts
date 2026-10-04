@@ -543,22 +543,224 @@ const EAST_LONDON_STAGE = makeLondonStage({
   ],
 });
 
+
+const CITY_CLERKENWELL_STAGE = makeLondonStage({
+  id: 'city_clerkenwell_crawl', name: 'City & Clerkenwell Trail',
+  route: 'Blackfriars to Clerkenwell through the old City',
+  subtitle: 'Five real pub stops through the City of London and Clerkenwell',
+  icon: '🏙️', requiredStars: 38, distance: '3.8 Miles (approx. 1h 15m walk)',
+  boroughs: 'Blackfriars ➔ Fleet Street ➔ Holborn ➔ Farringdon',
+  startArea: 'Queen Victoria Street, EC4V', endArea: 'Farringdon Street, EC4A',
+  description: 'Explore classic City pubs and finish around Clerkenwell and Farringdon.',
+  artwork: 'city-clerkenwell', themeColor: '#1D4ED8', pathColor: '#2563EB',
+  levels: [
+    { id: 'cc1_blackfriar', name: 'The Blackfriar', address: '174 Queen Victoria Street', postcode: 'EC4V 4EG', category: 'Blackfriars & the City', icon: '🏛️', description: 'A pub beside Blackfriars station, on the edge of the City and the Thames.', funFact: 'The Blackfriar stands close to Blackfriars Bridge and the Thames Path.' },
+    { id: 'cc2_cheshire_cheese', name: 'Ye Olde Cheshire Cheese', address: '145 Fleet Street', postcode: 'EC4A 2BU', category: 'Fleet Street & London publishing', icon: '📰', description: 'A Fleet Street pub in the historic newspaper district.', funFact: 'Fleet Street was London’s newspaper centre for generations.' },
+    { id: 'cc3_old_bank', name: 'The Old Bank of England', address: '194 Fleet Street', postcode: 'EC4A 2LT', category: 'The City & the old banking quarter', icon: '💷', description: 'A pub in a former banking hall on Fleet Street.', funFact: 'The ornate building was designed as a branch of the Bank of England.' },
+    { id: 'cc4_cittie_yorke', name: 'Cittie of Yorke', address: '22 High Holborn', postcode: 'WC1V 6BN', category: 'Holborn & London legal history', icon: '⚖️', description: 'A spacious traditional pub on High Holborn, near Gray’s Inn.', funFact: 'The pub is close to the historic Inns of Court.' },
+    { id: 'cc5_hoop_grapes', name: 'The Hoop & Grapes', address: '80 Farringdon Street', postcode: 'EC4A 4BL', category: 'Farringdon & historic London', icon: '🍇', description: 'A small historic pub on Farringdon Street.', funFact: 'The Hoop & Grapes is among the City’s surviving timber-framed pubs.' },
+  ],
+});
+
+const ISLINGTON_STAGE = makeLondonStage({
+  id: 'islington_crawl', name: 'Islington & Angel Trail',
+  route: 'Barnsbury to Angel across Islington',
+  subtitle: 'Five neighbourhood pubs across Barnsbury, Canonbury and Angel',
+  icon: '🎭', requiredStars: 48, distance: '2.9 Miles (approx. 1h walk)',
+  boroughs: 'Barnsbury ➔ Canonbury ➔ Angel',
+  startArea: 'Barnsbury Street, N1', endArea: 'St Peter’s Street, N1',
+  description: 'Wander between independent pubs and canal-side streets around Islington.',
+  artwork: 'islington', themeColor: '#7C3AED', pathColor: '#9333EA',
+  levels: [
+    { id: 'is1_drapers_arms', name: 'The Drapers Arms', address: '44 Barnsbury Street', postcode: 'N1 1ER', category: 'Barnsbury & Islington squares', icon: '🌳', description: 'A neighbourhood pub on Barnsbury Street, north of Angel.', funFact: 'The pub sits among the Georgian streets of Barnsbury.' },
+    { id: 'is2_compton_arms', name: 'The Compton Arms', address: '4 Compton Avenue', postcode: 'N1 2XD', category: 'Canonbury & literary London', icon: '📚', description: 'A traditional corner pub in Canonbury.', funFact: 'Canonbury is known for its garden squares and historic terraces.' },
+    { id: 'is3_crown', name: 'The Crown', address: '116 Cloudesley Road', postcode: 'N1 0EB', category: 'Cloudesley Square & Angel', icon: '👑', description: 'A local pub a short walk from Cloudesley Square.', funFact: 'Cloudesley Square is one of Islington’s garden squares.' },
+    { id: 'is4_old_queens_head', name: 'The Old Queen’s Head', address: '44 Essex Road', postcode: 'N1 8LN', category: 'Essex Road & Islington music', icon: '🎶', description: 'A pub and live music venue on Essex Road.', funFact: 'The Old Queen’s Head regularly hosts live music and club nights.' },
+    { id: 'is5_narrowboat', name: 'The Narrowboat', address: '119 St Peter’s Street', postcode: 'N1 8PZ', category: 'Regent’s Canal & Angel', icon: '🛶', description: 'A canal-side pub at City Road Basin near Angel.', funFact: 'The Regent’s Canal links Angel with King’s Cross and east London.' },
+  ],
+});
+
+const HAMPSTEAD_STAGE = makeLondonStage({
+  id: 'hampstead_highgate_crawl', name: 'Hampstead & Highgate Trail',
+  route: 'Hampstead Heath to Highgate',
+  subtitle: 'Five pubs beside the Heath and the village streets of north London',
+  icon: '🌲', requiredStars: 58, distance: '4.1 Miles (approx. 1h 25m walk)',
+  boroughs: 'Hampstead ➔ Hampstead Heath ➔ Highgate',
+  startArea: 'Hampstead Village, NW3', endArea: 'Highgate Road, NW5',
+  description: 'Climb through leafy Hampstead and finish beside the Heath in Highgate.',
+  artwork: 'hampstead', themeColor: '#15803D', pathColor: '#16A34A',
+  levels: [
+    { id: 'hh1_holly_bush', name: 'The Holly Bush', address: '22 Holly Mount', postcode: 'NW3 6SG', category: 'Hampstead Village & its lanes', icon: '🍃', description: 'A cosy pub tucked into the steep lanes above Hampstead High Street.', funFact: 'Holly Mount is one of Hampstead’s winding village streets.' },
+    { id: 'hh2_spaniards', name: 'The Spaniards Inn', address: 'Spaniards Road', postcode: 'NW3 7JJ', category: 'Hampstead Heath & the old road north', icon: '🐎', description: 'A country-style inn beside Hampstead Heath and Spaniards Road.', funFact: 'The pub stands beside one of the historic routes across the Heath.' },
+    { id: 'hh3_old_white_bear', name: 'The Old White Bear', address: '1 Well Road', postcode: 'NW3 1LZ', category: 'Well Walk & Hampstead springs', icon: '🐻', description: 'A village pub near Well Walk and Hampstead High Street.', funFact: 'Hampstead’s historic wells once drew visitors seeking the area’s spring water.' },
+    { id: 'hh4_flask', name: 'The Flask', address: '77 Highgate West Hill', postcode: 'N6 6BU', category: 'Highgate Village & north London', icon: '🍺', description: 'A traditional pub on Highgate West Hill, close to the village centre.', funFact: 'Highgate Village sits on a hill above the northern side of London.' },
+    { id: 'hh5_bull_last', name: 'The Bull & Last', address: '168 Highgate Road', postcode: 'NW5 1QS', category: 'Kentish Town & Parliament Hill', icon: '🐂', description: 'A pub at the foot of Parliament Hill, near Hampstead Heath.', funFact: 'Parliament Hill offers a well-known view across the London skyline.' },
+  ],
+});
+
+const RICHMOND_STAGE = makeLondonStage({
+  id: 'richmond_thames_crawl', name: 'Richmond & Thames Trail',
+  route: 'Richmond Green to Teddington Lock',
+  subtitle: 'Five riverside pubs through Richmond, Twickenham and Teddington',
+  icon: '🦌', requiredStars: 68, distance: '5.4 Miles (approx. 1h 50m walk)',
+  boroughs: 'Richmond ➔ Twickenham ➔ Teddington',
+  startArea: 'Richmond Green, TW9', endArea: 'Broom Road, TW11',
+  description: 'Follow the Thames through Richmond and neighbouring riverside towns.',
+  artwork: 'richmond', themeColor: '#0891B2', pathColor: '#06B6D4',
+  levels: [
+    { id: 'rt1_princes_head', name: 'The Prince’s Head', address: '28 The Green', postcode: 'TW9 1LX', category: 'Richmond Green & television London', icon: '🎬', description: 'A pub facing Richmond Green, in the heart of the town.', funFact: 'Richmond Green has been a gathering place for centuries.' },
+    { id: 'rt2_roebuck', name: 'The Roebuck', address: '130 Richmond Hill', postcode: 'TW10 6RN', category: 'Richmond Hill & the Thames view', icon: '🦌', description: 'A hilltop pub above the Thames in Richmond.', funFact: 'The view from Richmond Hill is protected as a famous landscape vista.' },
+    { id: 'rt3_white_cross', name: 'The White Cross', address: 'Riverside, Water Lane', postcode: 'TW9 1TH', category: 'Richmond riverside & the tide', icon: '🌊', description: 'A riverside pub on Water Lane beside the Thames.', funFact: 'The pub’s riverside terrace can be affected by the Thames tide.' },
+    { id: 'rt4_white_swan', name: 'The White Swan', address: 'Riverside, Twickenham', postcode: 'TW1 3DN', category: 'Twickenham & riverside sport', icon: '🦢', description: 'A riverside pub near Twickenham’s Thames paths.', funFact: 'Twickenham is closely associated with rugby and the River Thames.' },
+    { id: 'rt5_anglers', name: 'The Anglers', address: '3 Broom Road', postcode: 'TW11 9NR', category: 'Teddington Lock & river life', icon: '🎣', description: 'A Thames-side pub close to Teddington Lock.', funFact: 'Teddington Lock marks the tidal limit of the Thames.' },
+  ],
+});
+
+const NOTTING_HILL_STAGE = makeLondonStage({
+  id: 'notting_hill_crawl', name: 'Notting Hill & Kensington Trail',
+  route: 'Kensington to Ladbroke Grove',
+  subtitle: 'Five colourful pubs in Kensington and Notting Hill',
+  icon: '🌺', requiredStars: 78, distance: '3.2 Miles (approx. 1h 5m walk)',
+  boroughs: 'Kensington ➔ Holland Park ➔ Notting Hill',
+  startArea: 'Kensington Church Street, W8', endArea: 'All Saints Road, W11',
+  description: 'Explore pub gardens and market streets around Kensington and Notting Hill.',
+  artwork: 'notting-hill', themeColor: '#DB2777', pathColor: '#EC4899',
+  levels: [
+    { id: 'nh1_churchill_arms', name: 'The Churchill Arms', address: '119 Kensington Church Street', postcode: 'W8 7LN', category: 'Kensington & floral facades', icon: '🌸', description: 'A colourful pub on Kensington Church Street, known for its flower-covered frontage.', funFact: 'The Churchill Arms decorates its exterior with seasonal flowers.' },
+    { id: 'nh2_windsor_castle', name: 'The Windsor Castle', address: '114 Campden Hill Road', postcode: 'W8 7AR', category: 'Campden Hill & Kensington', icon: '🏰', description: 'A traditional pub tucked into the residential streets of Campden Hill.', funFact: 'Campden Hill is named for the nearby historic Campden House estate.' },
+    { id: 'nh3_ladbroke_arms', name: 'The Ladbroke Arms', address: '54 Ladbroke Road', postcode: 'W11 3NW', category: 'Ladbroke Grove & Notting Hill', icon: '🌿', description: 'A neighbourhood pub near Holland Park Avenue.', funFact: 'The Ladbroke estate shaped much of the surrounding street layout.' },
+    { id: 'nh4_elgin', name: 'The Elgin', address: '96 Ladbroke Grove', postcode: 'W11 1PY', category: 'Ladbroke Grove & live music', icon: '🎤', description: 'A pub and live music venue on Ladbroke Grove.', funFact: 'Ladbroke Grove is a major street linking Notting Hill and Kensal Green.' },
+    { id: 'nh5_pelican', name: 'The Pelican', address: '45 All Saints Road', postcode: 'W11 1HE', category: 'Portobello Road & All Saints Road', icon: '🦜', description: 'A local pub a short walk from Portobello Road Market.', funFact: 'Portobello Road Market is one of London’s best-known street markets.' },
+  ],
+});
+
+const HACKNEY_STAGE = makeLondonStage({
+  id: 'hackney_crawl', name: 'Hackney & Broadway Market Trail',
+  route: 'Broadway Market to Columbia Road',
+  subtitle: 'Five East London pubs around the canal, markets and Hackney streets',
+  icon: '🚲', requiredStars: 88, distance: '3.4 Miles (approx. 1h 10m walk)',
+  boroughs: 'Broadway Market ➔ London Fields ➔ Hackney Road ➔ Columbia Road',
+  startArea: 'Broadway Market, E8', endArea: 'Columbia Road, E2',
+  description: 'Visit Hackney pubs near Broadway Market, London Fields and Columbia Road.',
+  artwork: 'hackney', themeColor: '#EA580C', pathColor: '#F97316',
+  levels: [
+    { id: 'ha1_cat_mutton', name: 'The Cat & Mutton', address: '76 Broadway Market', postcode: 'E8 4QJ', category: 'Broadway Market & Regent’s Canal', icon: '🐈', description: 'A pub at the north end of Broadway Market, near the canal.', funFact: 'Broadway Market runs between London Fields and Regent’s Canal.' },
+    { id: 'ha2_dove', name: 'The Dove', address: '24–28 Broadway Market', postcode: 'E8 4QJ', category: 'Broadway Market & London Fields', icon: '🕊️', description: 'A neighbourhood pub on Broadway Market beside London Fields.', funFact: 'London Fields is a popular green space in the heart of Hackney.' },
+    { id: 'ha3_chesham_arms', name: 'The Chesham Arms', address: '15 Mehetabel Road', postcode: 'E9 6DU', category: 'Homerton & local Hackney', icon: '🛡️', description: 'A community pub on Mehetabel Road in Homerton.', funFact: 'Mehetabel Road is part of Hackney’s residential East London street network.' },
+    { id: 'ha4_marksman', name: 'The Marksman', address: '254 Hackney Road', postcode: 'E2 7SJ', category: 'Hackney Road & East London food', icon: '🎯', description: 'A pub and restaurant on Hackney Road near Hoxton.', funFact: 'Hackney Road links Shoreditch with Cambridge Heath.' },
+    { id: 'ha5_royal_oak', name: 'The Royal Oak', address: '73 Columbia Road', postcode: 'E2 7RG', category: 'Columbia Road & the flower market', icon: '🌼', description: 'A pub on Columbia Road, close to the Sunday flower market.', funFact: 'Columbia Road Flower Market is held on Sundays.' },
+  ],
+});
+
+const GREENWICH_DEPTFORD_STAGE = makeLondonStage({
+  id: 'greenwich_deptford_crawl', name: 'Greenwich & Deptford Trail',
+  route: 'Deptford to Greenwich via Nunhead',
+  subtitle: 'Five South East London pubs beside the river, market and neighbourhood greens',
+  icon: '⚓', requiredStars: 98, distance: '5.2 Miles (approx. 1h 45m walk)',
+  boroughs: 'Deptford ➔ Greenwich ➔ Nunhead',
+  startArea: 'Prince Street, SE8', endArea: 'Nunhead Green, SE15',
+  description: 'Tour Deptford and Greenwich before finishing on Nunhead Green.',
+  artwork: 'greenwich', themeColor: '#0F766E', pathColor: '#14B8A6',
+  levels: [
+    { id: 'gd1_dog_bell', name: 'The Dog & Bell', address: '116 Prince Street', postcode: 'SE8 3JD', category: 'Deptford & the old naval town', icon: '🐕', description: 'A traditional pub near Deptford High Street.', funFact: 'Deptford has a long connection with London’s historic dockyards.' },
+    { id: 'gd2_brookmill', name: 'The Brookmill', address: '65 Cranbrook Road', postcode: 'SE8 4EJ', category: 'Deptford & Brookmill Park', icon: '🌳', description: 'A neighbourhood pub near Deptford Bridge and Brookmill Park.', funFact: 'Brookmill Park follows the route of the Ravensbourne River.' },
+    { id: 'gd3_trafalgar', name: 'The Trafalgar Tavern', address: 'Park Row', postcode: 'SE10 9NW', category: 'Greenwich & the Royal Naval College', icon: '🚢', description: 'A Thames-side pub beside the Old Royal Naval College.', funFact: 'The pub overlooks the Thames at Greenwich.' },
+    { id: 'gd4_ivy_house', name: 'The Ivy House', address: '40 Stuart Road', postcode: 'SE15 3BE', category: 'Nunhead & community halls', icon: '🎭', description: 'A community-owned pub in Nunhead, known for its music and events.', funFact: 'The Ivy House became the UK’s first community-owned pub in 2012.' },
+    { id: 'gd5_old_nuns_head', name: 'The Old Nun’s Head', address: '15 Nunhead Green', postcode: 'SE15 3QQ', category: 'Nunhead Green & South London', icon: '👒', description: 'A pub overlooking the open green at the centre of Nunhead.', funFact: 'Nunhead takes its name from the nearby historic village of Peckham.' },
+  ],
+});
+
+const PUTNEY_WANDSWORTH_STAGE = makeLondonStage({
+  id: 'putney_wandsworth_crawl', name: 'Putney & Wandsworth Trail',
+  route: 'Putney Bridge to Wandsworth Common',
+  subtitle: 'Five pubs along the Thames and through Wandsworth',
+  icon: '🚣', requiredStars: 108, distance: '4.7 Miles (approx. 1h 35m walk)',
+  boroughs: 'Putney ➔ Wandsworth Town ➔ Wandsworth Common',
+  startArea: 'Putney High Street, SW15', endArea: 'Trinity Road, SW18',
+  description: 'Follow the Thames from Putney and finish among the leafy streets of Wandsworth.',
+  artwork: 'putney', themeColor: '#0284C7', pathColor: '#0EA5E9',
+  levels: [
+    { id: 'pw1_spotted_horse', name: 'The Spotted Horse', address: '122 Putney High Street', postcode: 'SW15 1RG', category: 'Putney & the Boat Race', icon: '🐴', description: 'A pub on Putney High Street close to the river and bridge.', funFact: 'The Oxford and Cambridge Boat Race starts near Putney Bridge.' },
+    { id: 'pw2_half_moon', name: 'The Half Moon', address: '93 Lower Richmond Road', postcode: 'SW15 1EU', category: 'Putney & London music venues', icon: '🌙', description: 'A historic music pub near Putney Bridge station.', funFact: 'The Half Moon is a well-known live music venue in southwest London.' },
+    { id: 'pw3_ship', name: 'The Ship', address: '41 Jews Row', postcode: 'SW18 1TB', category: 'Wandsworth riverside', icon: '⛵', description: 'A riverside pub on the Thames Path in Wandsworth.', funFact: 'Jews Row runs beside the Thames near Wandsworth Park.' },
+    { id: 'pw4_alma', name: 'The Alma', address: '499 Old York Road', postcode: 'SW18 1TF', category: 'Wandsworth Town & railways', icon: '🚂', description: 'A pub opposite Wandsworth Town station.', funFact: 'Old York Road is one of Wandsworth’s main historic streets.' },
+    { id: 'pw5_county_arms', name: 'The County Arms', address: '345 Trinity Road', postcode: 'SW18 3SH', category: 'Wandsworth Common & green London', icon: '🌲', description: 'A pub beside Wandsworth Common on Trinity Road.', funFact: 'Wandsworth Common is one of the largest green spaces in the borough.' },
+  ],
+});
+
+const CHISWICK_HAMMERSMITH_STAGE = makeLondonStage({
+  id: 'chiswick_hammersmith_crawl', name: 'Chiswick & Hammersmith Trail',
+  route: 'Chiswick High Road to Hammersmith riverside',
+  subtitle: 'Five west London pubs from Chiswick to the Thames',
+  icon: '🌉', requiredStars: 118, distance: '4.6 Miles (approx. 1h 30m walk)',
+  boroughs: 'Chiswick ➔ Hammersmith',
+  startArea: 'Chiswick High Road, W4', endArea: 'Upper Mall, W6',
+  description: 'Cross Chiswick’s pub-lined High Road and follow the Thames into Hammersmith.',
+  artwork: 'chiswick', themeColor: '#4F46E5', pathColor: '#6366F1',
+  levels: [
+    { id: 'ch1_old_pack_horse', name: 'The Old Pack Horse', address: '434 Chiswick High Road', postcode: 'W4 5TF', category: 'Chiswick High Road & west London', icon: '🐎', description: 'A local pub on Chiswick High Road.', funFact: 'Chiswick High Road is the neighbourhood’s main shopping street.' },
+    { id: 'ch2_george_iv', name: 'The George IV', address: '185 Chiswick High Road', postcode: 'W4 2DR', category: 'Chiswick & the old coaching road', icon: '👑', description: 'A pub and live music venue in the centre of Chiswick.', funFact: 'The pub hosts live music as part of its regular events.' },
+    { id: 'ch3_tabard', name: 'The Tabard', address: '2 Bath Road', postcode: 'W4 1LW', category: 'Turnham Green & theatre design', icon: '🎭', description: 'A pub and arts venue close to Turnham Green station.', funFact: 'The Tabard is known for its distinctive modernist design.' },
+    { id: 'ch4_black_lion', name: 'The Black Lion', address: '2 South Black Lion Lane', postcode: 'W6 9TJ', category: 'Hammersmith & riverside walks', icon: '🦁', description: 'A historic pub in the riverside streets of Hammersmith.', funFact: 'The pub is close to Hammersmith’s Thames Path.' },
+    { id: 'ch5_dove', name: 'The Dove', address: '19 Upper Mall', postcode: 'W6 9TA', category: 'Hammersmith Bridge & the Thames', icon: '🕊️', description: 'A small riverside pub on Upper Mall in Hammersmith.', funFact: 'Upper Mall runs along the north bank of the Thames.' },
+  ],
+});
+
+const WAPPING_ROTHERHITHE_STAGE = makeLondonStage({
+  id: 'wapping_rotherhithe_crawl', name: 'Wapping & Rotherhithe Trail',
+  route: 'Wapping Wall to Rotherhithe Street',
+  subtitle: 'Five dockside and riverside pubs across London’s historic east end',
+  icon: '⚓', requiredStars: 128, distance: '3.6 Miles (approx. 1h 15m walk)',
+  boroughs: 'Wapping ➔ Limehouse ➔ Rotherhithe',
+  startArea: 'Wapping Wall, E1W', endArea: 'Rotherhithe Street, SE16',
+  description: 'Explore old wharves and riverside pubs from Wapping to Rotherhithe.',
+  artwork: 'wapping', themeColor: '#B45309', pathColor: '#D97706',
+  levels: [
+    { id: 'wr1_prospect_whitby', name: 'The Prospect of Whitby', address: '57 Wapping Wall', postcode: 'E1W 3SH', category: 'Wapping & London’s docks', icon: '⚓', description: 'A Thames-side pub among the old warehouses of Wapping.', funFact: 'Wapping grew around London’s historic riverside docks.' },
+    { id: 'wr2_town_ramsgate', name: 'The Town of Ramsgate', address: '62 Wapping Wall', postcode: 'E1W 3SF', category: 'Wapping & the Thames tide', icon: '🌊', description: 'A pub on the riverside path beside Wapping Wall.', funFact: 'Wapping Wall follows the old embankment along the Thames.' },
+    { id: 'wr3_captain_kidd', name: 'The Captain Kidd', address: '108 Wapping High Street', postcode: 'E1W 2NE', category: 'Wapping High Street & maritime London', icon: '🏴‍☠️', description: 'A pub beside the Thames in Wapping, named after the Scottish sailor William Kidd.', funFact: 'The pub takes its name from Captain William Kidd, who was tried in London.' },
+    { id: 'wr4_grapes', name: 'The Grapes', address: '76 Narrow Street', postcode: 'E14 8BP', category: 'Limehouse & the Regent’s Canal Dock', icon: '🍇', description: 'A small riverside pub on Narrow Street in Limehouse.', funFact: 'Narrow Street runs beside the former Limehouse Basin.' },
+    { id: 'wr5_mayflower', name: 'The Mayflower', address: '117 Rotherhithe Street', postcode: 'SE16 4NF', category: 'Rotherhithe & the Mayflower voyage', icon: '⛵', description: 'A riverside pub on Rotherhithe Street overlooking the Thames.', funFact: 'The pub takes its name from the Mayflower ship associated with the 1620 voyage.' },
+  ],
+});
+
+
 // The world now progresses clockwise across London after the opening Thames map.
 const LONDON_MAPS: CartoonMap[] = [
   LEGACY_CARTOON_MAPS[0],
   WEST_LONDON_STAGE,
   NORTH_LONDON_STAGE,
   EAST_LONDON_STAGE,
+  CITY_CLERKENWELL_STAGE,
+  ISLINGTON_STAGE,
+  HAMPSTEAD_STAGE,
+  RICHMOND_STAGE,
+  NOTTING_HILL_STAGE,
+  HACKNEY_STAGE,
+  GREENWICH_DEPTFORD_STAGE,
+  PUTNEY_WANDSWORTH_STAGE,
+  CHISWICK_HAMMERSMITH_STAGE,
+  WAPPING_ROTHERHITHE_STAGE,
 ];
 
-// The illustrated level covers and map backdrops use one continuous 1–20
-// sequence across the four five-stop routes. Keep each pub's real name in
+// The illustrated level covers and map backdrops use one continuous 1–70
+// sequence across fourteen five-stop routes. Keep each pub's real name in
 // `pubName`, while `name` is the player-facing level area shown on the art.
 const ILLUSTRATED_LEVEL_NAMES = [
   'Waterloo', 'Brixton', 'Gipsy Hill', 'Crystal Palace', 'Westminster',
   'Covent Garden', 'Leicester Square', 'Soho', 'Mayfair', 'Hyde Park',
   'Trafalgar Square', 'The Strand', 'Camden Town', "King's Cross", 'London Bridge',
   'Tower of London', 'Shoreditch', 'Southwark', 'Battersea', 'Greenwich',
+  'Blackfriars', 'Fleet Street', 'Old Bank', 'Holborn', 'Farringdon',
+  'Barnsbury', 'Canonbury', 'Cloudesley', 'Essex Road', 'Angel',
+  'Hampstead', 'Spaniards Road', 'Well Walk', 'Highgate', 'Parliament Hill',
+  'Richmond Green', 'Richmond Hill', 'Thames Side', 'Twickenham', 'Teddington',
+  'Kensington', 'Campden Hill', 'Ladbroke Grove', 'Notting Hill', 'Portobello',
+  'Broadway Market', 'London Fields', 'Homerton', 'Hackney Road', 'Columbia Road',
+  'Deptford', 'Brookmill', 'Greenwich', 'Nunhead', 'Nunhead Green',
+  'Putney', 'Putney Bridge', 'Wandsworth Riverside', 'Wandsworth Town', 'Wandsworth Common',
+  'Chiswick', 'Chiswick High Road', 'Turnham Green', 'Hammersmith', 'Upper Mall',
+  'Wapping', 'Wapping Wall', 'Wapping High Street', 'Limehouse', 'Rotherhithe',
 ];
 
 export const CARTOON_MAPS: CartoonMap[] = LONDON_MAPS.map((map, mapIndex) => ({
@@ -571,8 +773,12 @@ export const CARTOON_MAPS: CartoonMap[] = LONDON_MAPS.map((map, mapIndex) => ({
       ...level,
       name: ILLUSTRATED_LEVEL_NAMES[artworkLevelNumber - 1] || level.name,
       artworkLevelNumber,
-      mapArtwork: `level-${artworkLevelId}-map-no-route.webp`,
-      coverArtwork: `level-${artworkLevelId}-cover.webp`,
+      mapArtwork: artworkLevelNumber <= 20
+        ? `level-${artworkLevelId}-map-no-route.webp`
+        : map.mapArtwork,
+      coverArtwork: artworkLevelNumber <= 20
+        ? `level-${artworkLevelId}-cover.webp`
+        : map.mapArtwork,
     };
   }),
 }));

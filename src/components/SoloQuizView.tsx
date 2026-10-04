@@ -516,6 +516,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
   // Custom quiz setup state
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_VAULT[0].name);
+  const [hasFinishedCampaign, setHasFinishedCampaign] = useState(false);
   const [useAI, setUseAI] = useState(false);
   const [customTopic, setCustomTopic] = useState('');
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('medium');
@@ -794,6 +795,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       return;
     }
 
+    setHasFinishedCampaign(false);
     setIsLoading(true);
     setActiveLevel(null);
     setActiveMap(null);
@@ -952,6 +954,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     // If this was a Map Level, calculate stars and unlock rewards
     if (activeLevel && activeMap) {
       const accuracy = correctPercent;
+      const lastCampaignMap = CARTOON_MAPS[CARTOON_MAPS.length - 1];
+      const isFinalCampaignLevel = activeMap.id === lastCampaignMap?.id
+        && activeLevel.id === lastCampaignMap?.levels[lastCampaignMap.levels.length - 1]?.id;
 
       let starsAwarded = 0;
       if (accuracy >= 80) starsAwarded = 3;
@@ -1066,7 +1071,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           setAutoAdvanceTarget(null);
           setCompletionTransition(null);
         }
-        setViewMode('map');
+        if (isFinalCampaignLevel) {
+          setHasFinishedCampaign(true);
+          setViewMode('custom_setup');
+        } else {
+          setViewMode('map');
+        }
         audioSynth.playChampionFanfare();
       }
     }
@@ -1255,12 +1265,21 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             <CartoonBeerStein size={54} />
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-amber-950 tracking-wide">
-            Custom Solo Quiz Mode
+            {hasFinishedCampaign ? 'Unlimited Pub Quiz' : 'Custom Solo Quiz Mode'}
           </h2>
           <p className="text-xs sm:text-sm text-stone-700 font-bold">
-            Pick any category and receive fresh Internet questions without repeats.
+            {hasFinishedCampaign
+              ? 'Keep the quiz going with fresh 10-question rounds. Tap Play Again after each round.'
+              : 'Pick any category and receive fresh Internet questions without repeats.'}
           </p>
         </div>
+
+        {hasFinishedCampaign && (
+          <div role="status" className="rounded-2xl border-2 border-emerald-600 bg-emerald-50 px-4 py-3 text-center shadow-sm">
+            <p className="text-sm font-black text-emerald-950">You completed all 70 levels!</p>
+            <p className="mt-1 text-sm font-black text-amber-900">New levels coming soon.</p>
+          </div>
+        )}
 
         {/* Difficulty alternates automatically throughout every round. */}
         <div className="flex items-center gap-3 p-3.5 bg-amber-50/90 rounded-2xl border-2 border-amber-800/40">
@@ -1364,7 +1383,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             className="w-full min-[380px]:w-2/3 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-black text-sm shadow-[0_4px_0_#0369a1] hover:brightness-105 active:translate-y-1 active:shadow-none disabled:opacity-60 transition cursor-pointer border-2 border-amber-900 flex items-center justify-center gap-2 min-h-[44px] text-center"
           >
             <Zap className="w-4 h-4 text-slate-950 fill-current" />
-            <span>{isLoading ? 'Generating Questions...' : 'Start 10-Question Quiz'}</span>
+            <span>{isLoading ? 'Generating Questions...' : hasFinishedCampaign ? 'Start Unlimited Quiz' : 'Start 10-Question Quiz'}</span>
           </button>
         </div>
 
