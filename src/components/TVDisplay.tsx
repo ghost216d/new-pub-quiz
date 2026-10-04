@@ -233,6 +233,11 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
               </h2>
 
               {/* Music or Picture Round Clues Showcase */}
+              {currentQ?.pictureClue && (
+                <div className="mt-5 rounded-2xl border-2 border-amber-800/30 bg-amber-50 px-5 py-6 text-center text-6xl md:text-8xl" role="img" aria-label={`Picture clue: ${currentQ.pictureClue}`}>
+                  {currentQ.pictureClue}
+                </div>
+              )}
               {(currentQ?.imageUrl || (currentQ?.musicData?.cluePictures && currentQ.musicData.cluePictures.length > 0)) && (
                 <div className="mt-6 p-4 rounded-2xl bg-amber-50 border-2 border-amber-800/30 flex flex-col md:flex-row items-center gap-6">
                   <div className="relative rounded-2xl overflow-hidden border-3 border-amber-800 max-h-64 shadow-xl">
