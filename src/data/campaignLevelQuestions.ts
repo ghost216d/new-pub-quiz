@@ -62,7 +62,6 @@ const PUB_NAMES = ALL_CAMPAIGN_LEVELS.map(({ level }) => level.pubName || level.
 const MAP_NAMES = CARTOON_MAPS.map((map) => map.name);
 const PUB_POSTCODES = ALL_CAMPAIGN_LEVELS.map(({ level }) => level.postcode || 'London');
 const PUB_CATEGORIES = ALL_CAMPAIGN_LEVELS.map(({ level }) => level.category || 'London pub history');
-const PUB_POSTCODE_AREAS = PUB_POSTCODES.map((postcode) => postcode.match(/^[A-Z]{1,2}/i)?.[0] || 'London');
 const SPECIAL_QUESTIONS = [...SOLO_FLAG_QUESTIONS, ...SOLO_ANIMAL_QUESTIONS];
 
 const stableOptions = (answer: string, pool: string[], seed: number): string[] => {
