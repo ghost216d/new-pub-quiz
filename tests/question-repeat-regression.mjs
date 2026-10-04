@@ -27,8 +27,8 @@ campaignLevels.forEach(({ map, level }, index) => {
     assert.equal(level.mapArtwork, `level-${artworkId}-map-no-route.webp`,
       `level ${index + 1} should use its matching map artwork`);
   } else {
-    assert.equal(level.coverArtwork, map.mapArtwork,
-      `level ${index + 1} should use artwork from its own route`);
+    assert.equal(level.coverArtwork, `level-${artworkId}-cover.svg`,
+      `level ${index + 1} should use its own pub-specific cover`);
     assert.equal(level.mapArtwork, map.mapArtwork,
       `level ${index + 1} map artwork should match its own route`);
   }
