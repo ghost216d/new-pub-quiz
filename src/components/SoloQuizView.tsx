@@ -808,7 +808,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       // a previously opened pub from waiting on an online trivia service.
       if (!questionsToPlay && hasSavedQuestionSet) {
         setLevelLaunchStatus('Choosing unseen saved questions…');
-        const localQuestions = getSoloQuestionVault();
+        const localQuestions = getSoloQuestionVault().filter((question) => !question.id?.includes('_fixed_'));
         const localTrivia = localQuestions.filter((question) =>
           question.category !== 'Emoji Picture Puzzles' &&
           question.category !== 'Photo Round: World Landmarks' &&
