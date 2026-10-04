@@ -54,7 +54,7 @@ const MAP_AREA_LABELS: Record<string, string> = {
   richmond_thames_crawl: 'Richmond & the Thames',
   notting_hill_crawl: 'Notting Hill & Kensington',
   hackney_crawl: 'Hackney & Broadway Market',
-  greenwich_deptford_crawl: 'Deptford, Greenwich & Nunhead',
+  greenwich_deptford_crawl: 'Deptford & Greenwich',
   putney_wandsworth_crawl: 'Putney & Wandsworth',
   chiswick_hammersmith_crawl: 'Chiswick & Hammersmith',
   wapping_rotherhithe_crawl: 'Wapping & Rotherhithe',
