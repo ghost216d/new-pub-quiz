@@ -20,6 +20,7 @@ import {
 import { Question, QuizDifficulty, MapLevel, CartoonMap, SoloProgression } from '../types';
 import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_ANIMAL_QUESTIONS, SOLO_FLAG_QUESTIONS, SOLO_PHOTO_QUESTIONS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../data/pubClassicsQuestions';
+import { CAMPAIGN_LEVEL_QUESTIONS } from '../data/campaignLevelQuestions';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -767,7 +768,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
     try {
       const count = level.questionCount || 10;
-      const cachedQuestions = readFixedLevelQuestions(level.id);
+      const cachedQuestions = CAMPAIGN_LEVEL_QUESTIONS[level.id] || readFixedLevelQuestions(level.id);
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
