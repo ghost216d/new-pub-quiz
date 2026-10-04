@@ -62,6 +62,14 @@ campaignLevels.forEach(({ level }) => {
 });
 assert.equal(new Set(campaignLevels.map(({ level }) => CAMPAIGN_LEVEL_QUESTIONS[level.id][0].prompt)).size, campaignLevels.length,
   'each pub should start with a different pub-specific question');
+campaignLevels.forEach(({ level }) => {
+  const questions = CAMPAIGN_LEVEL_QUESTIONS[level.id];
+  assert.equal(dedupeSimilarQuestions(questions).length, questions.length,
+    `${level.name} should not contain repeated or closely reworded questions`);
+});
+const quizMasterSourceQuestions = DEFAULT_ROUNDS.filter((round) => round.type !== 'music').flatMap((round) => round.questions);
+assert.equal(dedupeSimilarQuestions(quizMasterSourceQuestions).length, quizMasterSourceQuestions.length,
+  'Quiz Master defaults should not contain duplicate or similar prompts');
 const pictureRound = DEFAULT_ROUNDS.find((round) => round.type === 'picture');
 assert.ok(pictureRound, 'Quiz Master should include a picture round');
 assert.equal(pictureRound.questions.length, 3, 'picture round should contain three picture questions');
@@ -96,6 +104,16 @@ const makeQuestion = (id, prompt) => ({
   points: 15,
   timeLimitSec: 30,
 });
+
+const quizMasterQuestionPool = dedupeSimilarQuestions([
+  ...quizMasterSourceQuestions,
+  ...Object.values(CAMPAIGN_LEVEL_QUESTIONS).flat(),
+].filter((question) => !question.musicData));
+const firstQuizMasterSet = chooseUnseenFallbackQuestions(quizMasterQuestionPool, 18);
+const secondQuizMasterSet = chooseUnseenFallbackQuestions(quizMasterQuestionPool, 18);
+assert.equal(secondQuizMasterSet.some((question) =>
+  firstQuizMasterSet.some((prior) => dedupeSimilarQuestions([prior, question]).length < 2)), false,
+  'consecutive Quiz Master sets should have no repeated or similar prompts');
 
 const pool = [
   makeQuestion('1', 'Who painted the Mona Lisa?'),

@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Home, ShoppingBag, Map, Zap, UserRound, Play } from 'lucide-react';
 import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
+import { CAMPAIGN_LEVEL_QUESTIONS } from './data/campaignLevelQuestions';
 import { randomizeQuestionOptions } from './utils/questionQuality';
+import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions } from './utils/onlineTrivia';
 import { answerMatchesQuestion, awardCurrentAnswers } from './utils/answerGrading';
 import { createPresetTeams, TEAM_AVATARS, TEAM_COLORS } from './data/teamPresets';
 import { Header } from './components/Header';
@@ -34,18 +36,43 @@ const HOST_SESSION_KEY = 'pubquiz_active_host_room_v1';
 const HOST_SESSION_MODE_KEY = 'pubquiz_active_host_mode_v1';
 type SoloNavigationTarget = 'map' | 'shop' | 'quiz';
 
-const quizMasterRounds = () => DEFAULT_ROUNDS
-  .filter((round) => round.type !== 'music')
-  .map((round, index) => ({
-    ...round,
-    roundNumber: index + 1,
-    title: round.title.replace(/^Round\s+\d+\s*:\s*/i, `Round ${index + 1}: `),
-    questions: round.questions.map((question) => ({
-      ...randomizeQuestionOptions(question),
-      roundNumber: index + 1,
-      musicData: undefined,
-    })),
-  }));
+const quizMasterRounds = () => {
+  const templates = DEFAULT_ROUNDS.filter((round) => round.type !== 'music');
+  const sourceQuestions = dedupeSimilarQuestions([
+    ...templates.flatMap((round) => round.questions),
+    ...Object.values(CAMPAIGN_LEVEL_QUESTIONS).flat(),
+  ]);
+  const triviaPool = sourceQuestions.filter((question) =>
+    !question.musicData && !question.pictureClue && !question.imageUrl,
+  );
+  const visualPool = sourceQuestions.filter((question) =>
+    Boolean(question.pictureClue || question.imageUrl),
+  );
+
+  return templates
+    .map((round, index) => {
+      const pool = round.type === 'picture' ? visualPool : triviaPool;
+      let selected: typeof pool = [];
+      try {
+        selected = chooseUnseenFallbackQuestions(pool, round.questions.length);
+      } catch {
+        // If a bank is exhausted, keep the remaining rounds playable with
+        // the distinct questions still available in that question type.
+      }
+
+      return {
+        ...round,
+        roundNumber: index + 1,
+        title: round.title.replace(/^Round\\s+\\d+\\s*:\\s*/i, `Round ${index + 1}: `),
+        questions: selected.map((question) => ({
+          ...randomizeQuestionOptions(question),
+          roundNumber: index + 1,
+          musicData: undefined,
+        })),
+      };
+    })
+    .filter((round) => round.questions.length > 0);
+};
 
 const removeMusicFromRoom = (source: RoomState): RoomState => {
   const room = structuredClone(source);
@@ -722,7 +749,8 @@ export default function App() {
     targetRole: 'host' | 'player' | 'tv',
     teamData?: { teamId: string; name: string; avatar: string },
     maxTeams: number = 40,
-    prePopulateScheme: 'none' | 'tables' | 'pub_legends' = 'none'
+    prePopulateScheme: 'none' | 'tables' | 'pub_legends' = 'none',
+    roundsForFallback: RoomState['rounds'] = quizMasterRounds(),
   ) => {
     if (!roomState) {
       let initialTeams: Record<string, Team> = {};
@@ -747,7 +775,7 @@ export default function App() {
         status: 'lobby',
         currentRoundIndex: 0,
         currentQuestionIndex: 0,
-        rounds: quizMasterRounds(),
+        rounds: roundsForFallback,
         teams: initialTeams,
         timerRemaining: 30,
         timerTotal: 30,
@@ -933,14 +961,15 @@ export default function App() {
   ) => {
     setIsLoading(true);
     setErrorMessage(null);
+    const roundsForNewGame = quizMasterRounds();
 
     if (isFirebaseMultiplayerConfigured) {
       const seedCode = 'TEMP';
-      handleOfflineFallback(seedCode, 'host', undefined, maxTeams, prePopulateScheme);
+      handleOfflineFallback(seedCode, 'host', undefined, maxTeams, prePopulateScheme, roundsForNewGame);
       const initialTeams = prePopulateScheme === 'none' ? {} : createPresetTeams(Math.min(40, maxTeams), prePopulateScheme);
       const initial: RoomState = {
         code: seedCode, hostName, status: 'lobby', currentRoundIndex: 0, currentQuestionIndex: 0,
-        rounds: quizMasterRounds(), teams: initialTeams,
+        rounds: roundsForNewGame, teams: initialTeams,
         timerRemaining: 30, timerTotal: 30, isTimerRunning: false, submissions: {},
         settings: { answerMode: 'multiple_choice', showMilestoneEvery10: true, roundTimerSeconds: 30, allowSoloAI: true, maxTeams: Math.min(40, Math.max(2, maxTeams)), prePopulateScheme },
         musicPlaying: false,
@@ -973,7 +1002,7 @@ export default function App() {
       localStorage.setItem(HOST_SESSION_MODE_KEY, 'offline');
       setConnectionStatus('standalone');
       setErrorMessage('Standalone Quiz Master mode: other phones and the TV cannot join until the multiplayer service is connected.');
-      handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
+      handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme, roundsForNewGame);
       return;
     }
 
@@ -1001,7 +1030,7 @@ export default function App() {
       setActiveHostCode(randomCode);
       setActiveHostMode('offline');
       localStorage.setItem(HOST_SESSION_MODE_KEY, 'offline');
-      handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme);
+      handleOfflineFallback(randomCode, 'host', undefined, maxTeams, prePopulateScheme, roundsForNewGame);
     }
   };
 
@@ -1232,13 +1261,13 @@ export default function App() {
             </span>
           </div>
         )}
-        {(role === 'solo' || role === 'landing') && activeHostCode && hostSessionValidated && (
+        {role === 'landing' && activeHostCode && hostSessionValidated && (
           <button
             id="resume-live-quiz-btn"
             onClick={() => void handleResumeHostGame()}
             disabled={isLoading}
-            aria-label={`Resume ${activeHostMode} Quiz Master game`}
-            title={`Resume ${activeHostMode} Quiz Master game`}
+            aria-label="Return to Quiz Master"
+            title="Return to Quiz Master"
             className={`resume-host-quiz-btn relative z-50 ml-auto mt-2 mr-2 flex w-fit items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
           >
             <span className="resume-host-quiz-icon" aria-hidden="true"><Play size={13} strokeWidth={3} /></span>
@@ -1247,7 +1276,7 @@ export default function App() {
               {activeHostMode === 'live' ? 'LIVE' : 'OFFLINE'}
             </span>
             {isLoading && <span className="resume-host-quiz-spinner" aria-hidden="true" />}
-            <span>{isLoading ? (activeHostMode === 'live' ? 'RECONNECTING…' : 'OPENING…') : 'RESUME QUIZ'}</span>
+            <span>{isLoading ? (activeHostMode === 'live' ? 'RECONNECTING…' : 'OPENING…') : 'RETURN TO QUIZ MASTER'}</span>
           </button>
         )}
         {role === 'landing' && (
@@ -1297,6 +1326,24 @@ export default function App() {
             onOpenQuizMaster={() => setRole('landing')}
             navigationRequest={soloNavigationRequest}
           />
+        )}
+        {role === 'solo' && activeHostCode && hostSessionValidated && (
+          <button
+            id="resume-live-quiz-btn"
+            onClick={() => void handleResumeHostGame()}
+            disabled={isLoading}
+            aria-label="Return to Quiz Master"
+            title="Return to Quiz Master"
+            className={`resume-host-quiz-btn relative z-50 mx-auto my-5 flex w-fit items-center gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-[11px] font-black shadow-md transition active:scale-95 disabled:opacity-60 ${activeHostMode === 'live' ? 'resume-host-quiz-live' : 'resume-host-quiz-offline'}`}
+          >
+            <span className="resume-host-quiz-icon" aria-hidden="true"><Play size={13} strokeWidth={3} /></span>
+            <span className={`resume-host-quiz-mode resume-host-quiz-mode-${activeHostMode}`}>
+              <span className="resume-host-quiz-dot" aria-hidden="true" />
+              {activeHostMode === 'live' ? 'LIVE' : 'OFFLINE'}
+            </span>
+            {isLoading && <span className="resume-host-quiz-spinner" aria-hidden="true" />}
+            <span>{isLoading ? (activeHostMode === 'live' ? 'RECONNECTING…' : 'OPENING…') : 'RETURN TO QUIZ MASTER'}</span>
+          </button>
         )}
       </main>
 

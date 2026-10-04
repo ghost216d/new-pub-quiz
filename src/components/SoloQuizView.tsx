@@ -29,7 +29,7 @@ import {
   saveSoloProgression,
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
-import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
+import { areQuestionPromptsSimilar, chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
 import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
@@ -175,6 +175,15 @@ const readMissedQuestions = (): MissedQuestion[] => {
 
 const saveMissedQuestions = (questions: MissedQuestion[]) => {
   localStorage.setItem(MISSED_QUESTIONS_KEY, JSON.stringify(questions.slice(-100)));
+};
+
+const hasFixedLevelQuestionSet = (levelId: string): boolean => {
+  try {
+    const sets = JSON.parse(localStorage.getItem(FIXED_LEVEL_QUESTIONS_KEY) || '{}');
+    return Boolean(sets && typeof sets === 'object' && Object.prototype.hasOwnProperty.call(sets, levelId));
+  } catch {
+    return false;
+  }
 };
 
 const readFixedLevelQuestions = (levelId: string): Question[] => {
@@ -336,6 +345,7 @@ const getProceduralBackupQuestions = (): Question[] => Array.from({ length: 400 
 });
 
 const getSoloQuestionVault = (includeMathsBackups = false): Question[] => [
+  ...Object.values(CAMPAIGN_LEVEL_QUESTIONS).flat(),
   ...DEFAULT_ROUNDS
     .filter((round) => round.type !== 'music')
     .flatMap((round) => round.questions)
@@ -780,7 +790,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     try {
       const count = level.questionCount || 10;
       const authoredQuestions = CAMPAIGN_LEVEL_QUESTIONS[level.id];
-      const cachedQuestions = authoredQuestions || readFixedLevelQuestions(level.id);
+      const hasSavedQuestionSet = hasFixedLevelQuestionSet(level.id);
+      const storedQuestions = hasSavedQuestionSet
+        ? readFixedLevelQuestions(level.id)
+        : authoredQuestions || readFixedLevelQuestions(level.id);
+      const questionHistory = getQuestionHistory();
+      const cachedQuestions = storedQuestions.filter((question) =>
+        !questionHistory.some((previous) => areQuestionPromptsSimilar(question.prompt, previous)),
+      );
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
@@ -854,17 +871,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         throw new Error('No quiz questions were available for this pub.');
       }
 
-      const fixedQuestions = authoredQuestions
-        ? authoredQuestions.slice(0, count)
-        : cachedQuestions.length >= count
-          ? cachedQuestions.slice(0, count)
-          : orderCampaignQuestions(
-              dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
-            );
+      const fixedQuestions = orderCampaignQuestions(
+        dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
+      );
       if (fixedQuestions.length < count) throw new Error('This pub does not have enough distinct questions yet.');
       setLevelLaunchStatus('Your questions are ready — opening the quiz…');
       await new Promise<void>((resolve) => window.setTimeout(resolve, PUB_LOADING_SCREEN_DURATION_MS));
       saveFixedLevelQuestions(level.id, fixedQuestions);
+      recordQuestionsAsSeen(fixedQuestions.map((question) => question.prompt));
       setQuestions(fixedQuestions);
       initGame(fixedQuestions);
       setViewMode('quiz');

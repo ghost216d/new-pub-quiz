@@ -95,6 +95,9 @@ const isTooSimilar = (candidate: string, previous: string): boolean => {
   return shared / smaller >= 0.8 || shared / union >= 0.68;
 };
 
+export const areQuestionPromptsSimilar = (candidate: string, previous: string): boolean =>
+  isTooSimilar(candidate, previous);
+
 const hasBeenUsed = (prompt: string, history: string[]): boolean =>
   history.some((previous) => isTooSimilar(prompt, previous));
 
