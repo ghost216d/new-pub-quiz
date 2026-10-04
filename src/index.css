@@ -5872,6 +5872,84 @@ html[data-time-theme="night"] .role-solo .game-bottom-nav {
   }
 }
 
+/* Give later levels a branded transition card over their correct route artwork. */
+.solo-stage-transition-title-card {
+  top: 27%;
+  width: min(88vw, 520px);
+  padding: clamp(18px, 5vw, 30px) clamp(16px, 5vw, 28px);
+  border: 4px solid #191919;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.98), rgba(255, 236, 190, 0.97));
+  box-shadow: 0 7px 0 #7f1d1d, 0 14px 28px rgba(15, 23, 42, 0.28);
+}
+
+.solo-stage-transition-title-card > span:first-child {
+  color: #7f1d1d;
+  font-size: clamp(11px, 3vw, 15px);
+}
+
+.solo-stage-transition-title-card strong {
+  color: #202020;
+  font-size: clamp(28px, 8vw, 48px);
+}
+
+.solo-stage-transition-title-card small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 9px;
+  color: #45220f;
+  font-size: clamp(15px, 4.2vw, 22px);
+}
+
+.solo-stage-transition-title-card small:last-child {
+  margin-top: 4px;
+  color: #70421f;
+  font-size: clamp(11px, 3vw, 15px);
+}
+
+.solo-stage-transition-icon {
+  display: inline !important;
+  margin: 0 !important;
+  font-size: 1.25em !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+.solo-stage-transition-progress strong {
+  color: #7f1d1d;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.solo-stage-transition-progress .solo-stage-transition-track span {
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: solo-stage-transition-fill 2s linear forwards;
+}
+
+@keyframes solo-stage-transition-fill {
+  to { transform: scaleX(1); }
+}
+
+@media (max-width: 899px) {
+  #root .role-solo .game-top-bar {
+    padding-right: clamp(190px, 44vw, 230px) !important;
+  }
+
+  .solo-stage-transition-title-card {
+    top: 25%;
+    border-width: 3px;
+    border-radius: 22px;
+  }
+
+  .solo-stage-transition-progress {
+    bottom: max(96px, calc(88px + env(safe-area-inset-bottom, 0px) + 10px));
+  }
+}
+
 /* Solo progress map: muted artwork becomes colourful from the latest cleared pub down. */
 .role-solo img.game-map-artwork.is-grayscale {
   filter: grayscale(1) !important;
