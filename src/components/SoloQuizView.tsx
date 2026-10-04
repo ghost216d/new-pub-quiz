@@ -111,7 +111,12 @@ type CompletionTransition = {
   phase: 'loading';
   nextTarget: { mapId: string; levelId: string } | null;
   artwork: string;
+  fallbackArtwork: string;
+  hasMatchingCoverArtwork: boolean;
   nextLevelName: string;
+  nextPubName: string;
+  nextRouteName: string;
+  nextLevelIcon: string;
   nextLevelNumber?: number;
 };
 
@@ -1031,10 +1036,18 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const targetLevel = nextTarget
         ? targetMap?.levels.find((level) => level.id === nextTarget.levelId)
         : undefined;
-      // Each route is one stage. Use the destination route's own art so the
-      // loading screen always matches the map and pub being opened.
-      const nextArtwork = targetLevel?.coverArtwork
-        || targetLevel?.mapArtwork
+      // Levels 1–20 have designed portrait covers. Later levels use their
+      // own route artwork behind a matching level/pub title card.
+      const hasMatchingCoverArtwork = Boolean(
+        targetLevel?.coverArtwork &&
+        targetLevel.artworkLevelNumber &&
+        targetLevel.artworkLevelNumber <= 20
+      );
+      const nextArtwork = hasMatchingCoverArtwork
+        ? targetLevel?.coverArtwork
+        : targetLevel?.mapArtwork || targetMap?.mapArtwork || targetLevel?.coverArtwork
+          || 'pub-quiz-main-cover-v2.webp';
+      const fallbackArtwork = targetLevel?.mapArtwork
         || targetMap?.mapArtwork
         || 'pub-quiz-main-cover-v2.webp';
 
@@ -1064,7 +1077,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             phase: 'loading',
             nextTarget,
             artwork: nextArtwork,
+            fallbackArtwork,
+            hasMatchingCoverArtwork,
             nextLevelName: targetLevel.name || targetLevel.pubName || 'Next area',
+            nextPubName: targetLevel.pubName || targetLevel.name || 'Next pub',
+            nextRouteName: targetMap?.name || targetMap?.crawlRouteName || 'London',
+            nextLevelIcon: targetLevel.icon || '🍺',
             nextLevelNumber: targetLevel.artworkLevelNumber,
           });
         } else {
@@ -1198,25 +1216,39 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             className="solo-stage-transition-cover"
             role="status"
             aria-live="polite"
-            aria-label={`Next area: ${completionTransition.nextLevelName}`}
+            aria-label={`Next stop: ${completionTransition.nextPubName}, ${completionTransition.nextLevelName}`}
           >
             <img
               key={completionTransition.artwork}
               className="solo-stage-transition-art"
               src={`${import.meta.env.BASE_URL}${completionTransition.artwork}`}
-              alt={`Artwork for ${completionTransition.nextLevelName}`}
+              alt={`Artwork for ${completionTransition.nextLevelName} and ${completionTransition.nextPubName}`}
               onError={(event) => {
                 event.currentTarget.onerror = null;
-                event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
+                event.currentTarget.src = `${import.meta.env.BASE_URL}${completionTransition.fallbackArtwork}`;
               }}
               draggable={false}
             />
-            <div className="solo-stage-transition-title" aria-hidden="true">
-              <span>
-                Next Area{completionTransition.nextLevelNumber ? ` · Level ${completionTransition.nextLevelNumber}` : ''}
-              </span>
-              <strong>{completionTransition.nextLevelName}</strong>
-            </div>
+            {!completionTransition.hasMatchingCoverArtwork && (
+              <>
+                <div className="solo-stage-transition-title solo-stage-transition-title-card" aria-hidden="true">
+                  <span>The Pub Quiz · Level {completionTransition.nextLevelNumber || ''}</span>
+                  <strong>{completionTransition.nextLevelName}</strong>
+                  <small>
+                    <span className="solo-stage-transition-icon">{completionTransition.nextLevelIcon}</span>
+                    {completionTransition.nextPubName}
+                  </small>
+                  <small>{completionTransition.nextRouteName}</small>
+                </div>
+                <div className="solo-stage-transition-progress" aria-hidden="true">
+                  <strong>On to the next pub</strong>
+                  <div className="solo-stage-transition-track">
+                    <span />
+                  </div>
+                  <span>READY</span>
+                </div>
+              </>
+            )}
           </div>
         )}
 
