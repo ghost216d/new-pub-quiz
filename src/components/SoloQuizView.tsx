@@ -833,7 +833,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         setViewMode('quiz');
       } catch (err) {
         console.error('Custom topic question generation failed.', err);
-        setCustomTopicError(`Could not create enough new questions about “${topic}”. Please try another topic or start again.`);
+        const reason = err instanceof Error ? err.message : String(err || '');
+        setCustomTopicError(/compatible GPU|WebGPU/i.test(reason)
+          ? 'This device cannot run the on-device question AI because no compatible GPU is available. Try a WebGPU-capable browser on a supported device.'
+          : `Could not create enough new questions about “${topic}”. Please try again or choose another topic.`);
       } finally {
         setIsLoading(false);
       }
