@@ -893,8 +893,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         coins: progression.coins + coinGain,
       });
 
+      // Keep the answer cue clear; the coin bonus is already shown visually.
       audioSynth.playCorrectFx();
-      audioSynth.playCoinFx();
 
       setFloatingCoinText(`+${coinGain} 🪙`);
       setTimeout(() => setFloatingCoinText(null), 1200);
@@ -906,8 +906,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     } else {
       if (activeLevel) rememberMissedQuestion(currentQ, activeLevel.id);
       setStreak(0);
+      // Both effects used the same negative clip; play it once per wrong answer.
       audioSynth.playWrongFx();
-      audioSynth.playLifeLostFx();
 
       // Deduct 1 Life!
       const remainingLives = Math.max(0, progression.lives - 1);
@@ -947,11 +947,15 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       ? Math.round((correctCount / questions.length) * 100)
       : 0;
     const passedStage = !activeLevel || correctPercent >= SOLO_PASS_PERCENT;
+    const starsAwarded = correctPercent >= 80 ? 3 : correctPercent >= 60 ? 2 : correctPercent >= 40 ? 1 : 0;
     if (passedStage) {
       setDrinkCelebration({ id: Date.now(), streak: Math.max(1, streak) });
       window.setTimeout(() => setDrinkCelebration(null), 7000);
       audioSynth.playMilestoneFanfare();
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+    } else if (starsAwarded > 0) {
+      // One star cue only; the level-complete fanfare plays only on a pass.
+      audioSynth.playStarFx();
     } else {
       audioSynth.playWrongFx();
     }
@@ -962,18 +966,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const lastCampaignMap = CARTOON_MAPS[CARTOON_MAPS.length - 1];
       const isFinalCampaignLevel = activeMap.id === lastCampaignMap?.id
         && activeLevel.id === lastCampaignMap?.levels[lastCampaignMap.levels.length - 1]?.id;
-
-      let starsAwarded = 0;
-      if (accuracy >= 80) starsAwarded = 3;
-      else if (accuracy >= 60) starsAwarded = 2;
-      else if (accuracy >= 40) starsAwarded = 1;
-
-      // Play star sounds sequentially
-      for (let i = 0; i < starsAwarded; i++) {
-        setTimeout(() => {
-          audioSynth.playStarFx(i);
-        }, 1350 + i * 350);
-      }
 
       // Bonus level completion reward
       const bonusReward = passedStage ? (activeLevel.coinReward || 150) : 0;
