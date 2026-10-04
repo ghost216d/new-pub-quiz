@@ -113,16 +113,18 @@ globalThis.fetch = async (input) => {
     return { ok: true, json: async () => ({ token: 'fresh-token' }) };
   }
   if (url.includes('api.php') && url.includes('token=fresh-token')) {
+    const requestUrl = new URL(url);
+    const isBroadPool = !requestUrl.searchParams.has('category');
     return {
       ok: true,
       json: async () => ({
         response_code: 0,
         results: [{
-          category: 'General Knowledge',
+          category: isBroadPool ? 'Science & Nature' : 'General Knowledge',
           difficulty: 'easy',
-          question: 'What is the capital of Portugal?',
-          correct_answer: 'Lisbon',
-          incorrect_answers: ['Paris', 'Rome', 'Madrid'],
+          question: isBroadPool ? 'Which planet is known as the Red Planet?' : 'What is the capital of Portugal?',
+          correct_answer: isBroadPool ? 'Mars' : 'Lisbon',
+          incorrect_answers: isBroadPool ? ['Venus', 'Jupiter', 'Mercury'] : ['Paris', 'Rome', 'Madrid'],
         }],
       }),
     };
@@ -139,6 +141,18 @@ assert.equal(recoveredQuestions.length, 1, 'questions should load after replacin
 assert.equal(apiRequests.length, 3, 'expired token should trigger one new token request and one retry');
 assert.match(apiRequests[2], /token=fresh-token/, 'retry should use the new token');
 assert.match(apiRequests[0], /category=9/, 'unknown categories should be constrained to General Knowledge rather than every trivia category');
+
+const recoveredFromExhaustedPool = await getOnlineTriviaQuestions({
+  category: 'General Knowledge',
+  count: 1,
+  difficulty: 'easy',
+  candidateMultiplier: 12,
+});
+assert.equal(recoveredFromExhaustedPool[0].prompt, 'Which planet is known as the Red Planet?',
+  'an exhausted General Knowledge pool should fall back to fresh mixed trivia');
+assert.match(apiRequests[3], /category=9/, 'the first request should still prefer General Knowledge');
+assert.equal(new URL(apiRequests[4]).searchParams.has('category'), false,
+  'the fallback request should expand to the full mixed trivia pool');
 globalThis.fetch = originalFetch;
 if (originalDocument === undefined) delete globalThis.document;
 else globalThis.document = originalDocument;

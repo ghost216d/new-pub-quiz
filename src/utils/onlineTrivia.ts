@@ -239,7 +239,7 @@ export const getOnlineTriviaQuestions = async ({
 }): Promise<Question[]> => {
   // Prefer the protected Gemini proxy. The browser receives questions only;
   // the Gemini key remains an encrypted server-side secret.
-  if (!mixed && getSecureQuestionEndpoint()) {
+  if (!mixed && !broadPool && getSecureQuestionEndpoint()) {
     try {
       return await getSecureAiQuestions({ category, count, difficulty });
     } catch (error) {
@@ -294,6 +294,10 @@ export const getOnlineTriviaQuestions = async ({
     data = (await response.json()) as OpenTriviaResponse;
   }
   if (data.response_code !== 0 || !Array.isArray(data.results)) {
+    if (!mixed && !broadPool && categoryId === 9 && (data.response_code === 0 || data.response_code === 4)) {
+      console.info('General Knowledge questions are exhausted; trying a wider trivia mix.');
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier });
+    }
     throw new Error(data.response_code === 5
       ? 'The online question service is rate limited.'
       : 'The online question service has no fresh questions for this request.');
@@ -324,6 +328,10 @@ export const getOnlineTriviaQuestions = async ({
   }
 
   if (unique.length < count) {
+    if (!mixed && !broadPool && categoryId === 9) {
+      console.info('Unseen General Knowledge questions are running low; trying a wider trivia mix.');
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier });
+    }
     throw new Error('Not enough unseen online questions were returned.');
   }
 
