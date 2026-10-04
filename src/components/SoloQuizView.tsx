@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Question, QuizDifficulty, MapLevel, CartoonMap, SoloProgression } from '../types';
 import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_ANIMAL_QUESTIONS, SOLO_FLAG_QUESTIONS, SOLO_PHOTO_QUESTIONS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
+import { SOLO_PUB_CLASSICS_QUESTIONS } from '../data/pubClassicsQuestions';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -881,37 +882,46 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     const isPhotoRound = !isUserTopic && selectedCategory === 'Photo Round: World Landmarks';
     const isFlagRound = !isUserTopic && selectedCategory === 'World Flags';
     const isAnimalRound = !isUserTopic && selectedCategory === 'Animals & Nature';
+    const isPubClassicsRound = !isUserTopic && selectedCategory === 'Pub Classics & Beer Lore';
     setDifficulty('medium');
 
     if (isUserTopic) {
-      if (!supportsOnDeviceQuizAI()) {
-        setCustomTopicError('Custom topics need a browser with on-device AI (WebGPU). Try the latest Chrome or Edge on a supported device.');
-        setIsLoading(false);
-        return;
-      }
       try {
-        setCustomTopicProgress('Preparing on-device question generator…');
-        const generatedQuestions = await generateMixedOnDeviceQuestions(
-          topic,
-          10,
-          setCustomTopicProgress,
-        );
+        let generatedQuestions: Question[];
+        if (supportsOnDeviceQuizAI()) {
+          setCustomTopicProgress('Preparing on-device question generator…');
+          try {
+            generatedQuestions = await generateMixedOnDeviceQuestions(topic, 10, setCustomTopicProgress);
+          } catch (deviceError) {
+            console.warn('On-device topic generation failed; trying online questions.', deviceError);
+            setCustomTopicProgress('Device AI is unavailable. Trying the online question service…');
+            generatedQuestions = await loadMixedOnlineQuestions(topic, 10);
+          }
+        } else {
+          setCustomTopicProgress('This device cannot run on-device AI. Using questions from the selected category…');
+          if (selectedCategory === 'Pub Classics & Beer Lore') {
+            generatedQuestions = chooseUnseenFallbackQuestions(SOLO_PUB_CLASSICS_QUESTIONS, 10, [], true);
+          } else {
+            try {
+              generatedQuestions = await loadMixedOnlineQuestions(topic, 10);
+            } catch {
+              generatedQuestions = await loadMixedOnlineQuestions(selectedCategory, 10);
+            }
+          }
+        }
         setQuestions(generatedQuestions);
         initGame(generatedQuestions);
         setViewMode('quiz');
       } catch (err) {
         console.error('Custom topic question generation failed.', err);
-        const reason = err instanceof Error ? err.message : String(err || '');
-        setCustomTopicError(/compatible GPU|WebGPU/i.test(reason)
-          ? 'This device cannot run the on-device question AI because no compatible GPU is available. Try a WebGPU-capable browser on a supported device.'
-          : `Could not create enough new questions about “${topic}”. Please try again or choose another topic.`);
+        setCustomTopicError(`Could not load questions about “${topic}”. Check your connection or choose a supported category.`);
       } finally {
         setIsLoading(false);
       }
       return;
     }
 
-    if (navigator.onLine && !isPictureRound && !isPhotoRound && !isFlagRound && !isAnimalRound) {
+    if (navigator.onLine && !isPictureRound && !isPhotoRound && !isFlagRound && !isAnimalRound && !isPubClassicsRound) {
       try {
         const onlineQuestions = await loadMixedOnlineQuestions(topic, 10);
         setQuestions(onlineQuestions);
@@ -928,7 +938,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     const includeMathsBackups = isMathsTopic(topic);
     const allQuestions = getSoloQuestionVault(includeMathsBackups);
 
-    let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : isPhotoRound ? SOLO_PHOTO_QUESTIONS : isFlagRound ? SOLO_FLAG_QUESTIONS : isAnimalRound ? SOLO_ANIMAL_QUESTIONS : allQuestions.filter(
+    let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : isPhotoRound ? SOLO_PHOTO_QUESTIONS : isFlagRound ? SOLO_FLAG_QUESTIONS : isAnimalRound ? SOLO_ANIMAL_QUESTIONS : isPubClassicsRound ? SOLO_PUB_CLASSICS_QUESTIONS : allQuestions.filter(
       (q) =>
         q.category.toLowerCase().includes(selectedCategory.toLowerCase().slice(0, 4)) ||
         selectedCategory.toLowerCase().includes(q.category.toLowerCase().slice(0, 4))
