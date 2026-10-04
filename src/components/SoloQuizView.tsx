@@ -918,7 +918,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           setCustomTopicProgress('This device cannot run on-device AI. Using questions from the selected category…');
           generatedQuestions = category === 'Pub Classics & Beer Lore'
             ? chooseUnseenFallbackQuestions(SOLO_PUB_CLASSICS_QUESTIONS, 10, [], true)
-            : await loadMixedOnlineQuestions(selectedCategory, 10);
+            : await loadMixedOnlineQuestions(category, 10);
         }
         setQuestions(generatedQuestions);
         initGame(generatedQuestions);
