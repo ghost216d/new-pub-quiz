@@ -962,7 +962,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
     // If this was a Map Level, calculate stars and unlock rewards
     if (activeLevel && activeMap) {
-      const accuracy = correctPercent;
       const lastCampaignMap = CARTOON_MAPS[CARTOON_MAPS.length - 1];
       const isFinalCampaignLevel = activeMap.id === lastCampaignMap?.id
         && activeLevel.id === lastCampaignMap?.levels[lastCampaignMap.levels.length - 1]?.id;
