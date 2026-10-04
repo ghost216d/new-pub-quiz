@@ -21,6 +21,7 @@ import { Question, QuizDifficulty, MapLevel, CartoonMap, SoloProgression } from 
 import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_ANIMAL_QUESTIONS, SOLO_FLAG_QUESTIONS, SOLO_PHOTO_QUESTIONS, SOLO_PICTURE_QUESTIONS } from '../data/defaultQuestions';
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../data/pubClassicsQuestions';
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../data/campaignLevelQuestions';
+import { normalizeSoloCategory } from '../utils/soloCategories';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -578,6 +579,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
   // Custom quiz setup state
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_VAULT[0].name);
+  useEffect(() => {
+    if (navigationRequest?.target !== 'quiz') return;
+    setSelectedCategory(CATEGORY_VAULT[0].name);
+    setUseAI(false);
+    setCustomTopic('');
+    setCustomTopicError(null);
+    setCustomTopicProgress('');
+  }, [navigationRequest?.id, navigationRequest?.target]);
   const [hasFinishedCampaign, setHasFinishedCampaign] = useState(false);
   const [useAI, setUseAI] = useState(false);
   const [customTopic, setCustomTopic] = useState('');
@@ -879,14 +888,16 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setActiveLevel(null);
     setActiveMap(null);
     const isUserTopic = useAI && customTopic.trim().length > 0;
-    const topic = isUserTopic ? customTopic.trim() : selectedCategory;
+    const category = normalizeSoloCategory(selectedCategory, CATEGORY_VAULT);
+    if (category !== selectedCategory) setSelectedCategory(category);
+    const topic = isUserTopic ? customTopic.trim() : category;
     setCustomTopicError(null);
     setCustomTopicProgress('');
-    const isPictureRound = !isUserTopic && selectedCategory === 'Emoji Picture Puzzles';
-    const isPhotoRound = !isUserTopic && selectedCategory === 'Photo Round: World Landmarks';
-    const isFlagRound = !isUserTopic && selectedCategory === 'World Flags';
-    const isAnimalRound = !isUserTopic && selectedCategory === 'Animals & Nature';
-    const isPubClassicsRound = !isUserTopic && selectedCategory === 'Pub Classics & Beer Lore';
+    const isPictureRound = !isUserTopic && category === 'Emoji Picture Puzzles';
+    const isPhotoRound = !isUserTopic && category === 'Photo Round: World Landmarks';
+    const isFlagRound = !isUserTopic && category === 'World Flags';
+    const isAnimalRound = !isUserTopic && category === 'Animals & Nature';
+    const isPubClassicsRound = !isUserTopic && category === 'Pub Classics & Beer Lore';
     setDifficulty('medium');
 
     if (isUserTopic) {
@@ -899,13 +910,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           } catch (deviceError) {
             console.warn('On-device topic generation failed; using the selected category.', deviceError);
             setCustomTopicProgress('Device AI is unavailable. Loading questions from the selected category…');
-            generatedQuestions = selectedCategory === 'Pub Classics & Beer Lore'
+            generatedQuestions = category === 'Pub Classics & Beer Lore'
               ? chooseUnseenFallbackQuestions(SOLO_PUB_CLASSICS_QUESTIONS, 10, [], true)
-              : await loadMixedOnlineQuestions(selectedCategory, 10);
+              : await loadMixedOnlineQuestions(category, 10);
           }
         } else {
           setCustomTopicProgress('This device cannot run on-device AI. Using questions from the selected category…');
-          generatedQuestions = selectedCategory === 'Pub Classics & Beer Lore'
+          generatedQuestions = category === 'Pub Classics & Beer Lore'
             ? chooseUnseenFallbackQuestions(SOLO_PUB_CLASSICS_QUESTIONS, 10, [], true)
             : await loadMixedOnlineQuestions(selectedCategory, 10);
         }
@@ -940,8 +951,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
     let qPool = isPictureRound ? SOLO_PICTURE_QUESTIONS : isPhotoRound ? SOLO_PHOTO_QUESTIONS : isFlagRound ? SOLO_FLAG_QUESTIONS : isAnimalRound ? SOLO_ANIMAL_QUESTIONS : isPubClassicsRound ? SOLO_PUB_CLASSICS_QUESTIONS : allQuestions.filter(
       (q) =>
-        q.category.toLowerCase().includes(selectedCategory.toLowerCase().slice(0, 4)) ||
-        selectedCategory.toLowerCase().includes(q.category.toLowerCase().slice(0, 4))
+        q.category.toLowerCase().includes(category.toLowerCase().slice(0, 4)) ||
+        category.toLowerCase().includes(q.category.toLowerCase().slice(0, 4))
     );
     if (qPool.length < 5) {
       qPool = allQuestions;
