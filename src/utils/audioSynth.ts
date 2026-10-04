@@ -198,7 +198,7 @@ class AudioSynthManager {
     frequency: number,
     startTime: number,
     duration: number,
-    volume = 0.07,
+    volume = 0.035,
     waveform: OscillatorType = 'sine',
     endFrequency?: number,
   ) {
@@ -247,7 +247,7 @@ class AudioSynthManager {
     filter.frequency.setValueAtTime(780, startTime);
     filter.Q.setValueAtTime(0.7, startTime);
     envelope.gain.setValueAtTime(0.0001, startTime);
-    envelope.gain.linearRampToValueAtTime(0.025, startTime + 0.05);
+    envelope.gain.linearRampToValueAtTime(0.01, startTime + 0.05);
     envelope.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
     source.connect(filter);
     filter.connect(envelope);
@@ -256,78 +256,105 @@ class AudioSynthManager {
     source.stop(startTime + duration);
   }
 
-  private effectAudio = new Map<string, HTMLAudioElement>();
-
-  private playAsset(file: string, volume: number = 0.55) {
+  // All short effects use Web Audio so the cues share one soft, pub-like sound palette.
+  private runEffect(effect: (ctx: AudioContext, startTime: number) => void) {
     try {
-      if (typeof Audio === 'undefined') return;
-      let audio = this.effectAudio.get(file);
-      if (!audio) {
-        audio = new Audio(`${import.meta.env.BASE_URL}audio/${file}`);
-        audio.preload = 'auto';
-        this.effectAudio.set(file, audio);
-      }
-      audio.volume = volume;
-      audio.currentTime = 0;
-      void audio.play().catch(() => {});
+      if (typeof window === 'undefined') return;
+      const ctx = this.initCtx();
+      effect(ctx, ctx.currentTime);
     } catch {
       // Keep sound effects optional when audio is unavailable.
     }
   }
 
-  // Correct answer: a short bonus reward sound.
+  // Correct answer: a restrained pair of warm glass clinks.
   playCorrectFx() {
-    this.playAsset('mixkit-bonus-earned-in-video-game-2058.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      this.playGlassClink(ctx, now, 0.96, 0.022);
+      this.playGlassClink(ctx, now + 0.11, 1.08, 0.019);
+    });
   }
 
-  // Button press: a soft, cheerful two-note tone that rises in pitch.
+  // Map forward/back and button navigation: a soft, low wooden tap.
   playCoinFx() {
-    this.playAsset('mixkit-extra-bonus-in-a-video-game-2045.mp3', 0.32);
+    this.runEffect((ctx, now) => this.playWoodTap(ctx, now, 0.022));
   }
 
-  // Life lost: a muted wooden thud with a low, soft descending tone.
+  // Life lost: a muted wooden knock with a quiet downward note.
   playLifeLostFx() {
-    this.playAsset('mixkit-negative-guitar-tone-2324.mp3', 0.48);
+    this.runEffect((ctx, now) => {
+      this.playWoodTap(ctx, now, 0.026);
+      this.playPubTone(ctx, 196, now + 0.025, 0.24, 0.014, 'sine', 147);
+    });
   }
 
-  // Star earned: three light glass taps.
+  // Star earned: three tiny clinks rising gently in pitch.
   playStarFx(index: number = 0) {
-    this.playAsset('mixkit-casino-bling-achievement-2067.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      const pitch = 0.94 + (index % 3) * 0.025;
+      [0, 0.1, 0.2].forEach((offset, noteIndex) => {
+        this.playGlassClink(ctx, now + offset, pitch * (1 + noteIndex * 0.07), 0.019);
+      });
+    });
   }
 
-  // Purchase: a quiet till-like wooden click and two quick pint clinks.
+  // Purchase: a soft till-like knock and a quiet clink.
   playPurchaseFx() {
-    this.playAsset('mixkit-video-game-treasure-2066.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      this.playWoodTap(ctx, now, 0.021);
+      this.playGlassClink(ctx, now + 0.13, 0.98, 0.017);
+    });
   }
 
-  // Wrong answer: a short, low, descending "wah-wah" cue.
+  // Wrong answer: a short, soft descending two-note cue.
   playWrongFx() {
-    this.playAsset('mixkit-negative-guitar-tone-2324.mp3', 0.48);
+    this.runEffect((ctx, now) => {
+      this.playPubTone(ctx, 262, now, 0.16, 0.015, 'sine', 220);
+      this.playPubTone(ctx, 220, now + 0.12, 0.18, 0.014, 'sine', 165);
+    });
   }
 
-  // Level complete: a warm pub-style major arpeggio that climbs to a bright finish.
+  // Level complete: a warm, quiet rising arpeggio with a light glass finish.
   playMilestoneFanfare() {
-    this.playAsset('mixkit-game-level-completed-2059.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      [392, 494, 587, 784].forEach((frequency, index) => {
+        this.playPubTone(ctx, frequency, now + index * 0.12, 0.2, index === 3 ? 0.023 : 0.018);
+      });
+      this.playGlassClink(ctx, now + 0.39, 1.02, 0.019);
+    });
   }
 
-  // Knockout: a quiet three-note last-orders bell.
+  // Knockout: a low, gentle last-orders bell.
   playKnockoutGong() {
-    this.playAsset('mixkit-ominous-drums-227.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      this.playPubTone(ctx, 220, now, 0.42, 0.025, 'sine', 165);
+    });
   }
 
-  // Champion: warm pub-chord notes under a celebratory group clink.
+  // Champion: a small warm chord-like run and a group clink.
   playChampionFanfare() {
-    this.playAsset('mixkit-completion-of-a-level-2063.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      [392, 494, 587, 659].forEach((frequency, index) => {
+        this.playPubTone(ctx, frequency, now + index * 0.11, 0.24, 0.018);
+      });
+      this.playGlassClink(ctx, now + 0.34, 1.06, 0.023);
+    });
   }
 
-  // Entering the map: a pub-door bell followed by a quiet pint clink.
+  // Entering a map: a quiet two-note pub-door bell.
   playFunnyEntranceSfx() {
-    this.playAsset('mixkit-unlock-game-notification-253.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      this.playPubTone(ctx, 740, now, 0.18, 0.018);
+      this.playPubTone(ctx, 988, now + 0.09, 0.2, 0.016);
+    });
   }
 
-  // Life restored: a soft pour and the sound of a glass being set down.
+  // Life restored: a very soft pour followed by a glass set down.
   playLifeRegenSfx() {
-    this.playAsset('mixkit-game-experience-level-increased-2062.mp3', 0.55);
+    this.runEffect((ctx, now) => {
+      this.playSoftPour(ctx, now);
+      this.playWoodTap(ctx, now + 0.28, 0.018);
+    });
   }
 
   // Stop currently playing melody
@@ -371,8 +398,8 @@ class AudioSynthManager {
         osc.type = 'square'; // fun 8-bit / warm retro synth style
         osc.frequency.setValueAtTime(note.freq, now);
 
-        gain.gain.setValueAtTime(0.85, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + note.duration);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.002, now + note.duration);
 
         osc.connect(gain);
         gain.connect(ctx.destination);

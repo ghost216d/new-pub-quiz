@@ -112,7 +112,6 @@ type CompletionTransition = {
   nextTarget: { mapId: string; levelId: string } | null;
   artwork: string;
   fallbackArtwork: string;
-  hasMatchingCoverArtwork: boolean;
   nextLevelName: string;
   nextPubName: string;
   nextRouteName: string;
@@ -1027,14 +1026,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const targetLevel = nextTarget
         ? targetMap?.levels.find((level) => level.id === nextTarget.levelId)
         : undefined;
-      // Every campaign stop has its own illustrated pub cover.
-      const hasMatchingCoverArtwork = Boolean(
-        targetLevel?.coverArtwork && targetLevel.artworkLevelNumber
-      );
-      const nextArtwork = hasMatchingCoverArtwork
-        ? targetLevel?.coverArtwork
-        : targetLevel?.mapArtwork || targetMap?.mapArtwork || targetLevel?.coverArtwork
-          || 'pub-quiz-main-cover-v2.webp';
+      // Keep each pub cover visible and place the stage name in the app overlay.
+      const nextArtwork = targetLevel?.coverArtwork
+        || targetLevel?.mapArtwork
+        || targetMap?.mapArtwork
+        || 'pub-quiz-main-cover-v2.webp';
       const fallbackArtwork = targetLevel?.mapArtwork
         || targetMap?.mapArtwork
         || 'pub-quiz-main-cover-v2.webp';
@@ -1066,7 +1062,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             nextTarget,
             artwork: nextArtwork,
             fallbackArtwork,
-            hasMatchingCoverArtwork,
             nextLevelName: targetLevel.name || targetLevel.pubName || 'Next area',
             nextPubName: targetLevel.pubName || targetLevel.name || 'Next pub',
             nextRouteName: targetMap?.name || targetMap?.crawlRouteName || 'London',
@@ -1217,9 +1212,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               }}
               draggable={false}
             />
-            {!completionTransition.hasMatchingCoverArtwork && (
-              <>
-                <div className="solo-stage-transition-title solo-stage-transition-title-card" aria-hidden="true">
+            <div className="solo-stage-transition-title solo-stage-transition-title-card" aria-hidden="true">
                   <span>The Pub Quiz · Level {completionTransition.nextLevelNumber || ''}</span>
                   <strong>{completionTransition.nextLevelName}</strong>
                   <small>
@@ -1235,8 +1228,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
                   </div>
                   <span>READY</span>
                 </div>
-              </>
-            )}
           </div>
         )}
 
