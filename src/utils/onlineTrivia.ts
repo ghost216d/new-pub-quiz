@@ -326,6 +326,7 @@ export const chooseUnseenFallbackQuestions = (
   pool: Question[],
   count: number,
   repeatablePrompts: string[] = [],
+  allowSeenFallback = false,
 ): Question[] => {
   const mastered = readMastered();
   const seen = readSeen();
@@ -342,6 +343,14 @@ export const chooseUnseenFallbackQuestions = (
       )
     : [];
   const playable = [...unseen, ...shuffled(missed)];
+  if (allowSeenFallback && playable.length < count) {
+    const alreadySelected = new Set(playable.map((question) => normalizePrompt(question.prompt)));
+    const seenAgain = shuffled(allowedPool.filter((question) =>
+      hasBeenUsed(question.prompt, seen) &&
+      !alreadySelected.has(normalizePrompt(question.prompt))
+    ));
+    playable.push(...seenAgain);
+  }
   if (playable.length === 0) {
     throw new Error('No unseen or previously missed questions are available.');
   }
