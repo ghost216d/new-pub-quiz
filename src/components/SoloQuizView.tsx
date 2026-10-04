@@ -523,6 +523,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [hasFinishedCampaign, setHasFinishedCampaign] = useState(false);
   const [useAI, setUseAI] = useState(false);
   const [customTopic, setCustomTopic] = useState('');
+  const [customTopicError, setCustomTopicError] = useState<string | null>(null);
+  const [customTopicProgress, setCustomTopicProgress] = useState('');
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('medium');
   const [isLoading, setIsLoading] = useState(false);
   const [levelLaunchStatus, setLevelLaunchStatus] = useState('Loading your questions…');
@@ -803,12 +805,40 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setIsLoading(true);
     setActiveLevel(null);
     setActiveMap(null);
-    const topic = customTopic.trim() || selectedCategory;
-    const isPictureRound = !customTopic.trim() && selectedCategory === 'Emoji Picture Puzzles';
-    const isPhotoRound = !customTopic.trim() && selectedCategory === 'Photo Round: World Landmarks';
-    const isFlagRound = !customTopic.trim() && selectedCategory === 'World Flags';
-    const isAnimalRound = !customTopic.trim() && selectedCategory === 'Animals & Nature';
+    const isUserTopic = useAI && customTopic.trim().length > 0;
+    const topic = isUserTopic ? customTopic.trim() : selectedCategory;
+    setCustomTopicError(null);
+    setCustomTopicProgress('');
+    const isPictureRound = !isUserTopic && selectedCategory === 'Emoji Picture Puzzles';
+    const isPhotoRound = !isUserTopic && selectedCategory === 'Photo Round: World Landmarks';
+    const isFlagRound = !isUserTopic && selectedCategory === 'World Flags';
+    const isAnimalRound = !isUserTopic && selectedCategory === 'Animals & Nature';
     setDifficulty('medium');
+
+    if (isUserTopic) {
+      if (!supportsOnDeviceQuizAI()) {
+        setCustomTopicError('Custom topics need a browser with on-device AI (WebGPU). Try the latest Chrome or Edge on a supported device.');
+        setIsLoading(false);
+        return;
+      }
+      try {
+        setCustomTopicProgress('Preparing on-device question generator…');
+        const generatedQuestions = await generateMixedOnDeviceQuestions(
+          topic,
+          10,
+          setCustomTopicProgress,
+        );
+        setQuestions(generatedQuestions);
+        initGame(generatedQuestions);
+        setViewMode('quiz');
+      } catch (err) {
+        console.error('Custom topic question generation failed.', err);
+        setCustomTopicError(`Could not create enough new questions about “${topic}”. Please try another topic or start again.`);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
 
     if (navigator.onLine && !isPictureRound && !isPhotoRound && !isFlagRound && !isAnimalRound) {
       try {
@@ -1352,10 +1382,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             <div className="flex items-center justify-between">
               <label className="text-xs font-black text-purple-950 flex items-center gap-1.5 uppercase tracking-wider">
                 <Sparkles className="w-4 h-4 text-purple-600 animate-spin" />
-                <span>Custom Internet Topic</span>
+                <span>Custom Topic AI</span>
               </label>
               <button
-                onClick={() => setUseAI(!useAI)}
+                onClick={() => { setUseAI(!useAI); setCustomTopicError(null); setCustomTopicProgress(''); }}
                 className={`text-xs px-2.5 py-1 rounded-full font-bold border transition cursor-pointer ${
                   useAI
                     ? 'bg-purple-600 text-white border-purple-700 shadow-sm'
@@ -1371,10 +1401,24 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
                 <input
                   type="text"
                   value={customTopic}
-                  onChange={(e) => setCustomTopic(e.target.value)}
+                  onChange={(e) => {
+                    setCustomTopic(e.target.value);
+                    setCustomTopicError(null);
+                    setCustomTopicProgress('');
+                  }}
                   placeholder="e.g. 90s Sitcoms, Belgian Ales, Formula 1, World Cinema..."
                   className="w-full bg-white border-2 border-purple-400 rounded-xl p-2.5 text-xs text-stone-900 font-bold focus:border-purple-600 outline-none placeholder:text-stone-400"
                 />
+                {customTopicError && (
+                  <p role="alert" className="rounded-lg border border-red-300 bg-red-50 px-2.5 py-2 text-xs font-bold text-red-800">
+                    {customTopicError}
+                  </p>
+                )}
+                {isLoading && customTopicProgress && (
+                  <p role="status" className="px-1 text-xs font-bold text-purple-900">
+                    {customTopicProgress}
+                  </p>
+                )}
               </div>
             )}
           </div>

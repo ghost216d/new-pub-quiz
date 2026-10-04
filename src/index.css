@@ -6895,3 +6895,61 @@ body,
     border-radius: 22px !important;
   }
 }
+
+
+/* Compact the Solo HUD into one calm, read-only status strip. Shop actions stay in the bottom navigation. */
+.role-solo .game-hud {
+  width: min(408px, calc(100vw - 20px)) !important;
+  grid-template-columns: 1.2fr 1fr 0.75fr !important;
+  gap: 0 !important;
+  padding: 4px 6px !important;
+  border: 2px solid rgba(25, 25, 25, 0.72) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 250, 240, 0.94) !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.16) !important;
+}
+.role-solo .game-hud .game-resource {
+  min-width: 0 !important;
+  min-height: 34px !important;
+  justify-content: center;
+  gap: 6px !important;
+  padding: 4px 7px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(25, 25, 25, 0.16) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: clamp(12px, 3vw, 15px) !important;
+}
+.role-solo .game-hud .game-resource:last-child {
+  border-right: 0 !important;
+}
+.role-solo .game-hud .game-resource-lives { color: #881337 !important; }
+.role-solo .game-hud .game-resource-coins,
+.role-solo .game-hud .game-resource-stars { color: #78350f !important; }
+
+#root .global-music-control .bgm-settings-trigger {
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+}
+#root .global-music-control .bgm-menu .bgm-mute-trigger {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  height: auto !important;
+  justify-content: center !important;
+  padding: 9px 12px !important;
+}
+#root .app-shell.role-solo .game-top-bar {
+  padding-right: 66px !important;
+}
+
+#root .global-music-control .bgm-settings-trigger.is-unmuted {
+  background: #e4f4eb !important;
+}
+#root .global-music-control .bgm-settings-trigger.is-muted {
+  background: #f8e5e8 !important;
+}

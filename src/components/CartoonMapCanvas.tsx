@@ -12,7 +12,6 @@ import {
   Heart,
   Loader2,
   Lock,
-  ShoppingBag,
   Sparkles,
   Star,
   Menu,
@@ -448,46 +447,35 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
       {/* Player currencies */}
       <aside className="game-side-panel">
-      <section className="game-hud">
-        <button
-          onClick={() => onOpenShop('lives')}
+      <section className="game-hud" role="group" aria-label="Player resources">
+        <div
           className="game-resource game-resource-lives"
         >
-          <span className="game-hearts">
-            {Array.from({
-              length: progression.maxLives,
-            }).map((_, index) => (
+          <span className="game-hearts" aria-hidden="true">
+            {Array.from({ length: progression.maxLives }).map((_, index) => (
               <Heart
                 key={index}
-                className={
-                  index < progression.lives
-                    ? 'game-heart-full'
-                    : 'game-heart-empty'
-                }
+                className={index < progression.lives ? 'game-heart-full' : 'game-heart-empty'}
               />
             ))}
           </span>
+          <span className="sr-only">Lives</span>
+          <strong>{progression.lives}/{progression.maxLives}</strong>
+        </div>
 
-          <strong>
-            {progression.lives}/{progression.maxLives}
-          </strong>
-
-          <span className="game-add-button">+</span>
-        </button>
-
-        <button
-          onClick={() => onOpenShop('bundles')}
+        <div
           className="game-resource game-resource-coins"
         >
-          <Coins className="w-5 h-5" />
-          <strong>
-            {progression.coins.toLocaleString()}
-          </strong>
-          <ShoppingBag className="w-4 h-4" />
-        </button>
+          <Coins className="w-5 h-5" aria-hidden="true" />
+          <span className="sr-only">Coins</span>
+          <strong>{progression.coins.toLocaleString()}</strong>
+        </div>
 
-        <div className="game-resource game-resource-stars">
-          <Star className="w-5 h-5 fill-current" />
+        <div
+          className="game-resource game-resource-stars"
+        >
+          <Star className="w-5 h-5 fill-current" aria-hidden="true" />
+          <span className="sr-only">Stars</span>
           <strong>{progression.totalStars}</strong>
         </div>
       </section>
