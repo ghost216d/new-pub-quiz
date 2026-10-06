@@ -6986,13 +6986,13 @@ body,
 /* Keep press feedback visible above current, completed, and locked pub styles. */
 .game-level-node.is-pressing {
   z-index: 5;
-  transform: translateY(4px) scale(0.94);
-  outline: 3px solid #fff;
-  outline-offset: 3px;
-  border-color: #fff;
-  filter: brightness(1.22);
+  transform: translateY(5px) scale(0.97);
+  outline: 2px solid #fff1c9;
+  outline-offset: 2px;
+  border-color: #facc15 !important;
+  filter: brightness(0.94) saturate(0.95);
   box-shadow:
-    0 0 0 7px rgba(255, 255, 255, 0.42),
+    inset 0 4px 7px rgba(0, 0, 0, 0.24),
     0 1px 0 #7c2d12;
   transition:
     transform 140ms ease-out,
@@ -7003,12 +7003,46 @@ body,
 
 .game-level-node.is-locked.is-pressing,
 .game-level-node.is-locked.is-pressing:active {
-  transform: translateY(3px) scale(0.84);
-  outline: 3px solid #fff;
-  outline-offset: 4px;
-  border-color: #fff;
-  filter: brightness(1.22);
+  transform: translateY(2px) scale(0.88);
+  outline: 2px solid #fff1c9;
+  outline-offset: 2px;
+  border-color: #facc15 !important;
+  filter: brightness(0.96) saturate(0.95);
   box-shadow:
-    0 0 0 7px rgba(255, 255, 255, 0.5),
+    inset 0 2px 4px rgba(0, 0, 0, 0.22),
+    0 1px 0 #334155;
+}
+
+/* A physical down-and-release response for map pubs, including tiny locked stops. */
+.game-level-node {
+  transform-origin: center;
+  transition:
+    transform 130ms cubic-bezier(0.2, 0.75, 0.3, 1),
+    box-shadow 130ms ease-out,
+    filter 130ms ease-out,
+    outline-color 130ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.game-level-node.is-selected:not(.is-pressing) {
+  outline: 3px solid #fff1c9;
+  outline-offset: 3px;
+  transform: scale(1.04);
+}
+
+.game-level-node.is-pressing {
+  transition-duration: 90ms;
+}
+
+.game-level-node.is-locked.is-pressing,
+.game-level-node.is-locked.is-pressing:active {
+  transform: translateY(2px) scale(0.88);
+  outline: 2px solid #fff1c9;
+  outline-offset: 2px;
+  border-color: #facc15 !important;
+  filter: brightness(0.96) saturate(0.95);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.22),
     0 1px 0 #334155;
 }
