@@ -743,7 +743,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                       levelActivationTimerRef.current = null;
                       setPressedLevelId(null);
                       onSelectLevel(level, activeMap);
-                    }, 160);
+                    }, 220);
                   } else {
                     setSelectedLevel(level);
                     levelActivationTimerRef.current = window.setTimeout(() => {
@@ -767,7 +767,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                       levelActivationTimerRef.current = null;
                       setPressedLevelId(null);
                       onSelectLevel(level, activeMap);
-                    }, 160);
+                    }, 220);
                   } else {
                     setSelectedLevel(level);
                     levelActivationTimerRef.current = window.setTimeout(() => {
