@@ -982,7 +982,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               }, DEVICE_QUESTION_TIMEOUT_MS);
             }),
           ]);
-          questionsToPlay = prepareAttemptQuestions(deviceQuestions, count);
+          const preparedQuestions = prepareAttemptQuestions(deviceQuestions, count);
+          if (preparedQuestions.length >= count) {
+            questionsToPlay = preparedQuestions;
+          } else {
+            console.warn(`Device AI prepared ${preparedQuestions.length} of ${count} questions; trying the bundled bank.`);
+          }
         } catch (err) {
           console.warn('On-device questions unavailable, using the offline question vault.', err);
         } finally {
@@ -991,8 +996,18 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         }
       }
 
-      if (!questionsToPlay?.length) {
-        throw new Error('No quiz questions were available for this pub.');
+      if (!questionsToPlay || questionsToPlay.length < count) {
+        setLevelLaunchProgress(null);
+        try {
+          const finalFallbackQuestions = buildCampaignFallbackQuestions(count);
+          if (finalFallbackQuestions.length >= count) questionsToPlay = finalFallbackQuestions;
+        } catch (error) {
+          console.warn('Final bundled question fallback was unavailable.', error);
+        }
+      }
+
+      if (!questionsToPlay || questionsToPlay.length < count) {
+        throw new Error('No complete unseen question set was available.');
       }
 
       const fixedQuestions = authoredQuestions && !hasSavedQuestionSet
@@ -1010,7 +1025,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       setViewMode('quiz');
     } catch (error) {
       console.error('Unable to start this pub quiz.', error);
-      setLevelLaunchError(`Could not load questions for ${level.pubName || level.name}. Tap the pub to try again.`);
+      const launchFailure = error instanceof Error ? error.message : '';
+      const userReason = /timed out|too long/i.test(launchFailure)
+        ? 'The question service timed out.'
+        : /not enough distinct|complete unseen/i.test(launchFailure)
+          ? 'There were not enough unseen questions available on this device.'
+          : 'The saved and online question sources were unavailable.';
+      setLevelLaunchError(`Could not load questions for ${level.pubName || level.name}. ${userReason} Tap the pub to try again.`);
       setActiveLevel(null);
       setActiveMap(null);
     } finally {
