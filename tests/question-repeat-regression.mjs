@@ -206,6 +206,16 @@ assert.equal(recoveredFromExhaustedPool[0].prompt, 'Which planet is known as the
 assert.match(apiRequests[3], /category=9/, 'the first request should still prefer General Knowledge');
 assert.equal(new URL(apiRequests[4]).searchParams.has('category'), false,
   'the fallback request should expand to the full mixed trivia pool');
+storage.delete('pubquiz_seen_questions_v1');
+const prefetchedQuestions = await getOnlineTriviaQuestions({
+  category: 'General Knowledge',
+  count: 1,
+  difficulty: 'easy',
+  deferSeenWrite: true,
+});
+assert.equal(prefetchedQuestions.length, 1, 'prefetch should still return questions for launch preparation');
+assert.deepEqual(JSON.parse(storage.get('pubquiz_seen_questions_v1') || '[]'), [],
+  'prefetched questions should not be marked seen before a complete quiz is launched');
 globalThis.fetch = originalFetch;
 if (originalDocument === undefined) delete globalThis.document;
 else globalThis.document = originalDocument;

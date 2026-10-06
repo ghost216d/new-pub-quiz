@@ -255,11 +255,13 @@ const getSecureAiQuestions = async ({
   count,
   difficulty,
   signal,
+  deferSeenWrite = false,
 }: {
   category: string;
   count: number;
   difficulty: QuizDifficulty;
   signal?: AbortSignal;
+  deferSeenWrite?: boolean;
 }): Promise<Question[]> => {
   const endpoint = getSecureQuestionEndpoint();
   if (!endpoint) throw new Error('Secure question service is not configured.');
@@ -285,7 +287,7 @@ const getSecureAiQuestions = async ({
   }).slice(0, count);
 
   if (unique.length < count) throw new Error('The secure service did not return enough unseen questions.');
-  saveSeen(unique.map((question) => question.prompt));
+  if (!deferSeenWrite) saveSeen(unique.map((question) => question.prompt));
   return unique;
 };
 
@@ -324,6 +326,7 @@ export const getOnlineTriviaQuestions = async ({
   broadPool = false,
   candidateMultiplier = 3,
   signal,
+  deferSeenWrite = false,
 }: {
   category: string;
   count: number;
@@ -332,12 +335,13 @@ export const getOnlineTriviaQuestions = async ({
   broadPool?: boolean;
   candidateMultiplier?: number;
   signal?: AbortSignal;
+  deferSeenWrite?: boolean;
 }): Promise<Question[]> => {
   // Prefer the protected Gemini proxy. The browser receives questions only;
   // the Gemini key remains an encrypted server-side secret.
   if (!mixed && !broadPool && getSecureQuestionEndpoint()) {
     try {
-      return await getSecureAiQuestions({ category, count, difficulty, signal });
+      return await getSecureAiQuestions({ category, count, difficulty, signal, deferSeenWrite });
     } catch (error) {
       console.warn('Secure AI questions unavailable; trying Open Trivia DB.', error);
     }
@@ -393,7 +397,7 @@ export const getOnlineTriviaQuestions = async ({
   if (data.response_code !== 0 || !Array.isArray(data.results)) {
     if (!mixed && !broadPool && categoryId === 9 && (data.response_code === 0 || data.response_code === 4)) {
       console.info('General Knowledge questions are exhausted; trying a wider trivia mix.');
-      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal });
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal, deferSeenWrite });
     }
     throw new Error(data.response_code === 5
       ? 'The online question service is rate limited.'
@@ -427,12 +431,12 @@ export const getOnlineTriviaQuestions = async ({
   if (unique.length < count) {
     if (!mixed && !broadPool && categoryId === 9) {
       console.info('Unseen General Knowledge questions are running low; trying a wider trivia mix.');
-      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal });
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal, deferSeenWrite });
     }
     throw new Error('Not enough unseen online questions were returned.');
   }
 
-  if (!mixed) saveSeen(unique.map((question) => question.prompt));
+  if (!mixed && !deferSeenWrite) saveSeen(unique.map((question) => question.prompt));
   return unique;
 };
 
