@@ -1473,6 +1473,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               loading="eager"
               fetchPriority="high"
               decoding="async"
+              onLoad={(event) => {
+                const image = event.currentTarget;
+                void image.decode().catch(() => undefined).then(() => image.classList.add('is-loaded'));
+              }}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
@@ -1530,6 +1534,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               className="solo-stage-transition-art"
               src={`${import.meta.env.BASE_URL}${completionTransition.artwork}`}
               alt={`Artwork for ${completionTransition.nextLevelName} and ${completionTransition.nextPubName}`}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              onLoad={(event) => {
+                const image = event.currentTarget;
+                void image.decode().catch(() => undefined).then(() => image.classList.add('is-loaded'));
+              }}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = `${import.meta.env.BASE_URL}${completionTransition.fallbackArtwork}`;
