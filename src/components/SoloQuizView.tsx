@@ -1518,7 +1518,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
         <BGMController compact className="global-music-control" />
 
-        {completionTransition?.phase === 'loading' && (
+        {completionTransition && (
           <div
             className={`solo-stage-transition-cover${completionTransition.phase === 'fading' ? ' is-fading' : ''}`}
             role="status"
