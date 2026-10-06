@@ -14,7 +14,7 @@ import { TVDisplay } from './components/TVDisplay';
 import { PlayerMobileView } from './components/PlayerMobileView';
 import { SoloQuizView } from './components/SoloQuizView';
 import { AuthModal } from './components/AuthModal';
-import { getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
+import { getAllMaps, getInitialSoloProgression, saveSoloProgression } from './data/cartoonMapsData';
 import { SoloProgression } from './types';
 import { getLondonTheme } from './utils/londonTheme';
 import {
@@ -492,29 +492,52 @@ export default function App() {
   useEffect(() => {
     if (!showCover) return;
 
+    const maps = getAllMaps(progression);
+    const startingMap = maps.find((map) => map.id === progression.currentMapId) || maps[0];
+    const startingLevel =
+      startingMap?.levels.find((level) => !progression.completedLevels[level.id]?.passed) ||
+      startingMap?.levels[startingMap.levels.length - 1];
+    const startingArtwork =
+      startingLevel?.mapArtwork ||
+      startingMap?.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time] ||
+      startingMap?.mapArtwork;
+    const assets = [...new Set([
+      `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`,
+      startingArtwork ? `${import.meta.env.BASE_URL}${startingArtwork}` : null,
+      startingLevel?.coverArtwork ? `${import.meta.env.BASE_URL}${startingLevel.coverArtwork}` : null,
+    ].filter((src): src is string => Boolean(src)))];
+
     let cancelled = false;
     let finishTimer: number | undefined;
     let completedAssets = 0;
     const loadStartedAt = performance.now();
-    const assets = [
-      `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`,
-      `${import.meta.env.BASE_URL}map-backgrounds/thames_riverside_crawl.webp?release=auto-loading`,
-      `${import.meta.env.BASE_URL}level-01-cover.webp?release=auto-loading`,
-    ];
     const images: HTMLImageElement[] = [];
     setCoverProgress(0);
 
     const loadAsset = (src: string) => new Promise<void>((resolve) => {
       const image = new Image();
+      let settled = false;
       images.push(image);
       const finish = () => {
+        if (settled) return;
+        settled = true;
         completedAssets += 1;
         if (!cancelled) setCoverProgress(Math.min(90, Math.round((completedAssets / assets.length) * 90)));
         resolve();
       };
-      image.onload = finish;
+      image.onload = () => {
+        if (typeof image.decode === 'function') {
+          void image.decode().then(finish, finish);
+        } else {
+          finish();
+        }
+      };
       image.onerror = finish;
       image.src = src;
+      if (image.complete && image.naturalWidth > 0) {
+        if (typeof image.decode === 'function') void image.decode().then(finish, finish);
+        else finish();
+      }
     });
 
     Promise.all(assets.map(loadAsset)).then(() => {
@@ -536,7 +559,13 @@ export default function App() {
         image.onerror = null;
       });
     };
-  }, [showCover]);
+  }, [
+    showCover,
+    progression.currentMapId,
+    progression.completedLevels,
+    londonTheme.season,
+    londonTheme.time,
+  ]);
 
   useEffect(() => {
     if (!activeHostCode) {
