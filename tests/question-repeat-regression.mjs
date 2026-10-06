@@ -235,6 +235,14 @@ assert.equal(missedRound.some((question) => question.prompt === missedPrompt), t
 const seenUnmasteredQuestion = chooseUnseenFallbackQuestions([firstRound[1]], 1, [], true);
 assert.equal(seenUnmasteredQuestion.length, 1,
   'an unmastered auxiliary question may be reused after its small pack is exhausted');
+const exhaustedWithMasteredAndUnmastered = chooseUnseenFallbackQuestions(
+  [firstRound[0], firstRound[1]],
+  2,
+  [missedPrompt],
+  true,
+);
+assert.deepEqual(exhaustedWithMasteredAndUnmastered.map((question) => question.prompt), [firstRound[1].prompt],
+  'the exhausted-pool fallback may reuse seen unmastered questions but must exclude mastered ones');
 assert.equal(missedRound.some((question) => question.prompt === firstRound[0].prompt), false,
   'a mastered question must stay retired');
 
