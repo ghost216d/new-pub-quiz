@@ -1416,6 +1416,9 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               className="solo-stage-transition-art"
               src={`${import.meta.env.BASE_URL}${activeLevel.coverArtwork || activeLevel.mapArtwork || activeMap?.mapArtwork || 'pub-quiz-main-cover-v2.webp'}`}
               alt={`Artwork for ${activeLevel.pubName || activeLevel.name}`}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
