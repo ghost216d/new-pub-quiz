@@ -447,6 +447,35 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     }
   };
 
+  const pressMapLevel = (level: MapLevel, unlocked: boolean) => {
+    if (levelActivationTimerRef.current !== null) {
+      window.clearTimeout(levelActivationTimerRef.current);
+    }
+
+    setPressedLevelId(level.id);
+    audioSynth.playCoinFx();
+    triggerPubButtonHaptic();
+
+    if (!unlocked) {
+      setSelectedLevel(level);
+      levelActivationTimerRef.current = window.setTimeout(() => {
+        levelActivationTimerRef.current = null;
+        setPressedLevelId(null);
+      }, 150);
+      return;
+    }
+
+    // Press for 90 ms, release, then open the pub artwork once the marker has
+    // had a frame to spring back. This keeps the response visible and quick.
+    levelActivationTimerRef.current = window.setTimeout(() => {
+      setPressedLevelId(null);
+      levelActivationTimerRef.current = window.setTimeout(() => {
+        levelActivationTimerRef.current = null;
+        onSelectLevel(level, activeMap);
+      }, 70);
+    }, 90);
+  };
+
   const playSelectedLevel = () => {
     if (!selectedLevel) return;
 
@@ -738,55 +767,17 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                     : `Locked level ${campaignLevelOffset + level.levelNumber} of ${campaignLevelTotal}: ${level.pubName || level.name}`
                 }
                 onPointerDown={(event) => {
-                  // Show the press before opening the loading cover so taps
-                  // feel acknowledged on touch screens.
+                  // Capture touch and mouse taps immediately, then allow the
+                  // marker to spring back before the loading artwork appears.
                   event.preventDefault();
                   lastPointerActivationRef.current = Date.now();
-                  if (levelActivationTimerRef.current !== null) {
-                    window.clearTimeout(levelActivationTimerRef.current);
-                  }
-                  setPressedLevelId(level.id);
-                  audioSynth.playCoinFx();
-                  triggerPubButtonHaptic();
-
-                  if (unlocked) {
-                    levelActivationTimerRef.current = window.setTimeout(() => {
-                      levelActivationTimerRef.current = null;
-                      setPressedLevelId(null);
-                      onSelectLevel(level, activeMap);
-                    }, 260);
-                  } else {
-                    setSelectedLevel(level);
-                    levelActivationTimerRef.current = window.setTimeout(() => {
-                      levelActivationTimerRef.current = null;
-                      setPressedLevelId(null);
-                    }, 260);
-                  }
+                  pressMapLevel(level, unlocked);
                 }}
                 onClick={() => {
                   // Some mobile/browser combinations emit only click. Ignore
                   // the click event after pointer-down already handled the tap.
                   if (Date.now() - lastPointerActivationRef.current < 700) return;
-                  if (levelActivationTimerRef.current !== null) {
-                    window.clearTimeout(levelActivationTimerRef.current);
-                  }
-                  setPressedLevelId(level.id);
-                  audioSynth.playCoinFx();
-                  triggerPubButtonHaptic();
-
-                  if (unlocked) {
-                    levelActivationTimerRef.current = window.setTimeout(() => {
-                      levelActivationTimerRef.current = null;
-                      setPressedLevelId(null);
-                      onSelectLevel(level, activeMap);
-                    }, 220);
-                  } else {
-                    setSelectedLevel(level);
-                    levelActivationTimerRef.current = window.setTimeout(() => {
-                      levelActivationTimerRef.current = null;
-                      setPressedLevelId(null);
-                    }, 240);
-                  }
+                  pressMapLevel(level, unlocked);
                 }}
                 className={[
                   'game-level-node',
