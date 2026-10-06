@@ -106,7 +106,7 @@ const DIFFICULTY_OPTIONS: {
 // A level must feel responsive even when the public trivia service is slow or
 // blocked by the player's network. Fall back quickly instead of leaving the
 // launch animation looking like a button that did nothing.
-const ONLINE_QUESTION_TIMEOUT_MS = 8500;
+const ONLINE_QUESTION_TIMEOUT_MS = 6200;
 const DEVICE_QUESTION_TIMEOUT_MS = 15000;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
@@ -388,11 +388,15 @@ const getSoloQuestionVault = (includeMathsBackups = false): Question[] => [
 const loadOnlineQuestionsWithTimeout = (
   options: Parameters<typeof getOnlineTriviaQuestions>[0],
 ): Promise<Question[]> => new Promise((resolve, reject) => {
+  const controller = new AbortController();
   const timeout = window.setTimeout(
-    () => reject(new Error('Internet questions took too long to load.')),
+    () => {
+      controller.abort();
+      reject(new Error('Internet questions took too long to load.'));
+    },
     ONLINE_QUESTION_TIMEOUT_MS,
   );
-  getOnlineTriviaQuestions(options).then(
+  getOnlineTriviaQuestions({ ...options, signal: controller.signal }).then(
     (questions) => {
       window.clearTimeout(timeout);
       resolve(questions);
@@ -586,6 +590,32 @@ const buildUnseenFallbackQuestions = (
       difficulty: questionDifficulty,
     };
   });
+};
+
+
+
+const buildCampaignFallbackQuestions = (count: number): Question[] => {
+  const allQuestions = getSoloQuestionVault();
+  const qPool = allQuestions.filter((question) =>
+    question.category !== 'Emoji Picture Puzzles' &&
+    question.category !== 'Photo Round: World Landmarks' &&
+    question.category !== 'World Flags' &&
+    question.category !== 'Animals & Nature' &&
+    !question.musicData
+  );
+
+  const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
+  const triviaCount = Math.max(0, count - pictureCount);
+  const regularCount = Math.max(0, triviaCount - Math.min(1, triviaCount));
+  let mediumQuestions: Question[];
+  try {
+    mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, regularCount);
+  } catch {
+    mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, regularCount);
+  }
+
+  const prepared = prepareAttemptQuestions(mediumQuestions, count);
+  return prepared.length >= count ? prepared : [];
 };
 
 export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, navigationRequest }) => {
@@ -912,6 +942,19 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         setLevelLaunchStatus('Offline. Choosing unseen saved questions…');
       }
 
+      // Use an unseen bundled set as soon as the online request fails. This
+      // keeps slow networks from leaving the player on the pub cover while the
+      // larger on-device model starts downloading.
+      if (!questionsToPlay) {
+        setLevelLaunchProgress(null);
+        try {
+          const fallbackQuestions = buildCampaignFallbackQuestions(count);
+          if (fallbackQuestions.length >= count) questionsToPlay = fallbackQuestions;
+        } catch (error) {
+          console.info('No complete unseen bundled set is available yet.', error);
+        }
+      }
+
       // If the public trivia bank has run out of unseen questions, create a
       // fresh set locally on browsers with WebGPU support. The model is cached
       // by WebLLM after its first download on that device.
@@ -946,28 +989,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           generationTimedOut = true;
           if (timeoutId !== undefined) window.clearTimeout(timeoutId);
         }
-      }
-
-      // 2. Curated fallback
-      if (!questionsToPlay) {
-        setLevelLaunchProgress(null);
-        const allQuestions = getSoloQuestionVault();
-        const qPool = allQuestions.filter((question) =>
-          question.category !== 'Emoji Picture Puzzles' &&
-          question.category !== 'Photo Round: World Landmarks' &&
-          question.category !== 'World Flags' &&
-          question.category !== 'Animals & Nature' &&
-          !question.musicData
-        );
-
-        let mediumQuestions: Question[];
-        try {
-          mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, onlineQuestionCount);
-        } catch {
-          mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, onlineQuestionCount);
-        }
-
-        questionsToPlay = prepareAttemptQuestions(mediumQuestions, count);
       }
 
       if (!questionsToPlay?.length) {
