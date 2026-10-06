@@ -45,7 +45,7 @@ interface Props {
 const triggerPubButtonHaptic = () => {
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate(30);
+      navigator.vibrate(45);
     }
   } catch {
     // Haptics are an enhancement; unsupported devices keep the visual press cue.
@@ -754,13 +754,13 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                       levelActivationTimerRef.current = null;
                       setPressedLevelId(null);
                       onSelectLevel(level, activeMap);
-                    }, 220);
+                    }, 260);
                   } else {
                     setSelectedLevel(level);
                     levelActivationTimerRef.current = window.setTimeout(() => {
                       levelActivationTimerRef.current = null;
                       setPressedLevelId(null);
-                    }, 240);
+                    }, 260);
                   }
                 }}
                 onClick={() => {
