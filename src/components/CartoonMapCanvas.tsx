@@ -475,11 +475,15 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       image.src = `${import.meta.env.BASE_URL}${artwork}`;
     }
 
+    // Hold the pressed pose briefly, then let the marker finish its rebound
+    // before opening the loading cover.
     levelActivationTimerRef.current = window.setTimeout(() => {
-      levelActivationTimerRef.current = null;
       setPressedLevelId(null);
-      onSelectLevel(level, activeMap);
-    }, 90);
+      levelActivationTimerRef.current = window.setTimeout(() => {
+        levelActivationTimerRef.current = null;
+        onSelectLevel(level, activeMap);
+      }, 45);
+    }, 50);
   };
 
   const playSelectedLevel = () => {
