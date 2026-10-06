@@ -42,16 +42,6 @@ interface Props {
   initialEntranceAnim?: boolean;
 }
 
-const triggerPubButtonHaptic = () => {
-  try {
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate(45);
-    }
-  } catch {
-    // Haptics are an enhancement; unsupported devices keep the visual press cue.
-  }
-};
-
 const retainedPubArtwork = new Map<string, HTMLImageElement>();
 
 const preloadPubArtwork = (artwork: string, priority: 'high' | 'low' = 'high') => {
@@ -504,7 +494,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     setPressedLevelId(level.id);
     audioSynth.playCoinFx();
-    triggerPubButtonHaptic();
 
     if (!unlocked) {
       setSelectedLevel(level);
