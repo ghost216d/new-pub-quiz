@@ -453,8 +453,9 @@ export const chooseUnseenFallbackQuestions = (
   const allowedPool = uniquePool.filter((question) => !hasSimilarPrompt(masteredIndex, question.prompt));
   const unseen = allowedPool.filter((question) => !hasSimilarPrompt(seenIndex, question.prompt));
 
-  // A question can reappear only when the player previously missed it. Do not
-  // silently recycle other old questions when the offline pack is exhausted.
+  // Previously missed questions take priority over other seen questions.
+  // Callers may opt into reusing seen, unmastered questions after both pools
+  // run short; mastered questions were removed above in every case.
   const missed = repeatablePrompts.length
     ? allowedPool.filter((question) =>
         hasSimilarPrompt(repeatableIndex, question.prompt) &&
