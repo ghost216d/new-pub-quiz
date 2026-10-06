@@ -7144,6 +7144,10 @@ button:not(:disabled).is-pressing {
   pointer-events: auto;
 }
 
+.game-map-artwork-loader.is-initial {
+  background: linear-gradient(145deg, #5d3021, #21160f);
+}
+
 .game-map-artwork-loader-spinner {
   width: 42px;
   height: 42px;
