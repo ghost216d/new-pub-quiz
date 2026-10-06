@@ -52,6 +52,32 @@ const triggerPubButtonHaptic = () => {
   }
 };
 
+const retainedPubArtwork = new Map<string, HTMLImageElement>();
+
+const preloadPubArtwork = (artwork: string, priority: 'high' | 'low' = 'high') => {
+  const src = `${import.meta.env.BASE_URL}${artwork}`;
+  const retained = retainedPubArtwork.get(src);
+  if (retained) {
+    if (priority === 'high') retained.fetchPriority = 'high';
+    return retained;
+  }
+
+  const image = new Image();
+  image.decoding = 'async';
+  image.fetchPriority = priority;
+  retainedPubArtwork.set(src, image);
+  image.src = src;
+
+  // Keep a small warm cache without letting browsing across maps retain every
+  // cover image for the lifetime of the app.
+  while (retainedPubArtwork.size > 8) {
+    const oldest = retainedPubArtwork.keys().next().value;
+    if (!oldest) break;
+    retainedPubArtwork.delete(oldest);
+  }
+  return image;
+};
+
 const MAP_AREA_LABELS: Record<string, string> = {
   thames_riverside_crawl: 'South London & Westminster',
   west_london_crawl: 'West End & Hyde Park',
@@ -264,10 +290,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     const artwork = currentPositionLevel?.coverArtwork;
     if (!artwork) return;
 
-    const image = new Image();
-    image.decoding = 'async';
-    image.fetchPriority = 'high';
-    image.src = `${import.meta.env.BASE_URL}${artwork}`;
+    preloadPubArtwork(artwork, 'high');
   }, [currentPositionLevel?.id, currentPositionLevel?.coverArtwork]);
 
   // Defer low-priority preloads for adjacent routes until the current map
@@ -481,12 +504,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     // Start fetching the selected pub art while the marker presses, then open
     // the artwork as soon as the press cue has registered.
     const artwork = level.coverArtwork || level.mapArtwork || activeMap.mapArtwork;
-    if (artwork) {
-      const image = new Image();
-      image.decoding = 'async';
-      image.fetchPriority = 'high';
-      image.src = `${import.meta.env.BASE_URL}${artwork}`;
-    }
+    if (artwork) preloadPubArtwork(artwork, 'high');
 
     // Hold the pressed pose briefly, then let the marker finish its rebound
     // before opening the loading cover.
