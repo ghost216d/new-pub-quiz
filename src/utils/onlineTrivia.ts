@@ -254,10 +254,12 @@ const getSecureAiQuestions = async ({
   category,
   count,
   difficulty,
+  signal,
 }: {
   category: string;
   count: number;
   difficulty: QuizDifficulty;
+  signal?: AbortSignal;
 }): Promise<Question[]> => {
   const endpoint = getSecureQuestionEndpoint();
   if (!endpoint) throw new Error('Secure question service is not configured.');
@@ -268,6 +270,7 @@ const getSecureAiQuestions = async ({
     cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ category, count, difficulty, seen: seen.slice(-3000) }),
+    signal,
   });
   if (!response.ok) throw new Error('Secure question service is unavailable.');
 
@@ -295,8 +298,8 @@ const shuffled = <T,>(items: T[]): T[] => {
   return copy;
 };
 
-const requestSessionToken = async (): Promise<string> => {
-  const response = await fetch('https://opentdb.com/api_token.php?command=request');
+const requestSessionToken = async (signal?: AbortSignal): Promise<string> => {
+  const response = await fetch('https://opentdb.com/api_token.php?command=request', { signal });
   if (!response.ok) throw new Error('Unable to start online trivia session.');
   const data = (await response.json()) as OpenTriviaResponse;
   if (!data.token) throw new Error('Online trivia session did not return a token.');
@@ -304,13 +307,13 @@ const requestSessionToken = async (): Promise<string> => {
   return data.token;
 };
 
-const getSessionToken = async (): Promise<string> => {
+const getSessionToken = async (signal?: AbortSignal): Promise<string> => {
   const stored = readStoredValue(TOKEN_KEY);
-  return stored || requestSessionToken();
+  return stored || requestSessionToken(signal);
 };
 
-const resetSessionToken = async (token: string): Promise<void> => {
-  await fetch(`https://opentdb.com/api_token.php?command=reset&token=${encodeURIComponent(token)}`);
+const resetSessionToken = async (token: string, signal?: AbortSignal): Promise<void> => {
+  await fetch(`https://opentdb.com/api_token.php?command=reset&token=${encodeURIComponent(token)}`, { signal });
 };
 
 export const getOnlineTriviaQuestions = async ({
@@ -320,6 +323,7 @@ export const getOnlineTriviaQuestions = async ({
   mixed = false,
   broadPool = false,
   candidateMultiplier = 3,
+  signal,
 }: {
   category: string;
   count: number;
@@ -327,18 +331,19 @@ export const getOnlineTriviaQuestions = async ({
   mixed?: boolean;
   broadPool?: boolean;
   candidateMultiplier?: number;
+  signal?: AbortSignal;
 }): Promise<Question[]> => {
   // Prefer the protected Gemini proxy. The browser receives questions only;
   // the Gemini key remains an encrypted server-side secret.
   if (!mixed && !broadPool && getSecureQuestionEndpoint()) {
     try {
-      return await getSecureAiQuestions({ category, count, difficulty });
+      return await getSecureAiQuestions({ category, count, difficulty, signal });
     } catch (error) {
       console.warn('Secure AI questions unavailable; trying Open Trivia DB.', error);
     }
   }
 
-  let token = await getSessionToken();
+  let token = await getSessionToken(signal);
   const categoryId = broadPool ? undefined : (CATEGORY_IDS.find(([pattern]) => pattern.test(category))?.[1] ?? 9);
   const mathsTopic = /\b(math|maths|mathematics|arithmetic|numbers?)\b/i.test(category);
   const onlineDifficulty = mixed
@@ -361,34 +366,34 @@ export const getOnlineTriviaQuestions = async ({
 
   const seen = [...readSeen(), ...readMastered()];
   const seenIndex = createPromptIndex(seen);
-  let response = await fetch(buildUrl(), { cache: 'no-store' });
+  let response = await fetch(buildUrl(), { cache: 'no-store', signal });
   if (!response.ok) throw new Error('Online trivia service is unavailable.');
   let data = (await response.json()) as OpenTriviaResponse;
   if (data.response_code === 3) {
     // Open Trivia DB deletes tokens after six hours of inactivity. Replace a
     // stale browser-stored token once so returning players can keep loading.
-    token = await requestSessionToken();
-    response = await fetch(buildUrl(), { cache: 'no-store' });
+    token = await requestSessionToken(signal);
+    response = await fetch(buildUrl(), { cache: 'no-store', signal });
     if (!response.ok) throw new Error('Online trivia service is unavailable.');
     data = (await response.json()) as OpenTriviaResponse;
   } else if (data.response_code === 4) {
-    await resetSessionToken(token);
+    await resetSessionToken(token, signal);
     await new Promise((resolve) => window.setTimeout(resolve, 5100));
-    response = await fetch(buildUrl(), { cache: 'no-store' });
+    response = await fetch(buildUrl(), { cache: 'no-store', signal });
     if (!response.ok) throw new Error('Online trivia service is unavailable.');
     data = (await response.json()) as OpenTriviaResponse;
   } else if (data.response_code === 5) {
     // Open Trivia DB allows one question request per IP every five seconds.
     // A shared Wi-Fi connection may briefly hit that limit, so retry once.
     await new Promise((resolve) => window.setTimeout(resolve, 5100));
-    response = await fetch(buildUrl(), { cache: 'no-store' });
+    response = await fetch(buildUrl(), { cache: 'no-store', signal });
     if (!response.ok) throw new Error('Online trivia service is unavailable.');
     data = (await response.json()) as OpenTriviaResponse;
   }
   if (data.response_code !== 0 || !Array.isArray(data.results)) {
     if (!mixed && !broadPool && categoryId === 9 && (data.response_code === 0 || data.response_code === 4)) {
       console.info('General Knowledge questions are exhausted; trying a wider trivia mix.');
-      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier });
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal });
     }
     throw new Error(data.response_code === 5
       ? 'The online question service is rate limited.'
@@ -422,7 +427,7 @@ export const getOnlineTriviaQuestions = async ({
   if (unique.length < count) {
     if (!mixed && !broadPool && categoryId === 9) {
       console.info('Unseen General Knowledge questions are running low; trying a wider trivia mix.');
-      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier });
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal });
     }
     throw new Error('Not enough unseen online questions were returned.');
   }
