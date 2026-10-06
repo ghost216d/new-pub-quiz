@@ -120,8 +120,16 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const [arrivalLevelId, setArrivalLevelId] = useState<string | null>(null);
   const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [isRealmPanelExpanded, setIsRealmPanelExpanded] = useState(false);
+  const [pressedLevelId, setPressedLevelId] = useState<string | null>(null);
   const lastPointerActivationRef = useRef(0);
+  const levelActivationTimerRef = useRef<number | null>(null);
   const mapShellRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => () => {
+    if (levelActivationTimerRef.current !== null) {
+      window.clearTimeout(levelActivationTimerRef.current);
+    }
+  }, []);
 
   const isMapUnlocked = useCallback(
     (map: CartoonMap) => {
@@ -720,31 +728,57 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                     : `Locked level ${campaignLevelOffset + level.levelNumber} of ${campaignLevelTotal}: ${level.pubName || level.name}`
                 }
                 onPointerDown={(event) => {
-                  // The current node gently bounces. Starting on pointer-down
-                  // prevents mobile browsers cancelling the tap if it moves
-                  // a pixel before pointer-up.
+                  // Show the press before opening the loading cover so taps
+                  // feel acknowledged on touch screens.
                   event.preventDefault();
                   lastPointerActivationRef.current = Date.now();
+                  if (levelActivationTimerRef.current !== null) {
+                    window.clearTimeout(levelActivationTimerRef.current);
+                  }
+                  setPressedLevelId(level.id);
+                  audioSynth.playCoinFx();
+
                   if (unlocked) {
-                    onSelectLevel(level, activeMap);
+                    levelActivationTimerRef.current = window.setTimeout(() => {
+                      levelActivationTimerRef.current = null;
+                      setPressedLevelId(null);
+                      onSelectLevel(level, activeMap);
+                    }, 160);
                   } else {
                     setSelectedLevel(level);
+                    levelActivationTimerRef.current = window.setTimeout(() => {
+                      levelActivationTimerRef.current = null;
+                      setPressedLevelId(null);
+                    }, 240);
                   }
-                  audioSynth.playCoinFx();
                 }}
                 onClick={() => {
                   // Some mobile/browser combinations emit only click. Ignore
-                  // this fallback only when pointer-down already opened it.
+                  // the click event after pointer-down already handled the tap.
                   if (Date.now() - lastPointerActivationRef.current < 700) return;
+                  if (levelActivationTimerRef.current !== null) {
+                    window.clearTimeout(levelActivationTimerRef.current);
+                  }
+                  setPressedLevelId(level.id);
+                  audioSynth.playCoinFx();
+
                   if (unlocked) {
-                    onSelectLevel(level, activeMap);
+                    levelActivationTimerRef.current = window.setTimeout(() => {
+                      levelActivationTimerRef.current = null;
+                      setPressedLevelId(null);
+                      onSelectLevel(level, activeMap);
+                    }, 160);
                   } else {
                     setSelectedLevel(level);
+                    levelActivationTimerRef.current = window.setTimeout(() => {
+                      levelActivationTimerRef.current = null;
+                      setPressedLevelId(null);
+                    }, 240);
                   }
-                  audioSynth.playCoinFx();
                 }}
                 className={[
                   'game-level-node',
+                  pressedLevelId === level.id ? 'is-pressing' : '',
                   level.levelNumber === 5
                     ? 'is-boss'
                     : '',

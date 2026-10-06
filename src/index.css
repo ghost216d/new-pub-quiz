@@ -1445,6 +1445,21 @@ button, a, input, select {
   transform: scale(1.08);
 }
 
+.game-level-node.is-pressing {
+  z-index: 4;
+  transform: translateY(4px) scale(0.94);
+  border-color: #fff;
+  filter: brightness(1.2);
+  box-shadow:
+    0 0 0 7px rgba(255, 255, 255, 0.42),
+    0 1px 0 #7c2d12;
+  transition:
+    transform 120ms ease-out,
+    box-shadow 120ms ease-out,
+    filter 120ms ease-out,
+    border-color 120ms ease-out;
+}
+
 .game-level-node.is-completed {
   border-color: #6ee7b7;
   background: linear-gradient(180deg, #34d399, #047857);
