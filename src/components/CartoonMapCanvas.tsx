@@ -257,6 +257,19 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     || activeMap.mapArtwork
     || 'thames-game-map.png';
   const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
+
+  // Warm the next playable pub cover while the map is visible so a cold tap
+  // does not have to wait for the artwork download to begin.
+  useEffect(() => {
+    const artwork = currentPositionLevel?.coverArtwork;
+    if (!artwork) return;
+
+    const image = new Image();
+    image.decoding = 'async';
+    image.fetchPriority = 'high';
+    image.src = `${import.meta.env.BASE_URL}${artwork}`;
+  }, [currentPositionLevel?.id, currentPositionLevel?.coverArtwork]);
+
   // Defer low-priority preloads for adjacent routes until the current map
   // has had time to request its visible artwork. Loading every level image
   // here can overwhelm mobile browsers when returning from a quiz.
