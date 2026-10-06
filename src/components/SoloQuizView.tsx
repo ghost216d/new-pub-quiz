@@ -1411,14 +1411,27 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             aria-live="polite"
             aria-label={`Loading questions for ${activeLevel.pubName || activeLevel.name}`}
           >
+            {(activeLevel.mapArtwork || activeMap?.mapArtwork) && (
+              <img
+                className="solo-stage-transition-art solo-pub-loading-fallback"
+                src={`${import.meta.env.BASE_URL}${activeLevel.mapArtwork || activeMap?.mapArtwork}`}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                draggable={false}
+              />
+            )}
             <img
               key={activeLevel.coverArtwork || activeLevel.mapArtwork || activeMap?.mapArtwork}
-              className="solo-stage-transition-art"
+              className="solo-stage-transition-art solo-pub-loading-artwork"
               src={`${import.meta.env.BASE_URL}${activeLevel.coverArtwork || activeLevel.mapArtwork || activeMap?.mapArtwork || 'pub-quiz-main-cover-v2.webp'}`}
               alt={`Artwork for ${activeLevel.pubName || activeLevel.name}`}
               loading="eager"
               fetchPriority="high"
               decoding="async"
+              onLoad={(event) => event.currentTarget.classList.add('is-loaded')}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
