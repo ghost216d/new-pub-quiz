@@ -432,6 +432,25 @@ export default function App() {
   const [showCover, setShowCover] = useState(() => !new URLSearchParams(window.location.search).has('room'));
   const [coverProgress, setCoverProgress] = useState(0);
 
+  // Give every enabled button the same single tap vibration where supported.
+  useEffect(() => {
+    const vibrateOnButtonPress = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest('button');
+      if (!button || button.disabled || button.getAttribute('aria-disabled') === 'true') return;
+
+      try {
+        if (typeof navigator.vibrate === 'function') navigator.vibrate(45);
+      } catch {
+        // Unsupported devices keep the visual press response.
+      }
+    };
+
+    document.addEventListener('pointerdown', vibrateOnButtonPress, true);
+    return () => document.removeEventListener('pointerdown', vibrateOnButtonPress, true);
+  }, []);
+
   // Keep the Quiz Master view on a normal document scroller on phones.
   // Route changes also start at the top instead of restoring an old offset.
   useEffect(() => {

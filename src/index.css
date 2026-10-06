@@ -7068,3 +7068,29 @@ body,
 .solo-pub-loading-artwork {
   z-index: 0;
 }
+
+
+/* Use one tactile press and rebound across the whole app. */
+button:not(:disabled) {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 130ms cubic-bezier(0.2, 0.75, 0.3, 1),
+    filter 130ms ease-out,
+    box-shadow 130ms ease-out;
+}
+
+button:not(:disabled):active,
+button:not(:disabled).is-pressing {
+  transform: translateY(3px) scale(0.985) !important;
+  filter: brightness(0.96);
+  transition-duration: 55ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled),
+  button:not(:disabled):active,
+  button:not(:disabled).is-pressing {
+    transition-duration: 1ms !important;
+  }
+}
