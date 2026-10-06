@@ -106,7 +106,7 @@ const DIFFICULTY_OPTIONS: {
 // A level must feel responsive even when the public trivia service is slow or
 // blocked by the player's network. Fall back quickly instead of leaving the
 // launch animation looking like a button that did nothing.
-const ONLINE_QUESTION_TIMEOUT_MS = 3500;
+const ONLINE_QUESTION_TIMEOUT_MS = 8500;
 const DEVICE_QUESTION_TIMEOUT_MS = 15000;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';

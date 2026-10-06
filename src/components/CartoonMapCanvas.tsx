@@ -293,6 +293,20 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     preloadPubArtwork(artwork, 'high');
   }, [currentPositionLevel?.id, currentPositionLevel?.coverArtwork]);
 
+  // Warm covers for replayable pubs on this route while the map is open.
+  // The current stop is already loaded at high priority above.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      activeMap.levels
+        .filter((level) => level.id !== currentPositionLevel?.id && isLevelUnlocked(level))
+        .forEach((level) => {
+          if (level.coverArtwork) preloadPubArtwork(level.coverArtwork, 'low');
+        });
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [activeMap.id, isLevelUnlocked, currentPositionLevel?.id]);
+
   // Defer low-priority preloads for adjacent routes until the current map
   // has had time to request its visible artwork. Loading every level image
   // here can overwhelm mobile browsers when returning from a quiz.
