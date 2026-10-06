@@ -7050,16 +7050,31 @@ body,
 
 /* Make the pub tap visibly press and rebound before the artwork opens. */
 .game-level-node {
-  transition-duration: 68ms;
+  transition-duration: 45ms;
 }
 
 .game-level-node.is-pressing {
   transform: translateY(6px) scale(0.95);
-  transition-duration: 55ms;
+  transition-duration: 35ms;
 }
 
 .game-level-node.is-locked.is-pressing,
 .game-level-node.is-locked.is-pressing:active {
   transform: translateY(2px) scale(0.84);
-  transition-duration: 55ms;
+  transition-duration: 35ms;
+}
+
+/* Keep the already visible map art in place while the pub cover decodes. */
+.solo-pub-loading-fallback {
+  z-index: 0;
+}
+
+.solo-pub-loading-artwork {
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.solo-pub-loading-artwork.is-loaded {
+  opacity: 1;
 }
