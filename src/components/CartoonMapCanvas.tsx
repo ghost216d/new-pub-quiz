@@ -273,6 +273,71 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     || activeMap.mapArtwork
     || 'thames-game-map.png';
   const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
+  const [displayedArtworkUrl, setDisplayedArtworkUrl] = useState(activeArtworkUrl);
+  const [isMapArtworkLoading, setIsMapArtworkLoading] = useState(false);
+
+  // Keep the previous map visible until new route artwork has been downloaded
+  // and decoded. This prevents rapid stage changes from exposing an empty board.
+  useEffect(() => {
+    if (displayedArtworkUrl === activeArtworkUrl) return;
+
+    let cancelled = false;
+    const loadingIndicatorTimer = window.setTimeout(() => {
+      if (!cancelled) setIsMapArtworkLoading(true);
+    }, 120);
+
+    const loadArtwork = (src: string, timeoutMs: number) => new Promise<boolean>((resolve) => {
+      const image = new Image();
+      let settled = false;
+      let timeoutId: number;
+
+      const finish = (loaded: boolean) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeoutId);
+        if (!loaded) {
+          resolve(false);
+          return;
+        }
+
+        if (typeof image.decode === 'function') {
+          void image.decode().catch(() => undefined).then(() => resolve(true));
+        } else {
+          resolve(true);
+        }
+      };
+
+      timeoutId = window.setTimeout(() => finish(false), timeoutMs);
+      image.decoding = 'async';
+      image.fetchPriority = 'high';
+      image.onload = () => finish(true);
+      image.onerror = () => finish(false);
+      image.src = src;
+      if (image.complete) finish(image.naturalWidth > 0);
+    });
+
+    const prepareArtwork = async () => {
+      let artworkUrl = activeArtworkUrl;
+      let ready = await loadArtwork(artworkUrl, 10000);
+      const fallbackUrl = `${import.meta.env.BASE_URL}${activeMap.mapArtwork || 'thames-game-map.png'}`;
+
+      if (!ready && artworkUrl !== fallbackUrl) {
+        artworkUrl = fallbackUrl;
+        ready = await loadArtwork(artworkUrl, 5000);
+      }
+
+      if (cancelled) return;
+      if (ready) setDisplayedArtworkUrl(artworkUrl);
+      setIsMapArtworkLoading(false);
+    };
+
+    void prepareArtwork();
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(loadingIndicatorTimer);
+    };
+  }, [activeArtworkUrl, activeMap.mapArtwork, displayedArtworkUrl]);
 
   // Warm the next playable pub cover while the map is visible so a cold tap
   // does not have to wait for the artwork download to begin.
@@ -732,9 +797,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         }}
       >
         <img
-          key={`${activeMap.id}-${activeArtwork}`}
+          key={`${activeMap.id}-${displayedArtworkUrl}`}
           className="game-map-artwork is-grayscale"
-          src={activeArtworkUrl}
+          src={displayedArtworkUrl}
           alt=""
           aria-hidden="true"
           draggable={false}
@@ -743,9 +808,9 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           fetchPriority="high"
         />
         <img
-          key={`${activeMap.id}-${activeArtwork}-colour`}
+          key={`${activeMap.id}-${displayedArtworkUrl}-colour`}
           className="game-map-artwork is-colour-reveal"
-          src={activeArtworkUrl}
+          src={displayedArtworkUrl}
           alt=""
           aria-hidden="true"
           draggable={false}
