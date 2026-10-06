@@ -29,7 +29,7 @@ import {
   saveSoloProgression,
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
-import { areQuestionPromptsSimilar, chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
+import { areQuestionPromptsSimilar, chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, isQuestionMastered, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
 import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
@@ -111,10 +111,11 @@ const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_gk_20261005';
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
-const PUB_LOADING_SCREEN_DURATION_MS = 3000;
+const COMPLETION_CROSSFADE_DURATION_MS = 350;
+const PUB_LOADING_SCREEN_DURATION_MS = 600;
 
 type CompletionTransition = {
-  phase: 'loading';
+  phase: 'loading' | 'fading';
   nextTarget: { mapId: string; levelId: string } | null;
   artwork: string;
   fallbackArtwork: string;
@@ -148,6 +149,31 @@ const questionKey = (question: Question): string =>
 
 const questionImageUrl = (imageUrl: string): string =>
   /^https?:|^data:|^\//.test(imageUrl) ? imageUrl : `${import.meta.env.BASE_URL}${imageUrl}`;
+
+const preloadedTransitionArtwork = new Map<string, Promise<void>>();
+
+const preloadTransitionArtwork = (artwork: string): Promise<void> => {
+  const src = questionImageUrl(artwork);
+  const cached = preloadedTransitionArtwork.get(src);
+  if (cached) return cached;
+
+  const loaded = new Promise<void>((resolve) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.fetchPriority = 'high';
+    const finish = () => {
+      void image.decode().catch(() => undefined).then(() => resolve());
+    };
+    image.onload = finish;
+    image.onerror = () => resolve();
+    image.src = src;
+    if (image.complete) finish();
+  }).finally(() => {
+    preloadedTransitionArtwork.delete(src);
+  });
+  preloadedTransitionArtwork.set(src, loaded);
+  return loaded;
+};
 
 const preloadedPhotoRoundImages = new Map<string, HTMLImageElement>();
 
@@ -688,20 +714,44 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   useEffect(() => {
     if (!completionTransition) return;
 
-    const finishTimer = window.setTimeout(() => {
-      const target = completionTransition.nextTarget;
-      if (target) {
-        setProgression((current) => {
-          const updated = { ...current, currentMapId: target.mapId };
-          saveSoloProgression(updated);
-          return updated;
-        });
-        setAutoAdvanceTarget(target);
-      }
-      setCompletionTransition(null);
-    }, COMPLETION_ARTWORK_DURATION_MS);
+    let cancelled = false;
+    let timerId: number;
 
-    return () => window.clearTimeout(finishTimer);
+    if (completionTransition.phase === 'loading') {
+      timerId = window.setTimeout(() => {
+        let timeoutId: number | undefined;
+        const artworkReady = preloadTransitionArtwork(completionTransition.fallbackArtwork);
+        void Promise.race([
+          artworkReady,
+          new Promise<void>((resolve) => {
+            timeoutId = window.setTimeout(resolve, 1200);
+          }),
+        ]).then(() => {
+          if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+          if (cancelled) return;
+
+          const target = completionTransition.nextTarget;
+          if (target) {
+            setProgression((current) => {
+              const updated = { ...current, currentMapId: target.mapId };
+              saveSoloProgression(updated);
+              return updated;
+            });
+            setAutoAdvanceTarget(target);
+          }
+          setCompletionTransition((current) =>
+            current ? { ...current, phase: 'fading' } : null,
+          );
+        });
+      }, COMPLETION_ARTWORK_DURATION_MS);
+    } else {
+      timerId = window.setTimeout(() => setCompletionTransition(null), COMPLETION_CROSSFADE_DURATION_MS);
+    }
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+    };
   }, [completionTransition?.phase]);
 
   useEffect(() => {
@@ -796,16 +846,17 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         ? readFixedLevelQuestions(level.id)
         : authoredQuestions || readFixedLevelQuestions(level.id);
       const questionHistory = getQuestionHistory();
-      // Bundled packs are the current content authority. They are unique across
-      // pubs and remain immediately available even when storage or networking
-      // is unavailable. Only non-campaign fallback generation uses history.
-      const cachedQuestions = authoredQuestions
-        ? dedupeSimilarQuestions(authoredQuestions)
-        : hasSavedQuestionSet
-          ? dedupeSimilarQuestions(storedQuestions)
-          : storedQuestions.filter((question) =>
-              !questionHistory.some((previous) => areQuestionPromptsSimilar(question.prompt, previous)),
-            );
+      // Keep the authored pack on a level’s first visit. On replays, use
+      // its saved set and rotate out anything already seen so quitting early
+      // cannot make the same opening question recur indefinitely.
+      const cachedSource = hasSavedQuestionSet
+        ? storedQuestions
+        : authoredQuestions || storedQuestions;
+      const cachedQuestions = dedupeSimilarQuestions(cachedSource).filter((question) =>
+        !hasSavedQuestionSet || !questionHistory.some((previous) =>
+          areQuestionPromptsSimilar(question.prompt, previous),
+        ),
+      );
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
@@ -913,10 +964,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         throw new Error('No quiz questions were available for this pub.');
       }
 
-      const fixedQuestions = authoredQuestions
+      const fixedQuestions = authoredQuestions && !hasSavedQuestionSet
         ? dedupeSimilarQuestions(authoredQuestions).slice(0, count)
         : orderCampaignQuestions(
-            dedupeSimilarQuestions([...cachedQuestions, ...questionsToPlay]).slice(0, count),
+            dedupeSimilarQuestions(questionsToPlay).slice(0, count),
           );
       if (fixedQuestions.length < count) throw new Error('This pub does not have enough distinct questions yet.');
       setLevelLaunchStatus('Your questions are ready — opening the quiz…');
@@ -1065,23 +1116,29 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       setScore((s) => s + pts);
       setCorrectCount((count) => count + 1);
       forgetMasteredQuestion(currentQ);
-      // Keep this pub’s fixed set saved so later visits open without generation.
+      const wasMastered = isQuestionMastered(currentQ.prompt);
       markQuestionMastered(currentQ.prompt);
-      setStreak((st) => st + 1);
+      if (activeLevel) retireFixedLevelQuestion(activeLevel.id, currentQ);
+      setStreak((s) => s + 1);
 
-      // Award coins for correct answer!
-      const coinGain = 20 + streak * 5;
-      setCoinsEarnedInGame((prev) => prev + coinGain);
-      updateProgression({
-        ...progression,
-        coins: progression.coins + coinGain,
-      });
+      // Correct answers still score, but coins are awarded only once per
+      // mastered prompt so replaying a saved pack cannot farm currency.
+      const coinGain = wasMastered ? 0 : 20 + streak * 5;
+      if (coinGain > 0) {
+        setCoinsEarnedInGame((prev) => prev + coinGain);
+        updateProgression({
+          ...progression,
+          coins: progression.coins + coinGain,
+        });
+      }
 
       // Keep the answer cue clear; the coin bonus is already shown visually.
       audioSynth.playCorrectFx();
 
-      setFloatingCoinText(`+${coinGain} 🪙`);
-      setTimeout(() => setFloatingCoinText(null), 1200);
+      if (coinGain > 0) {
+        setFloatingCoinText(`+${coinGain} 🪙`);
+        setTimeout(() => setFloatingCoinText(null), 1200);
+      }
 
       // Confetti on good streaks
       if (streak >= 2) {
@@ -1225,10 +1282,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         [nextArtwork, targetMapArtwork]
           .filter((artwork): artwork is string => Boolean(artwork))
           .forEach((artwork) => {
-            const preload = new Image();
-            preload.decoding = 'async';
-            preload.fetchPriority = 'high';
-            preload.src = `${import.meta.env.BASE_URL}${artwork}`;
+            void preloadTransitionArtwork(artwork);
           });
       }
 
@@ -1381,7 +1435,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
         {completionTransition?.phase === 'loading' && (
           <div
-            className="solo-stage-transition-cover"
+            className={`solo-stage-transition-cover${completionTransition.phase === 'fading' ? ' is-fading' : ''}`}
             role="status"
             aria-live="polite"
             aria-label={`Next stop: ${completionTransition.nextPubName}, ${completionTransition.nextLevelName}`}

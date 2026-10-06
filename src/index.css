@@ -6408,6 +6408,19 @@ html[data-time-theme] .role-solo .game-title p {
   overflow: hidden;
   background: #e3eff5;
   color: #202020;
+  opacity: 1;
+  transition: opacity 350ms ease-out;
+}
+
+.solo-stage-transition-cover.is-fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .solo-stage-transition-cover {
+    transition: none;
+  }
 }
 
 .solo-stage-transition-art {

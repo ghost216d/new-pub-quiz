@@ -6,13 +6,21 @@ import { CATEGORY_VAULT } from '../src/data/defaultQuestions.ts';
 import { normalizeSoloCategory } from '../src/utils/soloCategories.ts';
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../src/data/pubClassicsQuestions.ts';
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../src/data/campaignLevelQuestions.ts';
-import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
+import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, isQuestionMastered, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 
 const storage = new Map();
 globalThis.localStorage = {
   getItem: (key) => storage.get(key) ?? null,
   setItem: (key, value) => storage.set(key, String(value)),
 };
+
+assert.equal(isQuestionMastered('A unique anti-farming regression prompt'), false,
+  'an unanswered prompt should not start mastered');
+markQuestionMastered('A unique anti-farming regression prompt');
+assert.equal(isQuestionMastered('A unique anti-farming regression prompt'), true,
+  'a correctly answered prompt should be recognized as mastered');
+assert.equal(isQuestionMastered('A unique anti-farming regression prompt!'), true,
+  'lightly reworded mastered prompts should remain recognized');
 
 const campaignLevels = CARTOON_MAPS.flatMap((map) => map.levels.map((level) => ({ map, level })));
 assert.equal(campaignLevels.length, 70, 'all 70 campaign levels should have transition artwork');
