@@ -76,7 +76,7 @@ const SIMILARITY_STOP_WORDS = new Set([
 const meaningfulWords = (value: string): Set<string> => new Set(
   normalizePrompt(value)
     .split(' ')
-    .filter((word) => (/^\\d+$/.test(word) || word.length > 2) && !SIMILARITY_STOP_WORDS.has(word)),
+    .filter((word) => (/^\d+$/.test(word) || word.length > 2) && !SIMILARITY_STOP_WORDS.has(word)),
 );
 
 type IndexedPrompt = { normalized: string; words: Set<string> };
