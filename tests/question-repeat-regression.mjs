@@ -7,12 +7,30 @@ import { normalizeSoloCategory } from '../src/utils/soloCategories.ts';
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../src/data/pubClassicsQuestions.ts';
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../src/data/campaignLevelQuestions.ts';
 import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, isQuestionMastered, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
+import { HINT_COST_BUCKS, purchaseQuestionHint, selectHintDistractors } from '../src/utils/questionHints.ts';
 
 const storage = new Map();
 globalThis.localStorage = {
   getItem: (key) => storage.get(key) ?? null,
   setItem: (key, value) => storage.set(key, String(value)),
 };
+
+assert.equal(HINT_COST_BUCKS, 50, 'a hint should have a clear Pub Bucks price');
+const hintOptions = ['Correct answer', 'Wrong one', 'Wrong two', 'Wrong three'];
+const hintDistractors = selectHintDistractors(hintOptions, 'Correct answer');
+assert.equal(hintDistractors.length, 2, 'a hint should remove two wrong answers');
+assert.equal(hintDistractors.includes('Correct answer'), false, 'a hint must preserve the correct answer');
+assert.equal(new Set(hintDistractors).size, 2, 'a hint should remove two distinct choices');
+assert.equal(hintDistractors.every((option) => hintOptions.includes(option)), true,
+  'a hint should remove only options present in the question');
+const hintPurchase = purchaseQuestionHint(100, hintOptions, 'Correct answer');
+assert.equal(hintPurchase?.remainingBucks, 50, 'buying a hint should subtract its price exactly once');
+assert.equal(purchaseQuestionHint(49, hintOptions, 'Correct answer'), null,
+  'a hint should not be usable without enough Pub Bucks');
+assert.equal(purchaseQuestionHint(100, ['Correct answer'], 'Correct answer'), null,
+  'an unusable hint should not spend Pub Bucks');
+
+
 
 assert.equal(isQuestionMastered('A unique anti-farming regression prompt'), false,
   'an unanswered prompt should not start mastered');

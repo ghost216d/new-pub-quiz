@@ -29,6 +29,7 @@ import {
   saveSoloProgression,
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
+import { HINT_COST_BUCKS, purchaseQuestionHint } from '../utils/questionHints';
 import { areQuestionPromptsSimilar, chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, isQuestionMastered, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
 import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
@@ -646,6 +647,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   const [streak, setStreak] = useState(0);
   const [coinsEarnedInGame, setCoinsEarnedInGame] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [eliminatedAnswers, setEliminatedAnswers] = useState<string[]>([]);
+  const [hintedQuestionIdx, setHintedQuestionIdx] = useState<number | null>(null);
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const [timerSec, setTimerSec] = useState(30);
   const [gameOver, setGameOver] = useState(false);
@@ -1097,10 +1100,33 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setStreak(0);
     setCoinsEarnedInGame(0);
     setSelectedAnswer(null);
+    setEliminatedAnswers([]);
+    setHintedQuestionIdx(null);
     setIsAnswerRevealed(false);
     setGameOver(false);
     setIsOutOfLivesModalOpen(false);
     setTimerSec(qList[0]?.timeLimitSec || 30);
+  };
+
+  const handleUseHint = () => {
+    if (isStartingLevelRef.current || isAnswerRevealed || gameOver || isOutOfLivesModalOpen) return;
+    if (hintedQuestionIdx === currentIdx) return;
+
+    const currentQuestion = questions[currentIdx];
+    if (!currentQuestion) return;
+    const purchase = purchaseQuestionHint(
+      progression.coins,
+      currentQuestion.options || [],
+      currentQuestion.correctAnswer,
+    );
+    if (!purchase) return;
+
+    setEliminatedAnswers(purchase.eliminatedAnswers);
+    setHintedQuestionIdx(currentIdx);
+    updateProgression({
+      ...progression,
+      coins: purchase.remainingBucks,
+    });
   };
 
   const handleSelectAnswer = (option: string) => {
@@ -1175,6 +1201,8 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     if (currentIdx + 1 < questions.length) {
       setCurrentIdx((prev) => prev + 1);
       setSelectedAnswer(null);
+      setEliminatedAnswers([]);
+      setHintedQuestionIdx(null);
       setIsAnswerRevealed(false);
       setTimerSec(questions[currentIdx + 1]?.timeLimitSec || 30);
     } else {
@@ -1877,6 +1905,38 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           {currentQ?.prompt}
         </h3>
 
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-bold text-stone-600">
+            Eliminate two wrong answers
+          </span>
+          <button
+            type="button"
+            onClick={handleUseHint}
+            disabled={
+              isAnswerRevealed ||
+              hintedQuestionIdx === currentIdx ||
+              progression.coins < HINT_COST_BUCKS
+            }
+            aria-label={
+              hintedQuestionIdx === currentIdx
+                ? 'Hint used for this question'
+                : `Use a hint for ${HINT_COST_BUCKS} Pub Bucks`
+            }
+            title={`Spend ${HINT_COST_BUCKS} Pub Bucks to remove two wrong answers. One hint per question.`}
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl border-2 border-amber-800 bg-amber-100 px-3 py-2 text-xs font-black text-amber-950 shadow-[0_2px_0_#78350f] transition enabled:hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            {hintedQuestionIdx === currentIdx
+              ? 'HINT USED'
+              : `HINT · ${HINT_COST_BUCKS} BUCKS`}
+          </button>
+          {hintedQuestionIdx === currentIdx && (
+            <span className="w-full text-right text-xs font-bold text-emerald-800" role="status" aria-live="polite">
+              Two wrong answers removed · −{HINT_COST_BUCKS} Pub Bucks
+            </span>
+          )}
+        </div>
+
         {/* Options (3D Cartoon Push Buttons with Theme Colors) */}
         <div className="grid grid-cols-1 gap-2.5 sm:gap-3 pt-1">
           {currentQ?.options?.map((option, idx) => {
@@ -1906,9 +1966,12 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
             const theme = colorThemes[idx % colorThemes.length];
 
+            const isEliminated = eliminatedAnswers.includes(option);
             let cardStyle = theme.base;
 
-            if (isAnswerRevealed) {
+            if (isEliminated) {
+              cardStyle = 'bg-stone-200/60 text-stone-400 border-2 border-stone-300 opacity-50 line-through';
+            } else if (isAnswerRevealed) {
               if (isCorrect) {
                 cardStyle = 'cartoon-btn-emerald text-white ring-4 ring-emerald-300 scale-102 animate-rubberband';
               } else if (isSelected) {
@@ -1921,7 +1984,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             return (
               <button
                 key={idx}
-                disabled={isAnswerRevealed}
+                disabled={isAnswerRevealed || isEliminated}
                 onClick={() => handleSelectAnswer(option)}
                 className={`w-full min-w-0 min-h-[52px] sm:min-h-[56px] p-3 sm:p-3.5 rounded-2xl border-3 font-extrabold text-left text-sm sm:text-base flex items-center justify-between gap-2 transition cursor-pointer active:scale-98 ${cardStyle}`}
               >
