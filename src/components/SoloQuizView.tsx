@@ -396,7 +396,7 @@ const loadOnlineQuestionsWithTimeout = (
     },
     ONLINE_QUESTION_TIMEOUT_MS,
   );
-  getOnlineTriviaQuestions({ ...options, signal: controller.signal }).then(
+  getOnlineTriviaQuestions({ ...options, signal: controller.signal, deferSeenWrite: true }).then(
     (questions) => {
       window.clearTimeout(timeout);
       resolve(questions);
@@ -478,7 +478,6 @@ const loadMediumGeneralKnowledgeQuestions = async (count: number): Promise<Quest
     points: 15,
     timeLimitSec: 35,
   }));
-  recordQuestionsAsSeen(mediumQuestions.map((question) => question.prompt));
   return mediumQuestions;
 };
 
@@ -544,7 +543,6 @@ const generateMediumGeneralKnowledgeQuestions = async (
     timeLimitSec: 35,
   }));
   if (mediumQuestions.length < count) throw new Error('The device AI could not create enough distinct questions.');
-  recordQuestionsAsSeen(mediumQuestions.map((question) => question.prompt));
   return mediumQuestions;
 };
 
