@@ -1085,8 +1085,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       // Keep the answer cue clear; the coin bonus is already shown visually.
       audioSynth.playCorrectFx();
 
-      setFloatingCoinText(`+${coinGain} 🪙`);
-      setTimeout(() => setFloatingCoinText(null), 1200);
+      if (coinGain > 0) {
+        setFloatingCoinText(`+${coinGain} 🪙`);
+        setTimeout(() => setFloatingCoinText(null), 1200);
+      }
 
       // Confetti on good streaks
       if (streak >= 2) {
