@@ -7046,3 +7046,20 @@ body,
     inset 0 2px 4px rgba(0, 0, 0, 0.22),
     0 1px 0 #334155;
 }
+
+
+/* Make the pub tap visibly press and rebound before the artwork opens. */
+.game-level-node {
+  transition-duration: 68ms;
+}
+
+.game-level-node.is-pressing {
+  transform: translateY(6px) scale(0.95);
+  transition-duration: 55ms;
+}
+
+.game-level-node.is-locked.is-pressing,
+.game-level-node.is-locked.is-pressing:active {
+  transform: translateY(2px) scale(0.84);
+  transition-duration: 55ms;
+}
