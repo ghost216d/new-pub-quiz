@@ -324,6 +324,7 @@ export const getOnlineTriviaQuestions = async ({
   broadPool = false,
   candidateMultiplier = 3,
   signal,
+  deferSeenWrite = false,
 }: {
   category: string;
   count: number;
@@ -332,6 +333,7 @@ export const getOnlineTriviaQuestions = async ({
   broadPool?: boolean;
   candidateMultiplier?: number;
   signal?: AbortSignal;
+  deferSeenWrite?: boolean;
 }): Promise<Question[]> => {
   // Prefer the protected Gemini proxy. The browser receives questions only;
   // the Gemini key remains an encrypted server-side secret.
@@ -393,7 +395,7 @@ export const getOnlineTriviaQuestions = async ({
   if (data.response_code !== 0 || !Array.isArray(data.results)) {
     if (!mixed && !broadPool && categoryId === 9 && (data.response_code === 0 || data.response_code === 4)) {
       console.info('General Knowledge questions are exhausted; trying a wider trivia mix.');
-      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal });
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal, deferSeenWrite });
     }
     throw new Error(data.response_code === 5
       ? 'The online question service is rate limited.'
@@ -427,12 +429,12 @@ export const getOnlineTriviaQuestions = async ({
   if (unique.length < count) {
     if (!mixed && !broadPool && categoryId === 9) {
       console.info('Unseen General Knowledge questions are running low; trying a wider trivia mix.');
-      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal });
+      return getOnlineTriviaQuestions({ category, count, difficulty, mixed, broadPool: true, candidateMultiplier, signal, deferSeenWrite });
     }
     throw new Error('Not enough unseen online questions were returned.');
   }
 
-  if (!mixed) saveSeen(unique.map((question) => question.prompt));
+  if (!mixed && !deferSeenWrite) saveSeen(unique.map((question) => question.prompt));
   return unique;
 };
 
