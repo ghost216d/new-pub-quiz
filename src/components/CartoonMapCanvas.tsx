@@ -282,6 +282,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     if (displayedArtworkUrl === activeArtworkUrl) return;
 
     let cancelled = false;
+    let cancelPendingArtworkLoad: (() => void) | null = null;
     const loadingIndicatorTimer = window.setTimeout(() => {
       if (!cancelled) setIsMapArtworkLoading(true);
     }, 120);
@@ -295,6 +296,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         if (settled) return;
         settled = true;
         window.clearTimeout(timeoutId);
+        cancelPendingArtworkLoad = null;
         if (!loaded) {
           resolve(false);
           return;
@@ -307,6 +309,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         }
       };
 
+      cancelPendingArtworkLoad = () => finish(false);
       timeoutId = window.setTimeout(() => finish(false), timeoutMs);
       image.decoding = 'async';
       image.fetchPriority = 'high';
@@ -319,11 +322,13 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     const prepareArtwork = async () => {
       let artworkUrl = activeArtworkUrl;
       let ready = await loadArtwork(artworkUrl, 10000);
+      if (cancelled) return;
       const fallbackUrl = `${import.meta.env.BASE_URL}${activeMap.mapArtwork || 'thames-game-map.png'}`;
 
       if (!ready && artworkUrl !== fallbackUrl) {
         artworkUrl = fallbackUrl;
         ready = await loadArtwork(artworkUrl, 5000);
+        if (cancelled) return;
       }
 
       if (cancelled) return;
@@ -336,6 +341,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     return () => {
       cancelled = true;
       window.clearTimeout(loadingIndicatorTimer);
+      cancelPendingArtworkLoad?.();
     };
   }, [activeArtworkUrl, activeMap.mapArtwork, displayedArtworkUrl]);
 
