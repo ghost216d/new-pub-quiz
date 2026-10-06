@@ -79,14 +79,36 @@ const meaningfulWords = (value: string): Set<string> => new Set(
     .filter((word) => (/^\d+$/.test(word) || word.length > 2) && !SIMILARITY_STOP_WORDS.has(word)),
 );
 
-const isTooSimilar = (candidate: string, previous: string): boolean => {
-  const normalizedCandidate = normalizePrompt(candidate);
-  const normalizedPrevious = normalizePrompt(previous);
+type IndexedPrompt = { normalized: string; words: Set<string> };
+type PromptIndex = { exact: Set<string>; byWord: Map<string, Set<IndexedPrompt>> };
+
+const createPromptIndex = (prompts: string[] = []): PromptIndex => {
+  const index: PromptIndex = { exact: new Set(), byWord: new Map() };
+  prompts.forEach((prompt) => addPromptToIndex(index, prompt));
+  return index;
+};
+
+const addPromptToIndex = (index: PromptIndex, prompt: string): void => {
+  const normalized = normalizePrompt(prompt);
+  if (!normalized || index.exact.has(normalized)) return;
+
+  const item = { normalized, words: meaningfulWords(normalized) };
+  index.exact.add(normalized);
+  item.words.forEach((word) => {
+    const matches = index.byWord.get(word) || new Set<IndexedPrompt>();
+    matches.add(item);
+    index.byWord.set(word, matches);
+  });
+};
+
+const isTooSimilarWithWords = (
+  normalizedCandidate: string,
+  candidateWords: Set<string>,
+  normalizedPrevious: string,
+  previousWords: Set<string>,
+): boolean => {
   if (!normalizedCandidate || !normalizedPrevious) return false;
   if (normalizedCandidate === normalizedPrevious) return true;
-
-  const candidateWords = meaningfulWords(normalizedCandidate);
-  const previousWords = meaningfulWords(normalizedPrevious);
   if (candidateWords.size < 2 || previousWords.size < 2) return false;
 
   const shared = [...candidateWords].filter((word) => previousWords.has(word)).length;
@@ -95,21 +117,82 @@ const isTooSimilar = (candidate: string, previous: string): boolean => {
   return shared / smaller >= 0.8 || shared / union >= 0.68;
 };
 
+const isTooSimilar = (candidate: string, previous: string): boolean => {
+  const normalizedCandidate = normalizePrompt(candidate);
+  const normalizedPrevious = normalizePrompt(previous);
+  return isTooSimilarWithWords(
+    normalizedCandidate,
+    meaningfulWords(normalizedCandidate),
+    normalizedPrevious,
+    meaningfulWords(normalizedPrevious),
+  );
+};
+
+const hasSimilarPrompt = (index: PromptIndex, prompt: string): boolean => {
+  const normalized = normalizePrompt(prompt);
+  if (!normalized) return false;
+  if (index.exact.has(normalized)) return true;
+
+  const words = meaningfulWords(normalized);
+  if (words.size < 2) return false;
+
+  const wordPairs: Array<{ key: string; frequency: number }> = [];
+  const tokens = [...words];
+  for (let left = 0; left < tokens.length; left += 1) {
+    for (let right = left + 1; right < tokens.length; right += 1) {
+      const first = tokens[left] < tokens[right] ? tokens[left] : tokens[right];
+      const second = tokens[left] < tokens[right] ? tokens[right] : tokens[left];
+      const key = JSON.stringify([first, second]);
+      const frequency = Math.min(
+        index.byWord.get(first)?.size || 0,
+        index.byWord.get(second)?.size || 0,
+      );
+      wordPairs.push({ key, frequency });
+    }
+  }
+  wordPairs.sort((left, right) => left.frequency - right.frequency);
+
+  const checked = new Set<IndexedPrompt>();
+  for (const { key } of wordPairs) {
+    const [first, second] = JSON.parse(key) as [string, string];
+    const firstMatches = index.byWord.get(first);
+    const secondMatches = index.byWord.get(second);
+    if (!firstMatches || !secondMatches) continue;
+
+    const smaller = firstMatches.size <= secondMatches.size ? firstMatches : secondMatches;
+    const larger = smaller === firstMatches ? secondMatches : firstMatches;
+    for (const previous of smaller) {
+      if (checked.has(previous) || !larger.has(previous)) continue;
+      checked.add(previous);
+      if (isTooSimilarWithWords(normalized, words, previous.normalized, previous.words)) return true;
+    }
+  }
+  return false;
+};
+
 export const areQuestionPromptsSimilar = (candidate: string, previous: string): boolean =>
   isTooSimilar(candidate, previous);
+
+export const excludeSimilarQuestionHistory = <T extends Question>(
+  questions: T[],
+  history: string[],
+): T[] => {
+  const historyIndex = createPromptIndex(history);
+  return questions.filter((question) => !hasSimilarPrompt(historyIndex, question.prompt));
+};
 
 const hasBeenUsed = (prompt: string, history: string[]): boolean =>
   history.some((previous) => isTooSimilar(prompt, previous));
 
 export const dedupeSimilarQuestions = <T extends Question>(questions: T[]): T[] => {
   const unique: T[] = [];
-  const prompts: string[] = [];
+  const uniqueIndex = createPromptIndex();
 
   questions.forEach((question) => {
     const prompt = typeof question.prompt === 'string' ? question.prompt : '';
-    if (!prompt || hasBeenUsed(prompt, prompts)) return;
+    if (!prompt || hasSimilarPrompt(uniqueIndex, prompt)) return;
     unique.push(question);
-    prompts.push(prompt);
+    addPromptToIndex(uniqueIndex, prompt);
   });
 
   return unique;
@@ -190,11 +273,11 @@ const getSecureAiQuestions = async ({
 
   const payload = await response.json() as { questions?: Question[] };
   const questions = Array.isArray(payload.questions) ? payload.questions : [];
-  const comparisonHistory = [...seen];
+  const comparisonIndex = createPromptIndex(seen);
   const unique = questions.filter((question) => {
-    const normalized = normalizePrompt(question.prompt || '');
-    if (!normalized || hasBeenUsed(normalized, comparisonHistory)) return false;
-    comparisonHistory.push(normalized);
+    const prompt = question.prompt || '';
+    if (!normalizePrompt(prompt) || hasSimilarPrompt(comparisonIndex, prompt)) return false;
+    addPromptToIndex(comparisonIndex, prompt);
     return true;
   }).slice(0, count);
 
@@ -277,6 +360,7 @@ export const getOnlineTriviaQuestions = async ({
   };
 
   const seen = [...readSeen(), ...readMastered()];
+  const seenIndex = createPromptIndex(seen);
   let response = await fetch(buildUrl(), { cache: 'no-store' });
   if (!response.ok) throw new Error('Online trivia service is unavailable.');
   let data = (await response.json()) as OpenTriviaResponse;
@@ -314,8 +398,8 @@ export const getOnlineTriviaQuestions = async ({
   const unique: Question[] = [];
   for (const item of data.results) {
     const decodedPrompt = decodeHtml(item.question);
-    if (hasBeenUsed(decodedPrompt, seen)) continue;
-    seen.push(decodedPrompt);
+    if (hasSimilarPrompt(seenIndex, decodedPrompt)) continue;
+    addPromptToIndex(seenIndex, decodedPrompt);
     const correctAnswer = decodeHtml(item.correct_answer);
     const sourceDifficulty = item.difficulty;
     unique.push({
@@ -353,25 +437,26 @@ export const chooseUnseenFallbackQuestions = (
   repeatablePrompts: string[] = [],
   allowSeenFallback = false,
 ): Question[] => {
-  const mastered = readMastered();
-  const seen = readSeen();
+  const masteredIndex = createPromptIndex(readMastered());
+  const seenIndex = createPromptIndex(readSeen());
+  const repeatableIndex = createPromptIndex(repeatablePrompts);
   const uniquePool = dedupeSimilarQuestions(pool);
-  const allowedPool = uniquePool.filter((question) => !hasBeenUsed(question.prompt, mastered));
-  const unseen = allowedPool.filter((question) => !hasBeenUsed(question.prompt, seen));
+  const allowedPool = uniquePool.filter((question) => !hasSimilarPrompt(masteredIndex, question.prompt));
+  const unseen = allowedPool.filter((question) => !hasSimilarPrompt(seenIndex, question.prompt));
 
   // A question can reappear only when the player previously missed it. Do not
   // silently recycle other old questions when the offline pack is exhausted.
   const missed = repeatablePrompts.length
     ? allowedPool.filter((question) =>
-        hasBeenUsed(question.prompt, repeatablePrompts) &&
-        hasBeenUsed(question.prompt, seen)
+        hasSimilarPrompt(repeatableIndex, question.prompt) &&
+        hasSimilarPrompt(seenIndex, question.prompt)
       )
     : [];
   const playable = [...unseen, ...shuffled(missed)];
   if (allowSeenFallback && playable.length < count) {
     const alreadySelected = new Set(playable.map((question) => normalizePrompt(question.prompt)));
     const seenAgain = shuffled(allowedPool.filter((question) =>
-      hasBeenUsed(question.prompt, seen) &&
+      hasSimilarPrompt(seenIndex, question.prompt) &&
       !alreadySelected.has(normalizePrompt(question.prompt))
     ));
     playable.push(...seenAgain);

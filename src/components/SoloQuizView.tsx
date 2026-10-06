@@ -30,7 +30,7 @@ import {
 } from '../data/cartoonMapsData';
 import { audioSynth } from '../utils/audioSynth';
 import { HINT_COST_BUCKS, purchaseQuestionHint } from '../utils/questionHints';
-import { areQuestionPromptsSimilar, chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, isQuestionMastered, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
+import { excludeSimilarQuestionHistory, chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, getQuestionHistory, isQuestionMastered, markQuestionMastered, recordQuestionsAsSeen } from '../utils/onlineTrivia';
 import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy, CartoonBunting } from './CartoonIllustrations';
 import { CartoonMapCanvas } from './CartoonMapCanvas';
@@ -863,11 +863,10 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       const cachedSource = hasSavedQuestionSet
         ? storedQuestions
         : authoredQuestions || storedQuestions;
-      const cachedQuestions = dedupeSimilarQuestions(cachedSource).filter((question) =>
-        !hasSavedQuestionSet || !questionHistory.some((previous) =>
-          areQuestionPromptsSimilar(question.prompt, previous),
-        ),
-      );
+      const dedupedCachedQuestions = dedupeSimilarQuestions(cachedSource);
+      const cachedQuestions = hasSavedQuestionSet
+        ? excludeSimilarQuestionHistory(dedupedCachedQuestions, questionHistory)
+        : dedupedCachedQuestions;
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
