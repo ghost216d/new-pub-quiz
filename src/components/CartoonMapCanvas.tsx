@@ -42,6 +42,16 @@ interface Props {
   initialEntranceAnim?: boolean;
 }
 
+const triggerPubButtonHaptic = () => {
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(30);
+    }
+  } catch {
+    // Haptics are an enhancement; unsupported devices keep the visual press cue.
+  }
+};
+
 const MAP_AREA_LABELS: Record<string, string> = {
   thames_riverside_crawl: 'South London & Westminster',
   west_london_crawl: 'West End & Hyde Park',
@@ -737,6 +747,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                   }
                   setPressedLevelId(level.id);
                   audioSynth.playCoinFx();
+                  triggerPubButtonHaptic();
 
                   if (unlocked) {
                     levelActivationTimerRef.current = window.setTimeout(() => {
@@ -761,6 +772,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
                   }
                   setPressedLevelId(level.id);
                   audioSynth.playCoinFx();
+                  triggerPubButtonHaptic();
 
                   if (unlocked) {
                     levelActivationTimerRef.current = window.setTimeout(() => {
