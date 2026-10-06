@@ -111,10 +111,11 @@ const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_gk_20261005';
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
+const COMPLETION_CROSSFADE_DURATION_MS = 350;
 const PUB_LOADING_SCREEN_DURATION_MS = 600;
 
 type CompletionTransition = {
-  phase: 'loading';
+  phase: 'loading' | 'fading';
   nextTarget: { mapId: string; levelId: string } | null;
   artwork: string;
   fallbackArtwork: string;
@@ -148,6 +149,31 @@ const questionKey = (question: Question): string =>
 
 const questionImageUrl = (imageUrl: string): string =>
   /^https?:|^data:|^\//.test(imageUrl) ? imageUrl : `${import.meta.env.BASE_URL}${imageUrl}`;
+
+const preloadedTransitionArtwork = new Map<string, Promise<void>>();
+
+const preloadTransitionArtwork = (artwork: string): Promise<void> => {
+  const src = questionImageUrl(artwork);
+  const cached = preloadedTransitionArtwork.get(src);
+  if (cached) return cached;
+
+  const loaded = new Promise<void>((resolve) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.fetchPriority = 'high';
+    const finish = () => {
+      void image.decode().catch(() => undefined).then(() => resolve());
+    };
+    image.onload = finish;
+    image.onerror = () => resolve();
+    image.src = src;
+    if (image.complete) finish();
+  }).finally(() => {
+    preloadedTransitionArtwork.delete(src);
+  });
+  preloadedTransitionArtwork.set(src, loaded);
+  return loaded;
+};
 
 const preloadedPhotoRoundImages = new Map<string, HTMLImageElement>();
 
@@ -688,20 +714,44 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
   useEffect(() => {
     if (!completionTransition) return;
 
-    const finishTimer = window.setTimeout(() => {
-      const target = completionTransition.nextTarget;
-      if (target) {
-        setProgression((current) => {
-          const updated = { ...current, currentMapId: target.mapId };
-          saveSoloProgression(updated);
-          return updated;
-        });
-        setAutoAdvanceTarget(target);
-      }
-      setCompletionTransition(null);
-    }, COMPLETION_ARTWORK_DURATION_MS);
+    let cancelled = false;
+    let timerId: number;
 
-    return () => window.clearTimeout(finishTimer);
+    if (completionTransition.phase === 'loading') {
+      timerId = window.setTimeout(() => {
+        let timeoutId: number | undefined;
+        const artworkReady = preloadTransitionArtwork(completionTransition.fallbackArtwork);
+        void Promise.race([
+          artworkReady,
+          new Promise<void>((resolve) => {
+            timeoutId = window.setTimeout(resolve, 1200);
+          }),
+        ]).then(() => {
+          if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+          if (cancelled) return;
+
+          const target = completionTransition.nextTarget;
+          if (target) {
+            setProgression((current) => {
+              const updated = { ...current, currentMapId: target.mapId };
+              saveSoloProgression(updated);
+              return updated;
+            });
+            setAutoAdvanceTarget(target);
+          }
+          setCompletionTransition((current) =>
+            current ? { ...current, phase: 'fading' } : null,
+          );
+        });
+      }, COMPLETION_ARTWORK_DURATION_MS);
+    } else {
+      timerId = window.setTimeout(() => setCompletionTransition(null), COMPLETION_CROSSFADE_DURATION_MS);
+    }
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+    };
   }, [completionTransition?.phase]);
 
   useEffect(() => {
@@ -1232,10 +1282,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         [nextArtwork, targetMapArtwork]
           .filter((artwork): artwork is string => Boolean(artwork))
           .forEach((artwork) => {
-            const preload = new Image();
-            preload.decoding = 'async';
-            preload.fetchPriority = 'high';
-            preload.src = `${import.meta.env.BASE_URL}${artwork}`;
+            void preloadTransitionArtwork(artwork);
           });
       }
 
@@ -1388,7 +1435,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
 
         {completionTransition?.phase === 'loading' && (
           <div
-            className="solo-stage-transition-cover"
+            className={`solo-stage-transition-cover${completionTransition.phase === 'fading' ? ' is-fading' : ''}`}
             role="status"
             aria-live="polite"
             aria-label={`Next stop: ${completionTransition.nextPubName}, ${completionTransition.nextLevelName}`}
