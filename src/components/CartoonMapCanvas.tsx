@@ -160,27 +160,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     createdAt: Date.now(),
   };
 
-  // Preload the active and newly unlocked map artwork. Some mobile browsers
-  // otherwise leave the reused image element blank until another navigation
-  // forces a repaint.
-  useEffect(() => {
-    const artworkNames = visibleMaps.flatMap((map) => {
-      return map.levels.flatMap((level) => [level.mapArtwork, level.coverArtwork]).filter(
-        (artwork): artwork is string => Boolean(artwork)
-      ).concat(
-        map.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time] || map.mapArtwork || ''
-      );
-    });
 
-    artworkNames.forEach((artwork) => {
-      const image = new Image();
-      image.src = `${import.meta.env.BASE_URL}${artwork}`;
-    });
-  }, [
-    londonTheme.season,
-    londonTheme.time,
-    visibleMaps.map((map) => map.id).join('|'),
-  ]);
 
   const isLevelUnlocked = useCallback(
     (level: MapLevel) => {
@@ -259,6 +239,43 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     || activeMap.mapArtwork
     || 'thames-game-map.png';
   const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
+  // Defer low-priority preloads for adjacent routes until the current map
+  // has had time to request its visible artwork. Loading every level image
+  // here can overwhelm mobile browsers when returning from a quiz.
+  useEffect(() => {
+    const nearbyMaps = [
+      visibleMaps[activeMapIndex - 1],
+      visibleMaps[activeMapIndex + 1],
+    ].filter((map): map is CartoonMap => Boolean(map));
+
+    const timer = window.setTimeout(() => {
+      nearbyMaps.forEach((map) => {
+        const upcomingLevel =
+          map.levels.find((level) => !progression.completedLevels[level.id]?.passed) ||
+          map.levels[map.levels.length - 1];
+        const artwork =
+          upcomingLevel?.mapArtwork ||
+          map.seasonalArtwork?.[londonTheme.season]?.[londonTheme.time] ||
+          map.mapArtwork;
+        if (!artwork) return;
+
+        const image = new Image();
+        image.decoding = 'async';
+        image.fetchPriority = 'low';
+        image.src = `${import.meta.env.BASE_URL}${artwork}`;
+      });
+    }, 1200);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    activeMap.id,
+    activeMapIndex,
+    londonTheme.season,
+    londonTheme.time,
+    progression.completedLevels,
+    visibleMaps[activeMapIndex - 1]?.id,
+    visibleMaps[activeMapIndex + 1]?.id,
+  ]);
   const highestCompletedLevelIndex = activeMap.levels.reduce((highest, level, index) => (
     progression.completedLevels[level.id]?.passed ? index : highest
   ), -1);
