@@ -551,6 +551,7 @@ const buildMediumGeneralKnowledgeFallback = (pool: Question[], count: number): Q
     dedupeSimilarQuestions(pool),
     count,
     readMissedQuestions().map((item) => item.question.prompt),
+    true,
   );
   return questions.map((question) => ({
     ...question,
@@ -911,7 +912,13 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         );
         try {
           const missingCount = Math.max(0, count - cachedQuestions.length);
-          const localQuestions = chooseUnseenFallbackQuestions(localReserve, missingCount);
+          const repeatablePrompts = readMissedQuestions().map((item) => item.question.prompt);
+          const localQuestions = chooseUnseenFallbackQuestions(
+            localReserve,
+            missingCount,
+            repeatablePrompts,
+            true,
+          );
           const preparedQuestions = orderCampaignQuestions(
             dedupeSimilarQuestions([...cachedQuestions, ...localQuestions]).slice(0, count),
           );
