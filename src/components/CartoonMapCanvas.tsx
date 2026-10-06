@@ -818,6 +818,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           decoding="sync"
           style={{ clipPath: `inset(${colourRevealTop}% 0 0 0)` }}
         />
+        {isMapArtworkLoading && (
+          <div className="game-map-artwork-loader" role="status" aria-live="polite">
+            <span className="game-map-artwork-loader-spinner" aria-hidden="true" />
+            <strong>Loading map artwork</strong>
+          </div>
+        )}
         <svg
           className="game-map-path"
           viewBox="0 0 100 100"
