@@ -255,11 +255,13 @@ const getSecureAiQuestions = async ({
   count,
   difficulty,
   signal,
+  deferSeenWrite = false,
 }: {
   category: string;
   count: number;
   difficulty: QuizDifficulty;
   signal?: AbortSignal;
+  deferSeenWrite?: boolean;
 }): Promise<Question[]> => {
   const endpoint = getSecureQuestionEndpoint();
   if (!endpoint) throw new Error('Secure question service is not configured.');
@@ -285,7 +287,7 @@ const getSecureAiQuestions = async ({
   }).slice(0, count);
 
   if (unique.length < count) throw new Error('The secure service did not return enough unseen questions.');
-  saveSeen(unique.map((question) => question.prompt));
+  if (!deferSeenWrite) saveSeen(unique.map((question) => question.prompt));
   return unique;
 };
 
@@ -339,7 +341,7 @@ export const getOnlineTriviaQuestions = async ({
   // the Gemini key remains an encrypted server-side secret.
   if (!mixed && !broadPool && getSecureQuestionEndpoint()) {
     try {
-      return await getSecureAiQuestions({ category, count, difficulty, signal });
+      return await getSecureAiQuestions({ category, count, difficulty, signal, deferSeenWrite });
     } catch (error) {
       console.warn('Secure AI questions unavailable; trying Open Trivia DB.', error);
     }
