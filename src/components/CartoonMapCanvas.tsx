@@ -274,7 +274,42 @@ export const CartoonMapCanvas: React.FC<Props> = ({
     || 'thames-game-map.png';
   const activeArtworkUrl = `${import.meta.env.BASE_URL}${activeArtwork}`;
   const [displayedArtworkUrl, setDisplayedArtworkUrl] = useState(activeArtworkUrl);
+  const initialArtworkUrlRef = useRef(activeArtworkUrl);
+  const [isInitialArtworkReady, setIsInitialArtworkReady] = useState(false);
   const [isMapArtworkLoading, setIsMapArtworkLoading] = useState(false);
+
+  // Keep the first frame covered until the initial map artwork has decoded.
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    const finish = () => {
+      if (cancelled) return;
+      const decoded = typeof image.decode === 'function'
+        ? image.decode().catch(() => undefined)
+        : Promise.resolve();
+      void decoded.then(() => {
+        if (!cancelled) setIsInitialArtworkReady(true);
+      });
+    };
+
+    image.decoding = 'async';
+    image.fetchPriority = 'high';
+    image.onload = finish;
+    image.onerror = () => {
+      if (!cancelled) setIsInitialArtworkReady(true);
+    };
+    image.src = initialArtworkUrlRef.current;
+    if (image.complete) {
+      if (image.naturalWidth > 0) finish();
+      else setIsInitialArtworkReady(true);
+    }
+
+    return () => {
+      cancelled = true;
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, []);
 
   // Keep the previous map visible until new route artwork has been downloaded
   // and decoded. This prevents rapid stage changes from exposing an empty board.
@@ -824,8 +859,8 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           decoding="sync"
           style={{ clipPath: `inset(${colourRevealTop}% 0 0 0)` }}
         />
-        {isMapArtworkLoading && (
-          <div className="game-map-artwork-loader" role="status" aria-live="polite">
+        {(isMapArtworkLoading || !isInitialArtworkReady) && (
+          <div className={`game-map-artwork-loader ${isInitialArtworkReady ? '' : 'is-initial'}`} role="status" aria-live="polite">
             <span className="game-map-artwork-loader-spinner" aria-hidden="true" />
             <strong>Loading map artwork</strong>
           </div>
