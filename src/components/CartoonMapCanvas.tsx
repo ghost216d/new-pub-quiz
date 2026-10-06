@@ -797,7 +797,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
         }}
       >
         <img
-          key={`${activeMap.id}-${displayedArtworkUrl}`}
+          key={displayedArtworkUrl}
           className="game-map-artwork is-grayscale"
           src={displayedArtworkUrl}
           alt=""
@@ -808,7 +808,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           fetchPriority="high"
         />
         <img
-          key={`${activeMap.id}-${displayedArtworkUrl}-colour`}
+          key={`${displayedArtworkUrl}-colour`}
           className="game-map-artwork is-colour-reveal"
           src={displayedArtworkUrl}
           alt=""
