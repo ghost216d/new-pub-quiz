@@ -7115,3 +7115,14 @@ button:not(:disabled).is-pressing {
     transition: none;
   }
 }
+
+
+/* Keep the stage loader visibly moving until the next map is ready. */
+.solo-stage-transition-progress .solo-stage-transition-track span {
+  animation: solo-stage-transition-fill 1.25s ease-in-out infinite alternate;
+}
+
+@keyframes solo-stage-transition-fill {
+  0% { transform: scaleX(0.18); opacity: 0.72; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
