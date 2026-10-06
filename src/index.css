@@ -6981,3 +6981,34 @@ body,
 #root .global-music-control .bgm-settings-trigger.is-muted {
   background: #f8e5e8 !important;
 }
+
+
+/* Keep press feedback visible above current, completed, and locked pub styles. */
+.game-level-node.is-pressing {
+  z-index: 5;
+  transform: translateY(4px) scale(0.94);
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  border-color: #fff;
+  filter: brightness(1.22);
+  box-shadow:
+    0 0 0 7px rgba(255, 255, 255, 0.42),
+    0 1px 0 #7c2d12;
+  transition:
+    transform 140ms ease-out,
+    box-shadow 140ms ease-out,
+    filter 140ms ease-out,
+    border-color 140ms ease-out;
+}
+
+.game-level-node.is-locked.is-pressing,
+.game-level-node.is-locked.is-pressing:active {
+  transform: translateY(3px) scale(0.84);
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+  border-color: #fff;
+  filter: brightness(1.22);
+  box-shadow:
+    0 0 0 7px rgba(255, 255, 255, 0.5),
+    0 1px 0 #334155;
+}
