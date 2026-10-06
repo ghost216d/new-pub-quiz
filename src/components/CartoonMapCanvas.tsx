@@ -465,14 +465,20 @@ export const CartoonMapCanvas: React.FC<Props> = ({
       return;
     }
 
-    // Press for 90 ms, release, then open the pub artwork once the marker has
-    // had a frame to spring back. This keeps the response visible and quick.
+    // Start fetching the selected pub art while the marker presses, then open
+    // the artwork as soon as the press cue has registered.
+    const artwork = level.coverArtwork || level.mapArtwork || activeMap.mapArtwork;
+    if (artwork) {
+      const image = new Image();
+      image.decoding = 'async';
+      image.fetchPriority = 'high';
+      image.src = `${import.meta.env.BASE_URL}${artwork}`;
+    }
+
     levelActivationTimerRef.current = window.setTimeout(() => {
+      levelActivationTimerRef.current = null;
       setPressedLevelId(null);
-      levelActivationTimerRef.current = window.setTimeout(() => {
-        levelActivationTimerRef.current = null;
-        onSelectLevel(level, activeMap);
-      }, 70);
+      onSelectLevel(level, activeMap);
     }, 90);
   };
 
