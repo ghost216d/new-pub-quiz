@@ -133,6 +133,11 @@ const readMastered = (): string[] => {
   }
 };
 
+export const isQuestionMastered = (prompt: string): boolean => {
+  const normalized = normalizePrompt(prompt);
+  return !!normalized && hasBeenUsed(normalized, readMastered());
+};
+
 export const markQuestionMastered = (prompt: string): void => {
   const normalized = normalizePrompt(prompt);
   if (!normalized) return;
