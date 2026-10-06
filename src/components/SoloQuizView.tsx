@@ -112,6 +112,7 @@ const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
 const FIXED_LEVEL_QUESTIONS_KEY = 'pubquiz_fixed_level_questions_gk_20261005';
 const COMPLETION_ARTWORK_DURATION_MS = 2000;
+const TRANSITION_MAP_ARTWORK_TIMEOUT_MS = 10000;
 const COMPLETION_CROSSFADE_DURATION_MS = 350;
 const PUB_LOADING_SCREEN_DURATION_MS = 600;
 
@@ -756,7 +757,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         void Promise.race([
           artworkReady,
           new Promise<void>((resolve) => {
-            timeoutId = window.setTimeout(resolve, 1200);
+            timeoutId = window.setTimeout(resolve, TRANSITION_MAP_ARTWORK_TIMEOUT_MS);
           }),
         ]).then(() => {
           if (timeoutId !== undefined) window.clearTimeout(timeoutId);
@@ -1557,11 +1558,11 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
                   <small>{completionTransition.nextRouteName}</small>
                 </div>
                 <div className="solo-stage-transition-progress" aria-hidden="true">
-                  <strong>On to the next pub</strong>
+                  <strong>Loading the next map</strong>
                   <div className="solo-stage-transition-track">
                     <span />
                   </div>
-                  <span>READY</span>
+                  <span>PLEASE WAIT</span>
                 </div>
           </div>
         )}
