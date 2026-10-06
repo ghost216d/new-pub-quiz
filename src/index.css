@@ -7064,17 +7064,7 @@ body,
   transition-duration: 35ms;
 }
 
-/* Keep the already visible map art in place while the pub cover decodes. */
-.solo-pub-loading-fallback {
-  z-index: 0;
-}
-
+/* Show one target pub artwork as soon as its preloaded image is available. */
 .solo-pub-loading-artwork {
   z-index: 0;
-  opacity: 0;
-  transition: opacity 120ms ease-out;
-}
-
-.solo-pub-loading-artwork.is-loaded {
-  opacity: 1;
 }

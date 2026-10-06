@@ -106,7 +106,7 @@ const DIFFICULTY_OPTIONS: {
 // A level must feel responsive even when the public trivia service is slow or
 // blocked by the player's network. Fall back quickly instead of leaving the
 // launch animation looking like a button that did nothing.
-const ONLINE_QUESTION_TIMEOUT_MS = 8500;
+const ONLINE_QUESTION_TIMEOUT_MS = 3500;
 const DEVICE_QUESTION_TIMEOUT_MS = 15000;
 const SOLO_PASS_PERCENT = 60;
 const MISSED_QUESTIONS_KEY = 'pubquiz_missed_questions_v1';
@@ -1419,18 +1419,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
             aria-live="polite"
             aria-label={`Loading questions for ${activeLevel.pubName || activeLevel.name}`}
           >
-            {(activeLevel.mapArtwork || activeMap?.mapArtwork) && (
-              <img
-                className="solo-stage-transition-art solo-pub-loading-fallback"
-                src={`${import.meta.env.BASE_URL}${activeLevel.mapArtwork || activeMap?.mapArtwork}`}
-                alt=""
-                aria-hidden="true"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                draggable={false}
-              />
-            )}
             <img
               key={activeLevel.coverArtwork || activeLevel.mapArtwork || activeMap?.mapArtwork}
               className="solo-stage-transition-art solo-pub-loading-artwork"
@@ -1439,7 +1427,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              onLoad={(event) => event.currentTarget.classList.add('is-loaded')}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = `${import.meta.env.BASE_URL}pub-quiz-main-cover-v2.webp`;
