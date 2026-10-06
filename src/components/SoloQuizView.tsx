@@ -604,11 +604,14 @@ const buildCampaignFallbackQuestions = (count: number): Question[] => {
     !question.musicData
   );
 
+  const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
+  const triviaCount = Math.max(0, count - pictureCount);
+  const regularCount = Math.max(0, triviaCount - Math.min(1, triviaCount));
   let mediumQuestions: Question[];
   try {
-    mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, Math.max(0, count - 3));
+    mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, regularCount);
   } catch {
-    mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, Math.max(0, count - 3));
+    mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, regularCount);
   }
 
   const prepared = prepareAttemptQuestions(mediumQuestions, count);
