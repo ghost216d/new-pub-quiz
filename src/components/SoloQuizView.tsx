@@ -841,6 +841,14 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     setLevelLaunchStatus('Opening your pub…');
     setLevelLaunchProgress(null);
 
+    // Let React commit and the browser paint the pub cover before synchronous
+    // question filtering and fallback preparation can occupy the main thread.
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => resolve());
+      });
+    });
+
     try {
       const count = level.questionCount || 10;
       const authoredQuestions = CAMPAIGN_LEVEL_QUESTIONS[level.id];
