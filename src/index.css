@@ -7094,3 +7094,24 @@ button:not(:disabled).is-pressing {
     transition-duration: 1ms !important;
   }
 }
+
+
+/* Keep the current map visible behind covers until the next art is decoded. */
+.solo-stage-transition-cover {
+  background: transparent;
+}
+
+.solo-stage-transition-art {
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+
+.solo-stage-transition-art.is-loaded {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .solo-stage-transition-art {
+    transition: none;
+  }
+}
