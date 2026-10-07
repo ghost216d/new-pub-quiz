@@ -277,8 +277,8 @@ const prepareAttemptQuestions = (
   const selectSupplement = (pool: Question[], desired: number): Question[] => {
     if (desired <= 0) return [];
     try {
-      // When a small picture, flag, or animal pack has been used before, reuse
-      // an unmastered item only after unseen and previously missed items run out.
+      // Use only unseen picture, flag, or animal questions. Skip this
+      // optional category when its small saved bank has been exhausted.
       return chooseUnseenFallbackQuestions(pool, desired);
     } catch {
       // Supplement packs are optional. A spent pack should never block a pub.
