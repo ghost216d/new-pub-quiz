@@ -274,13 +274,12 @@ const prepareAttemptQuestions = (
     })),
     ...SOLO_PHOTO_QUESTIONS,
   ];
-  const missedPrompts = readMissedQuestions().map((item) => item.question.prompt);
   const selectSupplement = (pool: Question[], desired: number): Question[] => {
     if (desired <= 0) return [];
     try {
       // When a small picture, flag, or animal pack has been used before, reuse
       // an unmastered item only after unseen and previously missed items run out.
-      return chooseUnseenFallbackQuestions(pool, desired, missedPrompts, true);
+      return chooseUnseenFallbackQuestions(pool, desired);
     } catch {
       // Supplement packs are optional. A spent pack should never block a pub.
       return [];
@@ -551,8 +550,6 @@ const buildMediumGeneralKnowledgeFallback = (pool: Question[], count: number): Q
   const questions = chooseUnseenFallbackQuestions(
     dedupeSimilarQuestions(pool),
     count,
-    readMissedQuestions().map((item) => item.question.prompt),
-    true,
   );
   return questions.map((question) => ({
     ...question,
@@ -894,9 +891,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         ? storedQuestions
         : authoredQuestions || storedQuestions;
       const dedupedCachedQuestions = dedupeSimilarQuestions(cachedSource);
-      const cachedQuestions = hasSavedQuestionSet
-        ? excludeSimilarQuestionHistory(dedupedCachedQuestions, questionHistory)
-        : dedupedCachedQuestions;
+      const cachedQuestions = excludeSimilarQuestionHistory(dedupedCachedQuestions, questionHistory);
       const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
       const triviaCount = Math.max(0, count - pictureCount);
       const curatedCount = Math.min(1, triviaCount);
@@ -913,13 +908,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         );
         try {
           const missingCount = Math.max(0, count - cachedQuestions.length);
-          const repeatablePrompts = readMissedQuestions().map((item) => item.question.prompt);
-          const localQuestions = chooseUnseenFallbackQuestions(
-            localReserve,
-            missingCount,
-            repeatablePrompts,
-            true,
-          );
+          const localQuestions = chooseUnseenFallbackQuestions(localReserve, missingCount);
           const preparedQuestions = orderCampaignQuestions(
             dedupeSimilarQuestions([...cachedQuestions, ...localQuestions]).slice(0, count),
           );
