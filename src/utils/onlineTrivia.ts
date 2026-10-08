@@ -445,6 +445,7 @@ export const chooseUnseenFallbackQuestions = (
   count: number,
   repeatablePrompts: string[] = [],
   allowSeenFallback = false,
+  deferSeenWrite = false,
 ): Question[] => {
   const masteredIndex = createPromptIndex(readMastered());
   const seenIndex = createPromptIndex(readSeen());
@@ -476,6 +477,6 @@ export const chooseUnseenFallbackQuestions = (
   }
 
   const selected = shuffled(playable).slice(0, Math.min(count, playable.length));
-  saveSeen(selected.map((question) => question.prompt));
+  if (!deferSeenWrite) saveSeen(selected.map((question) => question.prompt));
   return selected;
 };

@@ -127,6 +127,17 @@ const previouslySeenUnmastered = makeQuestion('seen-unmastered', 'Previously see
 const recycledUnmastered = chooseUnseenFallbackQuestions([previouslySeenUnmastered], 1, [], true);
 assert.equal(recycledUnmastered[0]?.id, 'seen-unmastered',
   'fallback should recycle a seen question after unseen questions run out');
+storage.set('pubquiz_seen_questions_v1', JSON.stringify([]));
+const deferredQuestion = chooseUnseenFallbackQuestions(
+  [makeQuestion('deferred-seen', 'Question selected before a complete quiz set is ready')],
+  1,
+  [],
+  true,
+  true,
+);
+assert.equal(deferredQuestion[0]?.id, 'deferred-seen');
+assert.deepEqual(JSON.parse(storage.get('pubquiz_seen_questions_v1') || '[]'), [],
+  'partial attempt construction must not consume unseen questions');
 markQuestionMastered(previouslySeenUnmastered.prompt);
 assert.throws(
   () => chooseUnseenFallbackQuestions([previouslySeenUnmastered], 1, [], true),

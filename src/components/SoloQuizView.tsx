@@ -275,12 +275,17 @@ const prepareAttemptQuestions = (
     })),
     ...SOLO_PHOTO_QUESTIONS,
   ];
-  const selectSupplement = (pool: Question[], desired: number, allowUnmasteredSeen = false): Question[] => {
+  const selectSupplement = (
+    pool: Question[],
+    desired: number,
+    allowUnmasteredSeen = false,
+  ): Question[] => {
     if (desired <= 0) return [];
     try {
       // Use only unseen picture, flag, or animal questions. Skip this
       // optional category when its small saved bank has been exhausted.
-      return chooseUnseenFallbackQuestions(pool, desired, [], allowUnmasteredSeen);
+      // Defer history writes until the complete attempt is ready.
+      return chooseUnseenFallbackQuestions(pool, desired, [], allowUnmasteredSeen, true);
     } catch {
       // Supplement packs are optional. A spent pack should never block a pub.
       return [];
@@ -291,7 +296,9 @@ const prepareAttemptQuestions = (
     [...SOLO_FLAG_QUESTIONS, ...SOLO_ANIMAL_QUESTIONS],
     Math.min(1, triviaCount),
   );
-  const regularCount = Math.max(0, triviaCount - specialKnowledge.length);
+  // Bonus packs are optional. If a device has already used its pictures,
+  // flags, or animal questions, replace those empty slots with general trivia.
+  const regularCount = Math.max(0, count - pictureQuestions.length - specialKnowledge.length);
   const regularQuestions = dedupeSimilarQuestions(freshQuestions).slice(0, regularCount);
   const missingRegularCount = Math.max(0, regularCount - regularQuestions.length);
   const regularVault = dedupeSimilarQuestions([
@@ -547,12 +554,17 @@ const generateMediumGeneralKnowledgeQuestions = async (
   return mediumQuestions;
 };
 
-const buildMediumGeneralKnowledgeFallback = (pool: Question[], count: number): Question[] => {
+const buildMediumGeneralKnowledgeFallback = (
+  pool: Question[],
+  count: number,
+  deferSeenWrite = false,
+): Question[] => {
   const questions = chooseUnseenFallbackQuestions(
     dedupeSimilarQuestions(pool),
     count,
     [],
     true,
+    deferSeenWrite,
   );
   return questions.map((question) => ({
     ...question,
@@ -609,9 +621,9 @@ const buildCampaignFallbackQuestions = (count: number): Question[] => {
   const regularCount = Math.max(0, triviaCount - Math.min(1, triviaCount));
   let mediumQuestions: Question[];
   try {
-    mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, regularCount);
+    mediumQuestions = buildMediumGeneralKnowledgeFallback(qPool, regularCount, true);
   } catch {
-    mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, regularCount);
+    mediumQuestions = buildMediumGeneralKnowledgeFallback(allQuestions, regularCount, true);
   }
 
   const prepared = prepareAttemptQuestions(mediumQuestions, count);
