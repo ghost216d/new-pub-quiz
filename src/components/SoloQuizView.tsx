@@ -22,6 +22,7 @@ import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_ANIMAL_QUESTIONS, SOLO_FLAG_QUESTI
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../data/pubClassicsQuestions';
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../data/campaignLevelQuestions';
 import { normalizeSoloCategory } from '../utils/soloCategories';
+import { getRequiredFreshTriviaQuestionCount } from '../utils/soloQuestionSelection';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -892,10 +893,22 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         : authoredQuestions || storedQuestions;
       const dedupedCachedQuestions = dedupeSimilarQuestions(cachedSource);
       const cachedQuestions = excludeSimilarQuestionHistory(dedupedCachedQuestions, questionHistory);
-      const pictureCount = Math.min(count, Math.max(1, Math.floor(count / 5)));
-      const triviaCount = Math.max(0, count - pictureCount);
-      const curatedCount = Math.min(1, triviaCount);
-      const onlineQuestionCount = Math.max(0, triviaCount - curatedCount);
+      const visualQuestions = [
+        ...SOLO_PICTURE_QUESTIONS.map((question) => ({
+          ...question,
+          prompt: question.pictureClue
+            ? `${question.prompt} Clue: ${question.pictureClue}`
+            : question.prompt,
+        })),
+        ...SOLO_PHOTO_QUESTIONS,
+      ];
+      const specialKnowledgeQuestions = [...SOLO_FLAG_QUESTIONS, ...SOLO_ANIMAL_QUESTIONS];
+      const onlineQuestionCount = getRequiredFreshTriviaQuestionCount(
+        count,
+        questionHistory,
+        visualQuestions,
+        specialKnowledgeQuestions,
+      );
       let questionsToPlay: Question[] | null = cachedQuestions.length >= count ? cachedQuestions.slice(0, count) : null;
 
       // Replays use a broad bundled reserve before making any network or

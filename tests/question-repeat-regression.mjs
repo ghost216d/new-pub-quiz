@@ -8,6 +8,7 @@ import { SOLO_PUB_CLASSICS_QUESTIONS } from '../src/data/pubClassicsQuestions.ts
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../src/data/campaignLevelQuestions.ts';
 import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, isQuestionMastered, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 import { HINT_COST_BUCKS, purchaseQuestionHint, selectHintDistractors } from '../src/utils/questionHints.ts';
+import { getRequiredFreshTriviaQuestionCount } from '../src/utils/soloQuestionSelection.ts';
 
 const storage = new Map();
 globalThis.localStorage = {
@@ -119,6 +120,28 @@ const makeQuestion = (id, prompt) => ({
   points: 15,
   timeLimitSec: 30,
 });
+
+const optionalVisualQuestions = [
+  makeQuestion('visual-1', 'Which bridge in this photograph has two high towers?'),
+  makeQuestion('visual-2', 'How many red stripes appear on the flag of Greece?'),
+];
+const optionalSpecialQuestions = [
+  makeQuestion('special-1', 'Which island lies north of mainland Scotland?'),
+];
+assert.equal(getRequiredFreshTriviaQuestionCount(10, [], optionalVisualQuestions, optionalSpecialQuestions), 7,
+  'unseen optional packs should reduce the fresh trivia request to seven');
+assert.equal(getRequiredFreshTriviaQuestionCount(
+  10,
+  [...optionalVisualQuestions, ...optionalSpecialQuestions].map((question) => question.prompt),
+  optionalVisualQuestions,
+  optionalSpecialQuestions,
+), 10, 'when optional packs are exhausted, request fresh trivia for all ten slots');
+assert.equal(getRequiredFreshTriviaQuestionCount(
+  10,
+  [optionalVisualQuestions[1].prompt],
+  optionalVisualQuestions,
+  optionalSpecialQuestions,
+), 8, 'a depleted visual pack should increase the fresh trivia request to cover the missing slot');
 
 const quizMasterQuestionPool = dedupeSimilarQuestions([
   ...quizMasterSourceQuestions,
