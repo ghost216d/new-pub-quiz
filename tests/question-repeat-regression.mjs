@@ -121,6 +121,21 @@ const makeQuestion = (id, prompt) => ({
   timeLimitSec: 30,
 });
 
+storage.set('pubquiz_seen_questions_v1', JSON.stringify(['Previously seen but unmastered fallback question']));
+storage.set('pubquiz_mastered_questions_v1', JSON.stringify([]));
+const previouslySeenUnmastered = makeQuestion('seen-unmastered', 'Previously seen but unmastered fallback question');
+const recycledUnmastered = chooseUnseenFallbackQuestions([previouslySeenUnmastered], 1, [], true);
+assert.equal(recycledUnmastered[0]?.id, 'seen-unmastered',
+  'fallback should recycle a seen question after unseen questions run out');
+markQuestionMastered(previouslySeenUnmastered.prompt);
+assert.throws(
+  () => chooseUnseenFallbackQuestions([previouslySeenUnmastered], 1, [], true),
+  /No unseen or previously missed questions are available/,
+  'mastered questions must remain retired even when fallback reuse is enabled',
+);
+storage.set('pubquiz_mastered_questions_v1', JSON.stringify(['a unique anti-farming regression prompt']));
+storage.delete('pubquiz_seen_questions_v1');
+
 const optionalVisualQuestions = [
   makeQuestion('visual-1', 'Which bridge in this photograph has two high towers?'),
   makeQuestion('visual-2', 'How many red stripes appear on the flag of Greece?'),

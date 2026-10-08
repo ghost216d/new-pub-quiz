@@ -275,12 +275,12 @@ const prepareAttemptQuestions = (
     })),
     ...SOLO_PHOTO_QUESTIONS,
   ];
-  const selectSupplement = (pool: Question[], desired: number): Question[] => {
+  const selectSupplement = (pool: Question[], desired: number, allowUnmasteredSeen = false): Question[] => {
     if (desired <= 0) return [];
     try {
       // Use only unseen picture, flag, or animal questions. Skip this
       // optional category when its small saved bank has been exhausted.
-      return chooseUnseenFallbackQuestions(pool, desired);
+      return chooseUnseenFallbackQuestions(pool, desired, [], allowUnmasteredSeen);
     } catch {
       // Supplement packs are optional. A spent pack should never block a pub.
       return [];
@@ -304,7 +304,7 @@ const prepareAttemptQuestions = (
       !question.musicData
     ),
   ]).slice(regularQuestions.length);
-  const extraRegularQuestions = selectSupplement(regularVault, missingRegularCount);
+  const extraRegularQuestions = selectSupplement(regularVault, missingRegularCount, true);
   const combined = [...regularQuestions, ...extraRegularQuestions, ...specialKnowledge, ...pictureQuestions];
 
   return shuffleItems(combined).map((question) => ({
@@ -551,6 +551,8 @@ const buildMediumGeneralKnowledgeFallback = (pool: Question[], count: number): Q
   const questions = chooseUnseenFallbackQuestions(
     dedupeSimilarQuestions(pool),
     count,
+    [],
+    true,
   );
   return questions.map((question) => ({
     ...question,
@@ -572,11 +574,11 @@ const buildUnseenFallbackQuestions = (
   let selected: Question[];
 
   if (labelledMedium.length >= mediumCount && labelledHard.length >= hardCount) {
-    const medium = chooseUnseenFallbackQuestions(labelledMedium, mediumCount);
-    const hard = chooseUnseenFallbackQuestions(labelledHard, hardCount);
+    const medium = chooseUnseenFallbackQuestions(labelledMedium, mediumCount, [], true);
+    const hard = chooseUnseenFallbackQuestions(labelledHard, hardCount, [], true);
     selected = interleaveDifficulty([...medium], [...hard]);
   } else {
-    selected = chooseUnseenFallbackQuestions(pool, count);
+    selected = chooseUnseenFallbackQuestions(pool, count, [], true);
   }
 
   return selected.map((question, index) => {
@@ -921,7 +923,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         );
         try {
           const missingCount = Math.max(0, count - cachedQuestions.length);
-          const localQuestions = chooseUnseenFallbackQuestions(localReserve, missingCount);
+          const localQuestions = chooseUnseenFallbackQuestions(localReserve, missingCount, [], true);
           const preparedQuestions = orderCampaignQuestions(
             dedupeSimilarQuestions([...cachedQuestions, ...localQuestions]).slice(0, count),
           );
