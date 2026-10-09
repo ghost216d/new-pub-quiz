@@ -95,7 +95,7 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
                 {currentRound?.title || 'Pub Quiz Round'}
               </span>
               <span className="text-xs font-bold text-stone-600">
-                Question {globalQNum} of {totalQuestionsAcrossRounds}
+                {totalQuestionsAcrossRounds > 0 ? `Question ${globalQNum} of ${totalQuestionsAcrossRounds}` : 'Waiting for quiz questions'}
               </span>
             </div>
             <h1 className="text-xl md:text-3xl font-black text-amber-950 tracking-wide mt-0.5">
@@ -229,7 +229,7 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
 
               {/* Question Text */}
               <h2 className="text-2xl md:text-4xl lg:text-5xl font-black text-stone-900 leading-snug tracking-tight text-center md:text-left py-2">
-                {currentQ?.prompt}
+                {currentQ?.prompt || (totalQuestionsAcrossRounds === 0 ? 'The Quiz Master is adding questions. Please wait.' : 'Next question coming up.')}
               </h2>
 
               {/* Music or Picture Round Clues Showcase */}
