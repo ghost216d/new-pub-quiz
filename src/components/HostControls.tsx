@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Play,
+  Home,
   Pause,
   RotateCcw,
   ChevronRight,
@@ -57,9 +58,10 @@ interface Props {
   roomState: RoomState;
   onHostAction: (action: HostActionPayload) => void;
   onOpenTVView: () => void;
+  onLeaveHost: () => void;
 }
 
-export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenTVView }) => {
+export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenTVView, onLeaveHost }) => {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [selectedAICategory, setSelectedAICategory] = useState('Pub Classics & Beer Lore');
   const [customAICategory, setCustomAICategory] = useState('');
@@ -248,6 +250,25 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
         </div>
 
         <div className="host-console-actions flex items-center gap-2.5 flex-wrap">
+          <button
+            id="host-back-home-btn"
+            onClick={onLeaveHost}
+            title="Return home. Your live quiz will remain available to resume."
+            className="flex items-center gap-2 rounded-2xl bg-stone-100 px-3.5 py-2.5 text-xs md:text-sm font-black text-stone-800 shadow-sm hover:bg-white transition-all cursor-pointer border-2 border-stone-400"
+          >
+            <Home className="w-4 h-4" />
+            <span>Back to Home</span>
+          </button>
+          {roomState.status === 'lobby' && (
+            <button
+              id="host-start-quiz-btn"
+              onClick={() => onHostAction({ actionType: 'start_round', roundIndex: 0 })}
+              className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2.5 text-xs md:text-sm font-black text-white shadow-[0_4px_0_#065f46] hover:bg-emerald-500 active:translate-y-1 active:shadow-none transition-all cursor-pointer border-2 border-emerald-900"
+            >
+              <Play className="w-4 h-4" />
+              <span>Start Quiz</span>
+            </button>
+          )}
           <div className="hidden sm:flex items-center gap-2 rounded-2xl border-2 border-amber-800/40 bg-white p-1.5">
             <RoomJoinQR roomCode={roomState.code} size={70} />
             <span className="max-w-20 text-[10px] font-black leading-tight text-amber-950">SCAN TO JOIN ROOM {roomState.code}</span>
