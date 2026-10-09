@@ -63,7 +63,7 @@ const quizMasterRounds = () => {
       return {
         ...round,
         roundNumber: index + 1,
-        title: round.title.replace(/^Round\\s+\\d+\\s*:\\s*/i, `Round ${index + 1}: `),
+        title: round.title.replace(/^Round\s+\d+\s*:\s*/i, `Round ${index + 1}: `),
         questions: selected.map((question) => ({
           ...randomizeQuestionOptions(question),
           roundNumber: index + 1,
