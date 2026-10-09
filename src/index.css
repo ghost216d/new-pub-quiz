@@ -6715,7 +6715,7 @@ body,
 
 
 /* Yellow utility text needs a darker shade on the Quiz Master's pale cards. */
-.role-host .host-console-shell :is(
+#root .role-host .host-console-shell :is(
   [class*="text-yellow-"],
   [class*="text-amber-200"],
   [class*="text-amber-300"],
