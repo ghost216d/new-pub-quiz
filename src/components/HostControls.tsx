@@ -91,6 +91,9 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   const submittedCount = Object.keys(roomState.submissions).length;
   const connectedTeamCount = teamsList.filter((team) => team.isOnline).length;
   const connectedPlayerCount = teamsList.reduce((total, team) => total + (team.connectedPlayers || 0), 0);
+  const isLobby = roomState.status === 'lobby';
+  const firstPlayableRoundIndex = roomState.rounds.findIndex((round) => round.questions.length > 0);
+  const totalAvailableQuestions = roomState.rounds.reduce((total, round) => total + round.questions.length, 0);
   const totalQuestions = currentRound?.questions.length || 0;
   const questionProgress = totalQuestions
     ? Math.round(((roomState.currentQuestionIndex + 1) / totalQuestions) * 100)
@@ -262,11 +265,13 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
           {roomState.status === 'lobby' && (
             <button
               id="host-start-quiz-btn"
-              onClick={() => onHostAction({ actionType: 'start_round', roundIndex: 0 })}
+              onClick={() => onHostAction({ actionType: 'start_round', roundIndex: firstPlayableRoundIndex })}
+              disabled={firstPlayableRoundIndex < 0}
+              title={firstPlayableRoundIndex < 0 ? 'Add quiz questions before starting.' : undefined}
               className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2.5 text-xs md:text-sm font-black text-white shadow-[0_4px_0_#065f46] hover:bg-emerald-500 active:translate-y-1 active:shadow-none transition-all cursor-pointer border-2 border-emerald-900"
             >
               <Play className="w-4 h-4" />
-              <span>Start Quiz</span>
+              <span>{firstPlayableRoundIndex < 0 ? 'Questions Needed' : 'Start Quiz'}</span>
             </button>
           )}
           <div className="hidden sm:flex items-center gap-2 rounded-2xl border-2 border-amber-800/40 bg-white p-1.5">
@@ -432,7 +437,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
             <button
               id="host-prev-round-btn"
               onClick={() => onHostAction({ actionType: 'prev_round' })}
-              disabled={roomState.currentRoundIndex === 0}
+              disabled={isLobby || roomState.currentRoundIndex === 0}
               className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-stone-900 text-xs font-bold disabled:opacity-40 cursor-pointer border border-amber-800/30"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -450,7 +455,8 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                   onHostAction({ actionType: 'next_round' });
                 }
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-black hover:bg-amber-400 cursor-pointer border border-amber-900 shadow-sm"
+              disabled={isLobby}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-black hover:bg-amber-400 cursor-pointer border border-amber-900 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>{isRoundTransition ? 'Play Questions Now' : 'Show Round Intro Splash'}</span>
@@ -459,7 +465,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
             <button
               id="host-next-round-btn"
               onClick={() => onHostAction({ actionType: 'next_round' })}
-              disabled={roomState.currentRoundIndex >= roomState.rounds.length - 1}
+              disabled={isLobby || roomState.currentRoundIndex >= roomState.rounds.length - 1}
               className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-stone-900 text-xs font-bold disabled:opacity-40 cursor-pointer border border-amber-800/30"
             >
               <span>Next Round</span>
@@ -476,6 +482,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
               <button
                 key={rnd.roundNumber}
                 onClick={() => onHostAction({ actionType: 'start_round', roundIndex: idx })}
+                disabled={isLobby}
                 className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
                   isActive
                     ? 'bg-amber-500 text-slate-950 border-amber-900 shadow-[0_3px_0_#78350f] font-black'
@@ -625,6 +632,11 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
         {/* Main Stage & Question Navigator (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
           <div className="bg-[#fffdf8] rounded-3xl p-5 md:p-6 border-3 border-amber-800/40 shadow-md">
+            {totalAvailableQuestions === 0 && (
+              <div className="mb-4 rounded-2xl border-2 border-amber-700 bg-amber-50 p-4 text-sm font-bold text-amber-950" role="status">
+                No quiz questions are available in this room. Generate questions with A.I. before starting.
+              </div>
+            )}
             {/* Question Quick Jump Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-4 border-b border-amber-800/20 scrollbar-thin">
               <span className="text-[11px] font-black text-stone-600 uppercase tracking-wider shrink-0 mr-1">
@@ -783,6 +795,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                 <button
                   id="host-toggle-timer-btn"
                   onClick={() => onHostAction({ actionType: 'toggle_timer' })}
+                  disabled={isLobby || !currentQ}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black border cursor-pointer ${
                     roomState.isTimerRunning
                       ? 'bg-amber-500 text-slate-950 border-amber-900 shadow-sm'
@@ -796,6 +809,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                 <button
                   id="host-add-10s-btn"
                   onClick={() => onHostAction({ actionType: 'add_time', seconds: 10 })}
+                  disabled={isLobby || !currentQ}
                   className="px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-xs font-bold text-stone-800 border border-amber-800/30 cursor-pointer"
                   title="Add 10 seconds to clock"
                 >
@@ -805,6 +819,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                 <button
                   id="host-add-30s-btn"
                   onClick={() => onHostAction({ actionType: 'add_time', seconds: 30 })}
+                  disabled={isLobby || !currentQ}
                   className="px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-xs font-bold text-stone-800 border border-amber-800/30 cursor-pointer"
                   title="Add 30 seconds to clock"
                 >
@@ -818,6 +833,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                   <button
                     key={sec}
                     onClick={() => onHostAction({ actionType: 'reset_timer', seconds: sec })}
+                    disabled={isLobby || !currentQ}
                     className="px-2 py-1 rounded-lg bg-amber-100/70 hover:bg-amber-200 text-[11px] font-bold text-stone-800 border border-amber-800/30 cursor-pointer"
                   >
                     {sec}s
@@ -835,7 +851,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
               <button
                 id="host-prev-question-btn"
                 onClick={() => onHostAction({ actionType: 'prev_question' })}
-                disabled={roomState.currentQuestionIndex === 0}
+                disabled={isLobby || !currentQ || roomState.currentQuestionIndex === 0}
                 className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-2xl bg-amber-100 hover:bg-amber-200 disabled:opacity-40 text-stone-900 font-bold text-xs border border-amber-800/30 transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -846,7 +862,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
               <button
                 id="host-reveal-answer-btn"
                 onClick={() => onHostAction({ actionType: 'reveal_answer' })}
-                disabled={isAnswerRevealed}
+                disabled={isLobby || !currentQ || isAnswerRevealed}
                 className="flex items-center justify-center gap-2 py-3 px-3 rounded-2xl bg-amber-500 text-slate-950 font-black text-xs md:text-sm shadow-[0_4px_0_#92400e] hover:brightness-105 active:translate-y-0.5 active:shadow-none disabled:opacity-50 transition cursor-pointer border-2 border-amber-900"
               >
                 <Eye className="w-4 h-4" />
@@ -865,6 +881,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
                       : '';
                   if (!warning || window.confirm(warning)) onHostAction({ actionType: 'next_question' });
                 }}
+                disabled={isLobby || !currentQ}
                 className="flex items-center justify-center gap-2 py-3 px-3 rounded-2xl bg-emerald-500 text-slate-950 font-black text-xs md:text-sm shadow-[0_4px_0_#065f46] hover:brightness-105 active:translate-y-0.5 active:shadow-none transition cursor-pointer border-2 border-emerald-900"
               >
                 <span>Next Question</span>
@@ -875,6 +892,7 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
               <button
                 id="host-trigger-milestone-btn"
                 onClick={() => onHostAction({ actionType: 'trigger_milestone' })}
+                disabled={isLobby || !currentQ}
                 className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-2xl bg-amber-100 text-amber-950 font-black text-xs border-2 border-amber-800/50 hover:bg-amber-200 transition cursor-pointer shadow-sm"
               >
                 <Trophy className="w-4 h-4 text-amber-600" />
