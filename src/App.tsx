@@ -394,6 +394,7 @@ export default function App() {
     if (!params.has('room')) return 'solo';
     return params.get('role') === 'tv' ? 'tv' : 'landing';
   });
+  const tvReturnRoleRef = useRef<AppRole>('landing');
   const [soloNavigationRequest, setSoloNavigationRequest] = useState<{ target: SoloNavigationTarget; id: number } | null>(null);
   const [progression, setProgression] = useState<SoloProgression>(getInitialSoloProgression());
   const [showFirstTimeAuth, setShowFirstTimeAuth] = useState<boolean>(() => {
@@ -1124,14 +1125,28 @@ export default function App() {
     });
   };
 
-  // Connect as TV screen
+  // Connect as TV screen, remembering whether it was opened from the Quiz Master console.
   const handleConnectTV = (code: string) => {
+    if (role !== 'tv') tvReturnRoleRef.current = role === 'host' ? 'host' : 'landing';
     setIsLoading(true);
     setErrorMessage(null);
     setRoomCode(code);
     setRole('tv');
     if (isFirebaseMultiplayerConfigured) void connectFirebaseRoom(code, 'tv');
     else connectWebSocket(code, 'tv');
+  };
+
+  const handleExitTV = () => {
+    if (tvReturnRoleRef.current === 'host') {
+      tvReturnRoleRef.current = 'landing';
+      shouldReconnectRef.current = true;
+      setRole('host');
+      if (isFirebaseMultiplayerConfigured) void connectFirebaseRoom(roomCode, 'host');
+      else connectWebSocket(roomCode, 'host');
+      return;
+    }
+    tvReturnRoleRef.current = 'landing';
+    handleHomeClick();
   };
 
   // Player submits answer
@@ -1347,7 +1362,7 @@ export default function App() {
         )}
 
         {role === 'tv' && roomState && (
-          <TVDisplay roomState={roomState} onExitTV={handleHomeClick} />
+          <TVDisplay roomState={roomState} onExitTV={handleExitTV} />
         )}
 
         {role === 'host' && roomState && (
@@ -1356,6 +1371,7 @@ export default function App() {
               roomState={roomState}
               onHostAction={handleHostAction}
               onOpenTVView={() => handleConnectTV(roomCode)}
+              onLeaveHost={handleHomeClick}
             />
           </div>
         )}
