@@ -1063,7 +1063,6 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
       return;
     }
 
-    setHasFinishedCampaign(false);
     setIsLoading(true);
     setActiveLevel(null);
     setActiveMap(null);
