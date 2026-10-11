@@ -23,3 +23,23 @@ export const getRequiredFreshTriviaQuestionCount = (
 
   return Math.max(0, count - pictureSlots - specialSlots);
 };
+
+
+/** Normalize a full Solo General Knowledge round to the Medium contract. */
+export const prepareMediumGeneralKnowledgeQuestions = (
+  questions: Question[],
+  count: number,
+): Question[] => {
+  const unique = dedupeSimilarQuestions(questions);
+  if (unique.length < count) {
+    throw new Error(`Expected ${count} distinct General Knowledge questions, received ${unique.length}.`);
+  }
+
+  return unique.slice(0, count).map((question) => ({
+    ...question,
+    category: 'General Knowledge',
+    difficulty: 'medium',
+    points: 15,
+    timeLimitSec: 35,
+  }));
+};

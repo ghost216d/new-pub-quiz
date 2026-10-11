@@ -276,7 +276,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
   const [displayedArtworkUrl, setDisplayedArtworkUrl] = useState(activeArtworkUrl);
   const initialArtworkUrlRef = useRef(activeArtworkUrl);
   const [isInitialArtworkReady, setIsInitialArtworkReady] = useState(false);
-  const [isMapArtworkLoading, setIsMapArtworkLoading] = useState(false);
 
   // Keep the first frame covered until the initial map artwork has decoded.
   useEffect(() => {
@@ -318,10 +317,6 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
     let cancelled = false;
     let cancelPendingArtworkLoad: (() => void) | null = null;
-    const loadingIndicatorTimer = window.setTimeout(() => {
-      if (!cancelled) setIsMapArtworkLoading(true);
-    }, 120);
-
     const loadArtwork = (src: string, timeoutMs: number) => new Promise<boolean>((resolve) => {
       const image = new Image();
       let settled = false;
@@ -368,14 +363,12 @@ export const CartoonMapCanvas: React.FC<Props> = ({
 
       if (cancelled) return;
       if (ready) setDisplayedArtworkUrl(artworkUrl);
-      setIsMapArtworkLoading(false);
     };
 
     void prepareArtwork();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(loadingIndicatorTimer);
       cancelPendingArtworkLoad?.();
     };
   }, [activeArtworkUrl, activeMap.mapArtwork, displayedArtworkUrl]);
@@ -859,7 +852,7 @@ export const CartoonMapCanvas: React.FC<Props> = ({
           decoding="sync"
           style={{ clipPath: `inset(${colourRevealTop}% 0 0 0)` }}
         />
-        {(isMapArtworkLoading || !isInitialArtworkReady) && (
+        {!isInitialArtworkReady && (
           <div className={`game-map-artwork-loader ${isInitialArtworkReady ? '' : 'is-initial'}`} role="status" aria-live="polite">
             <span className="game-map-artwork-loader-spinner" aria-hidden="true" />
             <strong>Loading map artwork</strong>

@@ -8,7 +8,8 @@ import { SOLO_PUB_CLASSICS_QUESTIONS } from '../src/data/pubClassicsQuestions.ts
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../src/data/campaignLevelQuestions.ts';
 import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions, getOnlineTriviaQuestions, isQuestionMastered, markQuestionMastered } from '../src/utils/onlineTrivia.ts';
 import { HINT_COST_BUCKS, purchaseQuestionHint, selectHintDistractors } from '../src/utils/questionHints.ts';
-import { getRequiredFreshTriviaQuestionCount } from '../src/utils/soloQuestionSelection.ts';
+import { getRequiredFreshTriviaQuestionCount, prepareMediumGeneralKnowledgeQuestions } from '../src/utils/soloQuestionSelection.ts';
+import { randomizeQuestionOptions } from '../src/utils/questionQuality.ts';
 
 const storage = new Map();
 globalThis.localStorage = {
@@ -17,6 +18,39 @@ globalThis.localStorage = {
 };
 
 assert.equal(HINT_COST_BUCKS, 50, 'a hint should have a clear Pub Bucks price');
+
+const mediumRound = prepareMediumGeneralKnowledgeQuestions(
+  Array.from({ length: 10 }, (_, index) => ({
+    id: `round_${index}`, roundNumber: 1, category: 'Mixed', prompt: `Fresh question ${index}`,
+    type: 'multiple_choice', options: ['correct', 'wrong 1', 'wrong 2', 'wrong 3'],
+    correctAnswer: 'correct', explanation: 'test', difficulty: 'easy', points: 10, timeLimitSec: 30,
+  })),
+  10,
+);
+assert.equal(mediumRound.length, 10, 'unlimited rounds must contain all ten questions');
+assert.equal(mediumRound.every((question) => question.category === 'General Knowledge'), true,
+  'unlimited rounds should stay on General Knowledge');
+assert.equal(mediumRound.every((question) => question.difficulty === 'medium' && question.points === 15 && question.timeLimitSec === 35), true,
+  'unlimited questions should retain Medium scoring and timing');
+assert.throws(() => prepareMediumGeneralKnowledgeQuestions(mediumRound.slice(0, 2), 10),
+  /Expected 10 distinct General Knowledge questions/,
+  'an exhausted source must not silently launch a short round');
+
+const optionQuestion = {
+  id: 'options', roundNumber: 1, category: 'Test', prompt: 'Option shuffle regression',
+  type: 'multiple_choice', options: ['correct', 'wrong 1', 'wrong 2', 'wrong 3'],
+  correctAnswer: 'correct', explanation: 'test', difficulty: 'medium', points: 15, timeLimitSec: 35,
+};
+const originalRandom = Math.random;
+Math.random = () => 0;
+const shuffledOptionQuestion = randomizeQuestionOptions(optionQuestion);
+Math.random = originalRandom;
+assert.notDeepEqual(shuffledOptionQuestion.options, optionQuestion.options,
+  'the randomizer should actually move answer positions');
+assert.deepEqual(new Set(shuffledOptionQuestion.options), new Set(optionQuestion.options),
+  'shuffling choices must preserve every option');
+assert.equal(shuffledOptionQuestion.options.includes(shuffledOptionQuestion.correctAnswer), true,
+  'shuffling choices must preserve the correct answer');
 const hintOptions = ['Correct answer', 'Wrong one', 'Wrong two', 'Wrong three'];
 const hintDistractors = selectHintDistractors(hintOptions, 'Correct answer');
 assert.equal(hintDistractors.length, 2, 'a hint should remove two wrong answers');

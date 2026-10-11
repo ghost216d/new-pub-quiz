@@ -22,7 +22,8 @@ import { CATEGORY_VAULT, DEFAULT_ROUNDS, SOLO_ANIMAL_QUESTIONS, SOLO_FLAG_QUESTI
 import { SOLO_PUB_CLASSICS_QUESTIONS } from '../data/pubClassicsQuestions';
 import { CAMPAIGN_LEVEL_QUESTIONS } from '../data/campaignLevelQuestions';
 import { normalizeSoloCategory } from '../utils/soloCategories';
-import { getRequiredFreshTriviaQuestionCount } from '../utils/soloQuestionSelection';
+import { getRequiredFreshTriviaQuestionCount, prepareMediumGeneralKnowledgeQuestions } from '../utils/soloQuestionSelection';
+import { randomizeQuestionOptions } from '../utils/questionQuality';
 import {
   CARTOON_MAPS,
   getAllMaps,
@@ -345,9 +346,8 @@ const orderCampaignQuestions = (questions: Question[]): Question[] => {
       difficulty,
       points: difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20,
       timeLimitSec: difficulty === 'easy' ? 30 : difficulty === 'medium' ? 35 : 40,
-      options: question.options ? shuffleItems(question.options) : question.options,
     };
-  });
+  }).map(randomizeQuestionOptions);
 };
 
 const getProceduralBackupQuestions = (): Question[] => Array.from({ length: 400 }, (_, index) => {
@@ -479,14 +479,7 @@ const loadMediumGeneralKnowledgeQuestions = async (count: number): Promise<Quest
     // small curated bank after a few stages.
     candidateMultiplier: 12,
   });
-  const mediumQuestions = questions.map((question) => ({
-    ...question,
-    category: 'General Knowledge',
-    difficulty: 'medium' as const,
-    points: 15,
-    timeLimitSec: 35,
-  }));
-  return mediumQuestions;
+  return prepareMediumGeneralKnowledgeQuestions(questions, count);
 };
 
 const generateMixedOnDeviceQuestions = async (
@@ -1087,6 +1080,45 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
     const isPubClassicsRound = !isUserTopic && category === 'Pub Classics & Beer Lore';
     setDifficulty('medium');
 
+    if (hasFinishedCampaign) {
+      // Unlimited rounds always use a full ten-question General Knowledge set
+      // at Medium scoring and timing, even after the local bank is exhausted.
+      try {
+        setCustomTopicProgress('Loading fresh General Knowledge questions…');
+        let roundQuestions: Question[];
+        try {
+          const onlineQuestions = await loadMediumGeneralKnowledgeQuestions(10);
+          roundQuestions = prepareMediumGeneralKnowledgeQuestions(onlineQuestions, 10);
+        } catch (onlineError) {
+          if (!supportsOnDeviceQuizAI()) throw onlineError;
+          setCustomTopicProgress('Preparing a fresh round on this device…');
+          const generatedQuestions = await generateOnDeviceQuizQuestions({
+            category: 'General Knowledge',
+            count: 10,
+            difficulty: 'easy',
+            roundType: 'trivia',
+            roundNumber: 1,
+            excludedPrompts: getQuestionHistory(),
+            onProgress: (_progress, message) => setCustomTopicProgress(message),
+          });
+          roundQuestions = prepareMediumGeneralKnowledgeQuestions(generatedQuestions, 10);
+        }
+        recordQuestionsAsSeen(roundQuestions.map((question) => question.prompt));
+        const shuffledQuestions = roundQuestions.map(randomizeQuestionOptions);
+        setQuestions(shuffledQuestions);
+        initGame(shuffledQuestions);
+        setCustomTopicError(null);
+        setCustomTopicProgress('');
+        setViewMode('quiz');
+      } catch (error) {
+        console.error('Unlimited General Knowledge round failed.', error);
+        setCustomTopicError('Could not prepare ten fresh General Knowledge questions. Please try again when online or when on-device questions are available.');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     if (isUserTopic) {
       try {
         let generatedQuestions: Question[];
@@ -1412,6 +1444,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
         }
         if (isFinalCampaignLevel) {
           setHasFinishedCampaign(true);
+          setSelectedCategory('General Knowledge');
           setViewMode('custom_setup');
         } else {
           setViewMode('map');
@@ -1649,7 +1682,7 @@ export const SoloQuizView: React.FC<Props> = ({ onBackToHome, onOpenQuizMaster, 
           <Flame className="w-5 h-5 text-orange-500" />
           <div>
             <p className="text-xs font-black uppercase tracking-wider text-amber-950">Automatic challenge</p>
-            <p className="text-[11px] font-bold text-stone-600">Questions alternate between easy and hard throughout every game.</p>
+            <p className="text-[11px] font-bold text-stone-600">{hasFinishedCampaign ? 'General Knowledge at Medium difficulty, with 15 points and 35 seconds per question.' : 'Questions alternate between easy and hard throughout every game.'}</p>
           </div>
         </div>
 
