@@ -1,6 +1,7 @@
 import { Round, CategoryVaultItem, Question } from '../types';
 
 export const CATEGORY_VAULT: CategoryVaultItem[] = [
+  { id: 'general_knowledge', name: 'General Knowledge', icon: '✨', description: 'Approachable trivia across everyday topics', color: '#0EA5E9' },
   { id: 'pub_classics', name: 'Pub Classics & Beer Lore', icon: '🍺', description: 'Traditional pub trivia, brews, and bar games', color: '#F59E0B' },
   { id: 'picture_rebus', name: 'Emoji Picture Puzzles', icon: '🧩', description: 'Colourful rebuses, visual clues, and picture puzzles', color: '#EC4899' },
   { id: 'photo_round', name: 'Photo Round: World Landmarks', icon: '📸', description: 'Identify famous places from full-colour photographs', color: '#8B5CF6' },

@@ -18,6 +18,8 @@ globalThis.localStorage = {
 };
 
 assert.equal(HINT_COST_BUCKS, 50, 'a hint should have a clear Pub Bucks price');
+assert.equal(CATEGORY_VAULT[0].name, 'General Knowledge',
+  'Solo should open with the requested General Knowledge category');
 
 const mediumRound = prepareMediumGeneralKnowledgeQuestions(
   Array.from({ length: 10 }, (_, index) => ({
