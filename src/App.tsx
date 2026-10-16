@@ -3,8 +3,8 @@ import { Home, ShoppingBag, Map, Zap, UserRound, Play } from 'lucide-react';
 import { RoomState, WSMessage, HostActionPayload, Team } from './types';
 import { DEFAULT_ROUNDS } from './data/defaultQuestions';
 import { CAMPAIGN_LEVEL_QUESTIONS } from './data/campaignLevelQuestions';
+import { buildQuizMasterRounds } from './utils/quizMasterRounds';
 import { randomizeQuestionOptions } from './utils/questionQuality';
-import { chooseUnseenFallbackQuestions, dedupeSimilarQuestions } from './utils/onlineTrivia';
 import { answerMatchesQuestion, awardCurrentAnswers } from './utils/answerGrading';
 import { createPresetTeams, TEAM_AVATARS, TEAM_COLORS } from './data/teamPresets';
 import { Header } from './components/Header';
@@ -36,43 +36,7 @@ const HOST_SESSION_KEY = 'pubquiz_active_host_room_v1';
 const HOST_SESSION_MODE_KEY = 'pubquiz_active_host_mode_v1';
 type SoloNavigationTarget = 'map' | 'shop' | 'quiz';
 
-const quizMasterRounds = () => {
-  const templates = DEFAULT_ROUNDS.filter((round) => round.type !== 'music');
-  const sourceQuestions = dedupeSimilarQuestions([
-    ...templates.flatMap((round) => round.questions),
-    ...Object.values(CAMPAIGN_LEVEL_QUESTIONS).flat(),
-  ]);
-  const triviaPool = sourceQuestions.filter((question) =>
-    !question.musicData && !question.pictureClue && !question.imageUrl,
-  );
-  const visualPool = sourceQuestions.filter((question) =>
-    Boolean(question.pictureClue || question.imageUrl),
-  );
-
-  return templates
-    .map((round, index) => {
-      const pool = round.type === 'picture' ? visualPool : triviaPool;
-      let selected: typeof pool = [];
-      try {
-        selected = chooseUnseenFallbackQuestions(pool, round.questions.length);
-      } catch {
-        // If a bank is exhausted, keep the remaining rounds playable with
-        // the distinct questions still available in that question type.
-      }
-
-      return {
-        ...round,
-        roundNumber: index + 1,
-        title: round.title.replace(/^Round\s+\d+\s*:\s*/i, `Round ${index + 1}: `),
-        questions: selected.map((question) => ({
-          ...randomizeQuestionOptions(question),
-          roundNumber: index + 1,
-          musicData: undefined,
-        })),
-      };
-    })
-    .filter((round) => round.questions.length > 0);
-};
+const quizMasterRounds = () => buildQuizMasterRounds(DEFAULT_ROUNDS, Object.values(CAMPAIGN_LEVEL_QUESTIONS).flat());
 
 const removeMusicFromRoom = (source: RoomState): RoomState => {
   const room = structuredClone(source);
@@ -139,10 +103,21 @@ const applyLocalHostAction = (current: RoomState, action: HostActionPayload): Ro
       room.isTimerRunning = false;
       break;
     case 'start_round':
-      if (room.rounds[action.roundIndex]) {
-        room.currentRoundIndex = action.roundIndex;
-        room.currentQuestionIndex = 0;
-        resetQuestionState(room);
+      if (!room.rounds.some((round) => round.questions.length > 0)) {
+        // Repair older or partially saved lobbies whose question list was
+        // emptied by Solo Quest history or an interrupted sync.
+        room.rounds = quizMasterRounds();
+      }
+      {
+        const firstPlayableRoundIndex = room.rounds.findIndex((round) => round.questions.length > 0);
+        const requestedRoundIndex = room.rounds[action.roundIndex]?.questions.length
+          ? action.roundIndex
+          : firstPlayableRoundIndex;
+        if (requestedRoundIndex >= 0) {
+          room.currentRoundIndex = requestedRoundIndex;
+          room.currentQuestionIndex = 0;
+          resetQuestionState(room);
+        }
       }
       break;
     case 'next_round':
@@ -1204,7 +1179,7 @@ export default function App() {
       setRoomState((current) => {
         if (!current) return current;
         const next = applyLocalHostAction(current, action);
-        if (['reveal_answer', 'next_question', 'next_round', 'grade_answer', 'adjust_score'].includes(action.actionType)) {
+        if (['start_round', 'load_questions', 'reveal_answer', 'next_question', 'next_round', 'grade_answer', 'adjust_score'].includes(action.actionType)) {
           void publishFirebaseRoom(next).catch((error) => {
             console.error('Unable to save the updated scores:', error);
             setConnectionStatus('reconnecting');

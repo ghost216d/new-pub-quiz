@@ -12,6 +12,7 @@
     "lint": "tsc --noEmit",
     "test:multiplayer": "npm run build && node tests/multiplayer-smoke.mjs",
     "test:questions": "node --import tsx tests/question-repeat-regression.mjs",
+    "test:quiz-master-bank": "node --import tsx tests/quiz-master-question-bank-regression.mjs",
     "test:ai-questions": "node --import tsx tests/on-device-ai-regression.mjs",
     "test:daily-reward": "node --import tsx tests/daily-reward-regression.mjs"
   },
