@@ -100,6 +100,28 @@ try {
   const revealedState = await timedReveal;
   assert.ok(revealedState.rounds[0].questions[0].correctAnswer, 'timer expiry should reveal the correct answer to players');
 
+  const finalRoundIndex = revealedState.rounds.length - 1;
+  const finalQuestionIndex = revealedState.rounds[finalRoundIndex].questions.length - 1;
+  const atFinalQuestion = waitForState(playerOne.ws, (state) =>
+    state.currentRoundIndex === finalRoundIndex &&
+    state.currentQuestionIndex === finalQuestionIndex &&
+    state.status === 'question',
+  );
+  host.ws.send(JSON.stringify({
+    type: 'host_action',
+    roomCode: created.roomCode,
+    action: { actionType: 'jump_to_question', roundIndex: finalRoundIndex, questionIndex: finalQuestionIndex },
+  }));
+  await atFinalQuestion;
+
+  const gameEnded = waitForState(playerOne.ws, (state) => state.status === 'game_over');
+  host.ws.send(JSON.stringify({
+    type: 'host_action',
+    roomCode: created.roomCode,
+    action: { actionType: 'next_question' },
+  }));
+  await gameEnded;
+
   console.log('Multiplayer smoke test passed.');
 } finally {
   sockets.forEach((socket) => socket.close());
