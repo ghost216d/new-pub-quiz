@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Check, Send, Music, Clock, Sparkles, Trophy, Disc3, Radio, Skull, Flame, Crown } from 'lucide-react';
 import { RoomState, Team } from '../types';
-import { answerMatchesQuestion } from '../utils/answerGrading';
+import { answerMatchesQuestion, revealedAnswerIsCorrect } from '../utils/answerGrading';
+import { resolveQuizAssetUrl } from '../utils/quizAssetUrl';
 import { RoundTransitionScreen } from './RoundTransitionScreen';
+import { QuizCompleteScreen } from './QuizCompleteScreen';
 import { audioSynth } from '../utils/audioSynth';
 import { CartoonBeerStein, CartoonPopBurst, CartoonTrophy } from './CartoonIllustrations';
 
@@ -42,11 +44,13 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
 
   const isMusic = currentRound?.type === 'music' || !!currentQ?.musicData;
   const isAnswerRevealed = roomState.status === 'answer_reveal';
-  const isCorrect = submission
-    ? submission.manuallyGraded
-      ? !!submission.isCorrect
-      : answerMatchesQuestion(submission.answer, currentQ)
-    : false;
+  const isCorrect = isAnswerRevealed
+    ? revealedAnswerIsCorrect(submission, currentQ)
+    : submission
+      ? submission.manuallyGraded
+        ? !!submission.isCorrect
+        : answerMatchesQuestion(submission.answer, currentQ)
+      : false;
   const isKnockout = !!roomState.settings.knockoutMode;
   const isEliminated = !!team?.isEliminated;
 
@@ -151,6 +155,10 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
         </p>
       </div>
     );
+  }
+
+  if (roomState.status === 'game_over') {
+    return <QuizCompleteScreen roomState={roomState} audience="player" myTeamId={myTeamId} />;
   }
 
   // Round Transition Screen on Mobile
@@ -286,7 +294,7 @@ export const PlayerMobileView: React.FC<Props> = ({ roomState, myTeamId, onSubmi
         {(currentQ?.imageUrl || currentQ?.musicData?.cluePictures?.[0]) && (
           <div className="rounded-2xl overflow-hidden border-3 border-amber-800/40 max-h-44 shadow-md">
             <img
-              src={currentQ.imageUrl || currentQ.musicData?.cluePictures?.[0]}
+              src={resolveQuizAssetUrl(currentQ.imageUrl || currentQ.musicData?.cluePictures?.[0] || '')}
               alt="Clue"
               className="w-full h-40 object-cover"
             />

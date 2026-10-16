@@ -1,4 +1,4 @@
-import { Question, RoomState } from '../types';
+import { Question, RoomState, TeamAnswerSubmission } from '../types';
 
 const normalizeAnswer = (answer: string): string =>
   String(answer ?? '')
@@ -16,6 +16,16 @@ export const answerMatchesQuestion = (
   if (!normalizedAnswer) return false;
   return [question.correctAnswer, ...(question.acceptableAnswers || [])]
     .some((accepted) => normalizeAnswer(accepted) === normalizedAnswer);
+};
+
+/** Use the released grading result once the host reveals an answer. */
+export const revealedAnswerIsCorrect = (
+  submission: Pick<TeamAnswerSubmission, 'answer' | 'isCorrect'> | null | undefined,
+  question?: Pick<Question, 'correctAnswer' | 'acceptableAnswers'> | null,
+): boolean => {
+  if (!submission) return false;
+  if (typeof submission.isCorrect === 'boolean') return submission.isCorrect;
+  return answerMatchesQuestion(submission.answer, question);
 };
 
 export const awardCurrentAnswers = (room: RoomState): void => {

@@ -53,6 +53,7 @@ import { TEAM_AVATARS, PUB_LEGEND_TEAM_NAMES } from '../data/teamPresets';
 import { RoomJoinQR } from './RoomJoinQR';
 import { generateOnDeviceQuizQuestions, supportsOnDeviceQuizAI } from '../utils/onDeviceQuizAI';
 import { questionHasBeenUsed, randomizeQuestionOptions } from '../utils/questionQuality';
+import { QuizCompleteScreen } from './QuizCompleteScreen';
 
 interface Props {
   roomState: RoomState;
@@ -226,6 +227,10 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
   const isAnswerRevealed = roomState.status === 'answer_reveal';
   const isMusic = currentRound?.type === 'music' || !!currentQ?.musicData;
   const isRoundTransition = roomState.status === 'round_transition';
+
+  if (roomState.status === 'game_over') {
+    return <QuizCompleteScreen roomState={roomState} audience="host" onExit={onLeaveHost} />;
+  }
 
   return (
     <div className="host-console-shell space-y-6 text-stone-900 font-comic">
