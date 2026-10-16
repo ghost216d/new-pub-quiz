@@ -266,12 +266,11 @@ export const HostControls: React.FC<Props> = ({ roomState, onHostAction, onOpenT
             <button
               id="host-start-quiz-btn"
               onClick={() => onHostAction({ actionType: 'start_round', roundIndex: firstPlayableRoundIndex })}
-              disabled={firstPlayableRoundIndex < 0}
-              title={firstPlayableRoundIndex < 0 ? 'Add quiz questions before starting.' : undefined}
+              title={firstPlayableRoundIndex < 0 ? 'Reload the bundled quiz questions and start.' : undefined}
               className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2.5 text-xs md:text-sm font-black text-white shadow-[0_4px_0_#065f46] hover:bg-emerald-500 active:translate-y-1 active:shadow-none transition-all cursor-pointer border-2 border-emerald-900"
             >
               <Play className="w-4 h-4" />
-              <span>{firstPlayableRoundIndex < 0 ? 'Questions Needed' : 'Start Quiz'}</span>
+              <span>{firstPlayableRoundIndex < 0 ? 'Reload & Start' : 'Start Quiz'}</span>
             </button>
           )}
           <div className="hidden sm:flex items-center gap-2 rounded-2xl border-2 border-amber-800/40 bg-white p-1.5">
