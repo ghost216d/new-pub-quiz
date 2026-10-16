@@ -7,6 +7,8 @@ import { KnockoutWinnerScreen } from './KnockoutWinnerScreen';
 import { audioSynth } from '../utils/audioSynth';
 import { BGMController } from './BGMController';
 import { RoomJoinQR } from './RoomJoinQR';
+import { QuizCompleteScreen } from './QuizCompleteScreen';
+import { resolveQuizAssetUrl } from '../utils/quizAssetUrl';
 
 interface Props {
   roomState: RoomState;
@@ -37,6 +39,10 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
         <KnockoutWinnerScreen roomState={roomState} />
       </div>
     );
+  }
+
+  if (roomState.status === 'game_over') {
+    return <QuizCompleteScreen roomState={roomState} audience="tv" onExit={onExitTV} />;
   }
 
   // If Round Transition is active, show the TV Round Splash Screen!
@@ -242,11 +248,11 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
                 <div className="mt-6 p-4 rounded-2xl bg-amber-50 border-2 border-amber-800/30 flex flex-col md:flex-row items-center gap-6">
                   <div className="relative rounded-2xl overflow-hidden border-3 border-amber-800 max-h-64 shadow-xl">
                     <img
-                      src={
+                      src={resolveQuizAssetUrl(
                         currentQ.imageUrl ||
                         currentQ.musicData?.cluePictures?.[activeClueIndex] ||
                         ''
-                      }
+                      )}
                       alt="Round Clue"
                       className="object-cover max-h-60 rounded-xl"
                     />
@@ -353,12 +359,12 @@ export const TVDisplay: React.FC<Props> = ({ roomState, onExitTV }) => {
               </div>
 
               {/* Reveal Explanation Banner */}
-              {roomState.status === 'answer_reveal' && currentQ?.explanation && (
+              {roomState.status === 'answer_reveal' && currentQ && (
                 <div className="mt-6 p-4 md:p-5 rounded-2xl bg-amber-100 border-2 border-amber-800 text-amber-950 text-sm md:text-base font-semibold flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
                   <CheckCircle2 className="w-6 h-6 text-amber-700 shrink-0" />
                   <div>
                     <strong className="text-stone-900">Correct Answer: {currentQ.correctAnswer}</strong>
-                    <p className="text-xs md:text-sm text-stone-700 mt-0.5">{currentQ.explanation}</p>
+                    {currentQ.explanation && <p className="text-xs md:text-sm text-stone-700 mt-0.5">{currentQ.explanation}</p>}
                   </div>
                 </div>
               )}
