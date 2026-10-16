@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "test:multiplayer": "npm run build && node tests/multiplayer-smoke.mjs",
+    "test:answer-feedback": "node --import tsx tests/answer-feedback-regression.mjs",
     "test:questions": "node --import tsx tests/question-repeat-regression.mjs",
     "test:quiz-master-bank": "node --import tsx tests/quiz-master-question-bank-regression.mjs",
     "test:ai-questions": "node --import tsx tests/on-device-ai-regression.mjs",
